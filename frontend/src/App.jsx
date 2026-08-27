@@ -90,13 +90,13 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={session ? <Navigate to="/choice" replace /> : <LandingPage />} />
-        <Route path="/login" element={session ? <Navigate to="/choice" replace /> : <Login />} />
+        <Route path="/" element={session ? <Navigate to="/tools" replace /> : <LandingPage />} />
+        <Route path="/login" element={session ? <Navigate to="/tools" replace /> : <Login />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         
         <Route 
-          path="/choice" 
+          path="/tools" 
           element={
             <ProtectedRoute session={session}>
               <ToolChoice />
