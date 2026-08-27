@@ -1,20 +1,31 @@
 import React, { useState } from 'react';
-import { UploadCloud, MessageSquare, Loader2, BarChart2 } from 'lucide-react';
+import { UploadCloud, MessageSquare, Loader2, BarChart2, CheckCircle2, X, ArrowLeft } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import DataEditor from './DataEditor';
+import ReactMarkdown from 'react-markdown';
 
-const COLORS = ['#ff90e8', '#ffc900', '#23a094', '#fff0d4', '#ffffff'];
+const COLORS = ['#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#14b8a6'];
 
 export default function DataDashboard() {
   const [csvContent, setCsvContent] = useState('');
+  const [fileName, setFileName] = useState('');
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
+  const clearFile = () => {
+    setCsvContent('');
+    setFileName('');
+    setResult(null);
+    setQuery('');
+  };
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    setFileName(file.name);
     const extension = file.name.split('.').pop().toLowerCase();
     const reader = new FileReader();
 
@@ -45,17 +56,12 @@ export default function DataDashboard() {
     }
   };
 
-  const handleQuerySubmit = async (e) => {
-    e.preventDefault();
-    if (!csvContent) {
-      setError('Please upload a CSV file first.');
-      return;
-    }
-    if (!query) {
-      setError('Please ask a question.');
-      return;
-    }
+  const handleReanalyze = async (newCsvContent) => {
+    setCsvContent(newCsvContent);
+    await analyzeData(newCsvContent, query);
+  };
 
+  const analyzeData = async (dataToAnalyze, queryToUse) => {
     setLoading(true);
     setError(null);
     setResult(null);
@@ -64,7 +70,7 @@ export default function DataDashboard() {
       const response = await fetch('http://localhost:5000/api/data/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ csvContent, query }),
+        body: JSON.stringify({ csvContent: dataToAnalyze, query: queryToUse }),
       });
 
       const data = await response.json();
@@ -80,76 +86,45 @@ export default function DataDashboard() {
     }
   };
 
-  return (
-    <div className="max-w-5xl mx-auto p-6 mt-10">
-      <div className="bg-bg-base border-4 border-black p-8 shadow-[8px_8px_0_0_#000]">
-        <h2 className="text-4xl font-black text-black mb-2 uppercase tracking-tight">AI Data Agent</h2>
-        <p className="text-black font-bold mb-8 border-b-4 border-black pb-4">Upload a CSV or Excel file and let the AI generate a dashboard.</p>
+  const handleQuerySubmit = async (e) => {
+    e.preventDefault();
+    if (!csvContent) {
+      setError('Please upload a CSV file first.');
+      return;
+    }
+    await analyzeData(csvContent, query);
+  };
 
-        <div className="mb-8 p-6 bg-white border-4 border-black text-center hover:-translate-y-1 hover:shadow-[6px_6px_0_0_#000] transition-all cursor-pointer relative">
-          <UploadCloud className="mx-auto h-12 w-12 text-black mb-4" />
-          <div className="flex text-lg font-black text-black justify-center uppercase">
-            <label className="relative cursor-pointer">
-              <span className="bg-primary border-2 border-black px-4 py-2 hover:bg-secondary transition-colors inline-block">Select a file</span>
-              <input type="file" className="sr-only" accept=".csv, .xlsx, .xls" onChange={handleFileUpload} />
-            </label>
+  // FULL SCREEN DASHBOARD VIEW
+  if (result && typeof result.answer === 'object' && !result.answer.error) {
+    return (
+      <div className="min-h-screen font-sans bg-slate-50 p-6">
+        
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Data Dashboard</h2>
+            <p className="text-slate-500 mt-1">Generated from {fileName}</p>
           </div>
-          <p className="text-sm font-bold text-gray-700 mt-4">CSV, XLSX, XLS up to 10MB</p>
-          {csvContent && (
-            <div className="absolute top-4 right-4 bg-accent text-white border-2 border-black px-3 py-1 font-black uppercase text-sm shadow-[2px_2px_0_0_#000] rotate-[3deg]">
-              ✓ Uploaded
-            </div>
-          )}
+          <button 
+            onClick={() => setResult(null)}
+            className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl shadow-sm hover:bg-slate-50 transition-colors text-sm font-semibold"
+          >
+            <ArrowLeft size={16} />
+            Start Over
+          </button>
         </div>
 
-        <form onSubmit={handleQuerySubmit} className="space-y-6">
-          <div>
-            <label className="block text-lg font-black text-black mb-2 uppercase">Ask a question about your data</label>
-            <div className="relative">
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="e.g. Give me a dashboard showing the top 5 items and a breakdown of stock by category."
-                className="w-full px-4 py-4 pl-12 border-4 border-black font-bold text-black focus:outline-none focus:ring-0 shadow-[4px_4px_0_0_#000] focus:translate-x-[2px] focus:translate-y-[2px] focus:shadow-[2px_2px_0_0_#000] transition-all"
-              />
-              <BarChart2 className="absolute left-4 top-4 h-6 w-6 text-black" strokeWidth={3} />
-            </div>
-          </div>
-
-          {error && (
-            <div className="bg-white border-4 border-black p-4 text-red-600 font-black shadow-[4px_4px_0_0_#000]">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading || !csvContent}
-            className="w-full bg-black text-white text-xl font-black uppercase py-4 px-4 border-4 border-transparent hover:border-black hover:bg-white hover:text-black transition-all flex items-center justify-center disabled:opacity-50 shadow-[6px_6px_0_0_rgba(0,0,0,0.3)] hover:shadow-none"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="animate-spin mr-3" size={24} />
-                Building Dashboard...
-              </>
-            ) : (
-              'Generate Statistical Dashboard'
-            )}
-          </button>
-        </form>
-
-        {result && typeof result.answer === 'object' && !result.answer.error ? (
-          <div className="mt-16 space-y-12">
-            <h3 className="text-4xl font-black text-black border-b-8 border-black pb-4 uppercase tracking-tight">Your Dashboard</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full">
+          {/* Left Panel: Dashboard (70%) */}
+          <div className="lg:col-span-2 space-y-10 overflow-y-auto pr-2 h-[85vh] pb-20 custom-scrollbar">
             
             {/* Metrics */}
             {result.answer.metrics && result.answer.metrics.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {result.answer.metrics.map((metric, i) => (
-                  <div key={i} className="bg-white border-4 border-black p-6 shadow-[8px_8px_0_0_#000] hover:-translate-y-2 hover:shadow-[12px_12px_0_0_#000] transition-all">
-                    <p className="text-sm font-black text-gray-600 uppercase tracking-widest">{metric.label}</p>
-                    <p className="text-4xl font-black text-black mt-3">{metric.value}</p>
+                  <div key={i} className="bg-white border border-slate-100 p-6 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-md transition-all group">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 group-hover:text-blue-500 transition-colors">{metric.label}</p>
+                    <p className="text-2xl lg:text-3xl font-extrabold text-slate-900 break-words">{metric.value}</p>
                   </div>
                 ))}
               </div>
@@ -159,11 +134,11 @@ export default function DataDashboard() {
             {result.answer.charts && result.answer.charts.length > 0 && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {result.answer.charts.map((chart, i) => (
-                  <div key={i} className="bg-white border-4 border-black p-6 shadow-[8px_8px_0_0_#000]">
-                    <h4 className="text-xl font-black text-black uppercase mb-6 bg-secondary inline-block px-3 py-1 border-2 border-black shadow-[2px_2px_0_0_#000] rotate-[-1deg]">
+                  <div key={i} className="bg-white border border-slate-100 p-8 rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-md transition-shadow">
+                    <h4 className="text-lg font-bold text-slate-800 mb-8 border-l-4 border-blue-500 pl-4">
                       {chart.title}
                     </h4>
-                    <div className="h-80 w-full mt-4">
+                    <div className="h-80 w-full">
                       <ResponsiveContainer width="100%" height="100%">
                         {chart.type === 'pie' ? (
                           <PieChart>
@@ -171,26 +146,31 @@ export default function DataDashboard() {
                               data={chart.data}
                               cx="50%"
                               cy="50%"
-                              outerRadius={100}
+                              innerRadius={80}
+                              outerRadius={110}
+                              paddingAngle={5}
                               dataKey="value"
                               nameKey="name"
-                              label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
-                              labelLine={{ stroke: '#000', strokeWidth: 2 }}
-                              stroke="#000"
-                              strokeWidth={3}
+                              stroke="none"
                             >
                               {chart.data.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                               ))}
                             </Pie>
-                            <Tooltip contentStyle={{ border: '4px solid black', borderRadius: 0, boxShadow: '6px 6px 0 0 #000', fontWeight: '900', backgroundColor: '#fff' }} />
+                            <Tooltip 
+                              contentStyle={{ borderRadius: '16px', border: 'none', backgroundColor: '#fff', fontSize: '13px', fontWeight: '600', color: '#1e293b', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' }}
+                              itemStyle={{ color: '#0f172a' }}
+                            />
                           </PieChart>
                         ) : (
-                          <BarChart data={chart.data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                            <XAxis dataKey="name" stroke="#000" tick={{fill: '#000', fontWeight: '900'}} axisLine={{ strokeWidth: 3 }} tickLine={{ strokeWidth: 3 }} />
-                            <YAxis stroke="#000" tick={{fill: '#000', fontWeight: '900'}} axisLine={{ strokeWidth: 3 }} tickLine={{ strokeWidth: 3 }} />
-                            <Tooltip cursor={{fill: '#fff0d4'}} contentStyle={{ border: '4px solid black', borderRadius: 0, boxShadow: '6px 6px 0 0 #000', fontWeight: '900', backgroundColor: '#fff' }} />
-                            <Bar dataKey="value" fill="#ff90e8" stroke="#000" strokeWidth={3} />
+                          <BarChart data={chart.data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} fontFamily="inherit" tickLine={false} axisLine={false} dy={10} />
+                            <YAxis stroke="#94a3b8" fontSize={12} fontFamily="inherit" tickLine={false} axisLine={false} dx={-10} />
+                            <Tooltip 
+                              cursor={{ fill: '#f8fafc' }} 
+                              contentStyle={{ borderRadius: '16px', border: 'none', backgroundColor: '#fff', fontSize: '13px', fontWeight: '600', color: '#1e293b', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' }}
+                            />
+                            <Bar dataKey="value" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={48} />
                           </BarChart>
                         )}
                       </ResponsiveContainer>
@@ -202,25 +182,156 @@ export default function DataDashboard() {
 
             {/* Insights */}
             {result.answer.insights && (
-              <div className="bg-accent border-4 border-black p-8 shadow-[10px_10px_0_0_#000]">
-                <div className="flex items-center gap-3 mb-6 text-white font-black uppercase text-2xl">
-                  <div className="bg-black p-2"><MessageSquare size={28} className="text-white" /></div>
-                  <span>AI Insights & Recommendations</span>
-                </div>
-                <div className="bg-white p-6 border-4 border-black font-bold text-black text-lg leading-relaxed whitespace-pre-wrap shadow-[6px_6px_0_0_#000]">
-                  {result.answer.insights}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 p-8 md:p-10 rounded-[2rem] shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/40 rounded-full blur-3xl" />
+                
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="p-3 bg-white text-blue-600 rounded-2xl shadow-sm border border-blue-100">
+                      <MessageSquare size={24} />
+                    </div>
+                    <h4 className="text-xl font-bold text-slate-900">AI Insights & Analysis</h4>
+                  </div>
+                  <div className="text-slate-700 text-base leading-relaxed font-medium [&>h1]:text-xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:mb-3 [&>h2]:mt-6 [&>p]:mb-4 [&>ul]:list-disc [&>ul]:ml-6 [&>ul]:mb-4 [&>ol]:list-decimal [&>ol]:ml-6 [&>ol]:mb-4 [&>li]:mb-1 [&>strong]:text-slate-900">
+                    <ReactMarkdown>{result.answer.insights}</ReactMarkdown>
+                  </div>
                 </div>
               </div>
             )}
           </div>
-        ) : result && (
-          <div className="mt-16 space-y-6">
-            <h3 className="text-3xl font-black text-black border-b-4 border-black pb-4 uppercase">Raw Output</h3>
-            <div className="bg-white p-6 border-4 border-black font-bold text-black text-lg leading-relaxed whitespace-pre-wrap shadow-[8px_8px_0_0_#000]">
-              {typeof result.answer === 'string' ? result.answer : JSON.stringify(result.answer, null, 2)}
-            </div>
+          
+          {/* Right Panel: Data Editor (30%) */}
+          <div className="lg:col-span-1 h-[85vh]">
+            <DataEditor 
+              initialCsvContent={csvContent} 
+              onReanalyze={handleReanalyze} 
+            />
           </div>
-        )}
+
+        </div>
+      </div>
+    );
+  }
+
+  // Raw Error output if JSON parsing failed
+  if (result) {
+    return (
+      <div className="min-h-screen font-sans bg-slate-50 py-10 px-4 sm:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-extrabold text-slate-900">Analysis Results</h2>
+            <button onClick={() => setResult(null)} className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl shadow-sm hover:bg-slate-50 transition-colors text-sm font-semibold"><ArrowLeft size={16} /> Start Over</button>
+          </div>
+          <div className="bg-white border border-slate-200 p-8 rounded-3xl text-slate-600 text-sm font-mono overflow-auto shadow-sm">
+            {typeof result.answer === 'string' ? result.answer : JSON.stringify(result.answer, null, 2)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // MAIN UPLOAD FORM VIEW
+  return (
+    <div className="min-h-screen font-sans bg-slate-50 py-12 px-4 sm:px-6 relative overflow-hidden">
+      
+      {/* Background Ambient Glows */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-200/50 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-200/50 rounded-full blur-[120px] pointer-events-none" />
+
+      {/* Main Glass Card */}
+      <div className="relative max-w-4xl mx-auto w-full rounded-[2.5rem] bg-white/80 backdrop-blur-2xl p-8 md:p-14 shadow-[0_8px_40px_rgb(0,0,0,0.04)] border border-white">
+        
+        {/* Subtle light grid pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{
+            backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 40px, #000 40px, #000 41px), repeating-linear-gradient(90deg, transparent, transparent 40px, #000 40px, #000 41px)`
+          }}
+        />
+
+        <div className="relative z-10">
+          
+          <div className="mb-12 text-center">
+            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full mb-6 border border-blue-100 shadow-sm">
+              <BarChart2 size={16} />
+              AI Data Agent
+            </div>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-5 tracking-tight">Data Intelligence</h2>
+            <p className="text-slate-500 max-w-xl mx-auto text-lg leading-relaxed">Upload an Excel or CSV file. We'll instantly analyze the entire dataset and build a comprehensive dashboard for you.</p>
+          </div>
+
+          {/* Upload Box */}
+          {csvContent && fileName ? (
+            <div className="mb-10 p-6 bg-white border border-blue-100 rounded-2xl flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="bg-green-50 text-green-600 p-3 rounded-xl">
+                  <CheckCircle2 size={24} />
+                </div>
+                <div>
+                  <p className="text-slate-900 font-semibold text-sm">{fileName}</p>
+                  <p className="text-slate-500 text-xs mt-0.5">Ready for analysis</p>
+                </div>
+              </div>
+              <button 
+                onClick={(e) => { e.preventDefault(); clearFile(); }}
+                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                title="Remove file"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          ) : (
+            <label className="block mb-10 p-10 bg-white/50 border border-dashed border-blue-200 rounded-3xl text-center hover:bg-white hover:border-blue-400 hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300 cursor-pointer relative group w-full">
+              <UploadCloud className="mx-auto h-12 w-12 text-slate-300 mb-5 group-hover:text-blue-500 transition-colors duration-300" />
+              <div className="flex justify-center mb-3">
+                <span className="bg-white border border-slate-200 text-slate-700 text-sm font-semibold px-6 py-3 rounded-xl shadow-sm group-hover:bg-slate-50 group-hover:text-blue-600 transition-colors inline-block">
+                  Browse files
+                </span>
+                <input type="file" className="sr-only" accept=".csv, .xlsx, .xls" onChange={handleFileUpload} />
+              </div>
+              <p className="text-xs text-slate-400 mt-2 font-medium">Supports .csv, .xlsx up to 10MB</p>
+            </label>
+          )}
+
+          <form onSubmit={handleQuerySubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-3">Specific requirements? (Optional)</label>
+              <div className="relative group">
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="e.g. Show me a breakdown of revenue by product category"
+                  className="w-full px-5 py-4 pl-14 rounded-2xl border border-slate-200 text-slate-900 text-base bg-white focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm group-hover:border-blue-300 placeholder:text-slate-400"
+                />
+                <BarChart2 className="absolute left-5 top-4 h-6 w-6 text-slate-400 group-hover:text-blue-500 transition-colors" />
+              </div>
+              <p className="text-xs text-slate-400 mt-2 ml-1">If left blank, the AI will automatically find the most important trends for you.</p>
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-100 text-red-600 text-sm font-medium px-5 py-4 rounded-2xl flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-red-500" />
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading || !csvContent}
+              className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-lg py-4 px-4 rounded-2xl transition-all duration-300 flex items-center justify-center shadow-lg shadow-blue-600/20 hover:shadow-xl hover:shadow-blue-600/30 disabled:shadow-none disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin mr-3" size={22} />
+                  Analyzing entire dataset...
+                </>
+              ) : (
+                'Generate Full Dashboard'
+              )}
+            </button>
+          </form>
+
+        </div>
       </div>
     </div>
   );
