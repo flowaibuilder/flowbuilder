@@ -26,8 +26,8 @@ function AIBuilderContainer() {
       {!websiteSpec ? (
         <div className="pt-20 px-4">
           <div className="max-w-2xl mx-auto text-center mb-10">
-            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">
-              FLOW <span className="text-primary">AI Builder</span>
+            <h1 className="text-4xl font-light text-white tracking-tight sm:text-5xl uppercase">
+              Website <span className="font-bold" style={{ color: '#d4f000' }}>Builder</span>
             </h1>
           </div>
           <Questionnaire onWebsiteGenerated={handleWebsiteGenerated} />
@@ -41,16 +41,17 @@ function AIBuilderContainer() {
 
 function AuthenticatedLayout({ children }) {
   return (
-    <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm sticky top-0 z-50">
-        <Link to="/" className="text-2xl font-normal text-gray-900" style={{fontFamily: "'Pacifico', cursive"}}>
+    <div className="min-h-screen flex flex-col font-sans" style={{ background: '#080808' }}>
+      <nav className="bg-[#080808] border-b border-white/10 px-8 py-6 flex justify-between items-center sticky top-0 z-50">
+        <Link to="/tools" className="text-2xl font-normal text-white" style={{fontFamily: "'Pacifico', cursive"}}>
           flow
         </Link>
-        <div className="flex space-x-4 items-center bg-gray-100 p-1 rounded-lg">
-          <Link to="/aibuilder" className="px-4 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-sm">Website Builder</Link>
-          <Link to="/aidashboardbuilder" className="px-4 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-sm">Data Agent</Link>
+        <div className="flex space-x-4 items-center p-1">
           <button 
-            onClick={() => supabase.auth.signOut()}
+            onClick={async () => {
+              await supabase.auth.signOut();
+              window.location.href = '/';
+            }}
             className="px-4 py-1.5 rounded-md text-sm font-medium transition-colors text-red-500 hover:text-red-700 hover:bg-red-50"
           >
             Sign Out

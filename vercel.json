@@ -23,8 +23,8 @@
       "destination": "/frontend/assets/$1"
     },
     {
-      "source": "/favicon.svg",
-      "destination": "/frontend/favicon.svg"
+      "source": "/(favicon.*|apple-touch-icon.*|site\\.webmanifest|web-app-manifest-.*)",
+      "destination": "/frontend/$1"
     },
     {
       "source": "/(.*)",
