@@ -1,9 +1,11 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
 export default function ProtectedRoute({ session, children }) {
+  const location = useLocation();
+
   if (!session) {
-    // Redirect them to the /login page, but save the current location they were trying to go to
-    return <Navigate to="/login" replace />;
+    // Pass the current location as state so Login can redirect back after auth
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return children;
