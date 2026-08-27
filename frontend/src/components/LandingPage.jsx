@@ -35,15 +35,12 @@ export default function LandingPage() {
           flow
         </Link>
         <div className="flex items-center gap-4">
-          <Link to="/login" className="text-white/50 hover:text-white text-sm font-medium transition-colors">
-            Sign In
-          </Link>
           <Link
             to="/login"
-            className="text-sm font-semibold px-6 py-2.5 rounded-none transition-colors"
+            className="text-sm font-semibold px-6 py-2.5 rounded-none transition-colors uppercase tracking-wider"
             style={{ background: ACCENT, color: '#080808' }}
           >
-            Try for Free
+            Sign In
           </Link>
         </div>
       </header>
@@ -52,9 +49,9 @@ export default function LandingPage() {
       <main className="relative z-10 flex-1 max-w-7xl mx-auto w-full px-8 flex flex-col justify-center pt-8 pb-20">
         <div className="max-w-xl">
           <h1 className="text-4xl md:text-5xl font-light text-white leading-[1.2] tracking-tight mb-6">
-            "The tools that amplify{' '}
-            <span className="font-bold" style={{ color: ACCENT }}>human creativity</span>{' '}
-            are the ones that change the world."
+            "The tools of the future should{' '}
+            <span className="font-bold" style={{ color: ACCENT }}>empower every mind</span>{' '}
+            to build what it imagines."
           </h1>
 
           <p className="text-white/50 text-lg leading-relaxed mb-10">
@@ -63,18 +60,11 @@ export default function LandingPage() {
 
           <div className="flex flex-wrap gap-4">
             <Link
-              to="/aibuilder"
+              to="/login"
               className="inline-flex items-center gap-2 font-bold px-8 py-3.5 rounded-none transition-transform hover:-translate-y-0.5 text-sm uppercase tracking-wider"
               style={{ background: ACCENT, color: '#080808' }}
             >
-              Start for free
-            </Link>
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-2 font-bold px-8 py-3.5 rounded-none border-2 text-white text-sm transition-all hover:bg-white/5 hover:-translate-y-0.5 uppercase tracking-wider"
-              style={{ borderColor: ACCENT }}
-            >
-              Get a demo
+              Get Started
             </Link>
           </div>
 

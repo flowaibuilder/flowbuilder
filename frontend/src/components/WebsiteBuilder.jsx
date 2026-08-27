@@ -137,18 +137,61 @@ export default function WebsiteBuilder({ initialSpec, theme }) {
   } : {};
 
   return (
-    <div className="min-h-screen bg-gray-100 pb-24" style={themeStyle}>
-      <div className="bg-white shadow-sm border-b px-6 py-4 sticky top-0 z-40 mb-8 flex justify-between items-center">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900">Live Preview & Editor</h1>
-          <p className="text-sm text-gray-500">Drag sections by their handles to reorder them</p>
+    <div className="fixed inset-0 z-[100] flex bg-[#080808]" style={themeStyle}>
+      {/* Left Sidebar */}
+      <div className="w-80 bg-[#121212] border-r border-white/10 flex flex-col shadow-2xl relative z-10">
+        <div className="p-6 border-b border-white/10">
+          <h1 className="text-xl font-bold text-white tracking-wide uppercase mb-1">Live Preview</h1>
+          <p className="text-xs text-white/50 tracking-wider">Drag sections by their handles to reorder</p>
         </div>
-        <button className="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-md font-medium transition-colors">
-          Publish Website
-        </button>
+
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="mb-8">
+            <h3 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Sparkles size={14} className="text-[#d4f000]" /> AI Assistant
+            </h3>
+            <p className="text-sm text-white/40 mb-4 leading-relaxed">
+              Tell the AI what you want to change. It can modify content, swap sections, or adjust styling based on your prompt.
+            </p>
+            <form 
+              onSubmit={handleRefine}
+              className="flex flex-col gap-3"
+            >
+              <textarea
+                value={instruction}
+                onChange={(e) => setInstruction(e.target.value)}
+                disabled={isRefining}
+                rows={5}
+                placeholder="e.g. Change the hero button to say 'Join Now' and make it larger..."
+                className="w-full bg-white/5 border border-white/10 focus:border-[#d4f000] focus:ring-0 text-white placeholder-white/30 p-3 outline-none text-sm resize-none transition-colors"
+              />
+              <button
+                type="submit"
+                disabled={isRefining || !instruction.trim()}
+                className="bg-[#d4f000] text-[#080808] p-3 font-bold uppercase tracking-wider text-xs hover:bg-[#b8d000] disabled:bg-white/10 disabled:text-white/30 transition-colors flex items-center justify-center gap-2"
+              >
+                {isRefining ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                {isRefining ? 'Refining...' : 'Apply Changes'}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div className="p-6 border-t border-white/10 flex flex-col gap-3">
+          <button className="w-full bg-[#d4f000] hover:bg-[#b8d000] text-[#080808] px-6 py-3 rounded-none font-bold text-sm uppercase tracking-wider transition-colors">
+            Publish Website
+          </button>
+          <button 
+            onClick={() => window.location.href = '/tools'}
+            className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white px-6 py-3 rounded-none font-bold text-xs uppercase tracking-wider transition-colors"
+          >
+            Exit Editor
+          </button>
+        </div>
       </div>
 
-      <div className="max-w-7xl mx-auto bg-white shadow-xl min-h-[800px] overflow-hidden relative">
+      {/* Main Preview Area */}
+      <div className="flex-1 overflow-auto relative" style={{ backgroundColor: 'var(--color-bg-base, #ffffff)' }}>
         <DndContext 
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -158,38 +201,13 @@ export default function WebsiteBuilder({ initialSpec, theme }) {
             items={sections.map(s => s.id)}
             strategy={verticalListSortingStrategy}
           >
-            {sections.map((section) => (
-              <SortableSection key={section.id} id={section.id} section={section} />
-            ))}
+            <div className="min-h-full w-full">
+              {sections.map((section) => (
+                <SortableSection key={section.id} id={section.id} section={section} />
+              ))}
+            </div>
           </SortableContext>
         </DndContext>
-      </div>
-
-      {/* Floating AI Chat Editor */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-50">
-        <form 
-          onSubmit={handleRefine}
-          className="bg-white rounded-full shadow-2xl border border-gray-200 p-2 flex items-center gap-2"
-        >
-          <div className="pl-4 pr-2 text-primary">
-            <Sparkles size={20} />
-          </div>
-          <input
-            type="text"
-            value={instruction}
-            onChange={(e) => setInstruction(e.target.value)}
-            disabled={isRefining}
-            placeholder="e.g. Change the hero button to say 'Join Now' and make the theme dark..."
-            className="flex-1 bg-transparent border-none focus:ring-0 text-gray-800 placeholder-gray-400 py-2 outline-none"
-          />
-          <button
-            type="submit"
-            disabled={isRefining || !instruction.trim()}
-            className="bg-primary text-white p-2.5 rounded-full hover:bg-blue-600 disabled:bg-gray-300 transition-colors"
-          >
-            {isRefining ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-          </button>
-        </form>
       </div>
     </div>
   );
