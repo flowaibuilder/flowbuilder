@@ -1,194 +1,99 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Layout, LineChart, ArrowRight, Sparkles, Star } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+
+// Accent color from the yellow-lime glasses in the hero image
+const ACCENT = '#d4f000';
 
 export default function LandingPage() {
-  const [user, setUser] = useState(null);
-  const [showSignOutModal, setShowSignOutModal] = useState(false);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user || null);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setShowSignOutModal(false);
-  };
-
   return (
-    <div className="min-h-screen font-sans text-slate-900 bg-white flex flex-col">
-      {/* Sign Out Confirmation Modal */}
-      {showSignOutModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Sign out</h3>
-            <p className="text-sm text-slate-500 mb-6">Are you sure you want to sign out of your account?</p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowSignOutModal(false)}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSignOut}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-colors"
-              >
-                Sign Out
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+    <div
+      className="min-h-screen flex flex-col relative overflow-hidden"
+      style={{ background: '#080808', fontFamily: "'Noto Sans Thai', sans-serif", color: '#fff' }}
+    >
+      {/* RIGHT BACKGROUND IMAGE */}
+      <div className="absolute top-0 right-0 w-full md:w-[55%] h-full z-0 pointer-events-none opacity-20 md:opacity-100">
+        <img
+          src="/src/assets/hero-image.png"
+          alt="AI-powered creativity"
+          className="w-full h-full object-cover object-[center_top]"
+        />
+        {/* Edge fades to blend image into the #080808 background seamlessly */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#080808] via-[#080808]/50 to-transparent w-full md:w-64" />
+        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#080808] to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#080808] to-transparent" />
+      </div>
+
+      {/* Subtle yellow glow behind text */}
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none opacity-10"
+        style={{ background: ACCENT }}
+      />
 
       {/* Navbar */}
-      <header className="w-full border-b border-slate-100 bg-white z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <span className="text-xl font-bold tracking-tight">FLOW</span>
-          <nav className="hidden md:flex items-center gap-8">
-            <a href="#" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">Features</a>
-            <a href="#" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">Pricing</a>
-            <a href="#" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">Docs</a>
-          </nav>
-          <div className="flex items-center gap-3">
-            {user ? (
-              <>
-                <button
-                  onClick={() => setShowSignOutModal(true)}
-                  className="text-sm font-semibold bg-slate-100 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors px-4 py-2">
-                  Sign In
-                </Link>
-                <Link to="/login" className="text-sm font-semibold bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors">
-                  Try for Free
-                </Link>
-              </>
-            )}
-          </div>
+      <header className="relative z-20 w-full px-8 py-6 flex justify-between items-center max-w-7xl mx-auto">
+        <span className="flex items-baseline gap-2">
+          <span className="text-white text-2xl font-normal" style={{ fontFamily: "'Pacifico', cursive" }}>flow</span>
+          <span className="text-white/50 text-sm font-medium tracking-wide">AI Builder</span>
+        </span>
+        <div className="flex items-center gap-4">
+          <Link to="/login" className="text-white/50 hover:text-white text-sm font-medium transition-colors">
+            Sign In
+          </Link>
+          <Link
+            to="/login"
+            className="text-sm font-semibold px-6 py-2.5 rounded-none transition-colors"
+            style={{ background: ACCENT, color: '#080808' }}
+          >
+            Try for Free
+          </Link>
         </div>
       </header>
 
-      {/* Hero — two column */}
-      <section className="flex-1 max-w-7xl mx-auto w-full px-6 py-16 md:py-24 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-
-        {/* LEFT: Text content */}
-        <div className="flex flex-col justify-center">
-          {/* Badge */}
-          <div className="flex items-center gap-2 mb-6">
-            <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
-              ))}
-            </div>
-            <span className="text-sm text-slate-600 font-medium">The leading AI builder platform</span>
-          </div>
-
-          {/* Headline */}
-          <h1 className="text-5xl md:text-6xl font-extrabold leading-[1.05] tracking-tight mb-6 text-slate-900">
-            AI tools for<br />
-            <span className="italic">websites</span> and<br />
-            <span className="italic">dashboards</span>
+      {/* Hero — left aligned text */}
+      <main className="relative z-10 flex-1 max-w-7xl mx-auto w-full px-8 flex flex-col justify-center pt-8 pb-20">
+        <div className="max-w-xl">
+          <h1 className="text-4xl md:text-5xl font-light text-white leading-[1.2] tracking-tight mb-6">
+            "The tools that amplify{' '}
+            <span className="font-bold" style={{ color: ACCENT }}>human creativity</span>{' '}
+            are the ones that change the world."
           </h1>
 
-          {/* Subtext */}
-          <p className="text-lg text-slate-500 mb-10 max-w-md leading-relaxed">
+          <p className="text-white/50 text-lg leading-relaxed mb-10">
             Generate production-ready websites and beautiful data dashboards from a single sentence. No code. No complexity. Just results.
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-4">
             <Link
               to="/aibuilder"
-              className="inline-flex items-center gap-2 bg-slate-900 text-white font-semibold px-6 py-3 rounded-xl hover:bg-slate-700 transition-colors text-sm"
+              className="inline-flex items-center gap-2 font-bold px-8 py-3.5 rounded-none transition-transform hover:-translate-y-0.5 text-sm uppercase tracking-wider"
+              style={{ background: ACCENT, color: '#080808' }}
             >
               Start for free
             </Link>
             <Link
               to="/login"
-              className="inline-flex items-center gap-2 bg-white text-slate-800 font-semibold px-6 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors text-sm"
+              className="inline-flex items-center gap-2 font-bold px-8 py-3.5 rounded-none border-2 text-white text-sm transition-all hover:bg-white/5 hover:-translate-y-0.5 uppercase tracking-wider"
+              style={{ borderColor: ACCENT }}
             >
               Get a demo
             </Link>
           </div>
-        </div>
 
-        {/* RIGHT: Black box with tool cards */}
-        <div className="relative rounded-3xl overflow-hidden bg-slate-950 p-8 md:p-10 flex flex-col gap-5 min-h-[440px] justify-center">
-          {/* Subtle grid pattern overlay */}
-          <div className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.3) 40px, rgba(255,255,255,0.3) 41px), repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.3) 40px, rgba(255,255,255,0.3) 41px)`
-            }}
-          />
-          {/* Soft glow inside */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-400/30 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-6 border border-white/20">
-              <Sparkles size={11} />
-              Powered by Groq AI
-            </div>
-            <p className="text-white/80 text-sm font-medium mb-4 uppercase tracking-widest">Choose a tool</p>
-
-            {/* AI Website Builder Card */}
-            <Link to="/aibuilder" className="group block">
-              <div className="bg-white rounded-2xl p-5 mb-4 flex items-center justify-between hover:shadow-xl transition-all hover:-translate-y-0.5 cursor-pointer">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
-                    <Layout size={20} />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-900 text-sm">AI Website Builder</p>
-                    <p className="text-slate-500 text-xs mt-0.5">Generate sites from a sentence</p>
-                  </div>
-                </div>
-                <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors text-slate-500">
-                  <ArrowRight size={14} />
-                </div>
+          {/* Feature pills */}
+          <div className="flex flex-wrap gap-6 mt-12">
+            {['AI Website Builder', 'Data Agent', 'Real-time Preview'].map(f => (
+              <div key={f} className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ background: ACCENT }} />
+                <span className="text-white/40 text-sm">{f}</span>
               </div>
-            </Link>
-
-            {/* AI Data Agent Card */}
-            <Link to="/aidashboardbuilder" className="group block">
-              <div className="bg-white rounded-2xl p-5 flex items-center justify-between hover:shadow-xl transition-all hover:-translate-y-0.5 cursor-pointer">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
-                    <LineChart size={20} />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-900 text-sm">AI Data Agent</p>
-                    <p className="text-slate-500 text-xs mt-0.5">Upload data, get dashboards instantly</p>
-                  </div>
-                </div>
-                <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors text-slate-500">
-                  <ArrowRight size={14} />
-                </div>
-              </div>
-            </Link>
+            ))}
           </div>
         </div>
-      </section>
+      </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-100 py-5 px-6 text-center text-xs text-slate-400">
+      <footer className="relative z-10 border-t py-5 px-8 text-center text-xs text-white/20" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
         © {new Date().getFullYear()} FLOW. All rights reserved.
       </footer>
     </div>
   );
 }
-
