@@ -15,10 +15,20 @@ import ToolChoice from './components/ToolChoice';
 function AIBuilderContainer() {
   const [websiteSpec, setWebsiteSpec] = useState(null);
   const [theme, setTheme] = useState(null);
+  const [businessName, setBusinessName] = useState('');
+  const [pages, setPages] = useState([]);
+  const [logo, setLogo] = useState(null);
+  const [feel, setFeel] = useState('');
+  const [fontStyle, setFontStyle] = useState('');
 
-  const handleWebsiteGenerated = (spec, themeColors) => {
+  const handleWebsiteGenerated = (spec, themeColors, name, selectedPages, selectedLogo, selectedFeel, selectedFont) => {
     setWebsiteSpec(spec);
     setTheme(themeColors);
+    setBusinessName(name || '');
+    setPages(selectedPages || []);
+    setLogo(selectedLogo || null);
+    setFeel(selectedFeel || '');
+    setFontStyle(selectedFont || '');
   };
 
   return (
@@ -33,7 +43,15 @@ function AIBuilderContainer() {
           <Questionnaire onWebsiteGenerated={handleWebsiteGenerated} />
         </div>
       ) : (
-        <WebsiteBuilder initialSpec={websiteSpec} theme={theme} />
+        <WebsiteBuilder 
+          initialSpec={websiteSpec} 
+          theme={theme} 
+          businessName={businessName} 
+          pages={pages} 
+          logo={logo} 
+          feel={feel} 
+          fontStyle={fontStyle} 
+        />
       )}
     </div>
   );
