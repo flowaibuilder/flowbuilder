@@ -8,6 +8,8 @@ import DataDashboard from './components/DataDashboard';
 import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsOfService from './components/TermsOfService';
 
 function AIBuilderContainer() {
   const [websiteSpec, setWebsiteSpec] = useState(null);
@@ -90,6 +92,8 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
         
         <Route 
           path="/aibuilder" 

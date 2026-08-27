@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import heroImage from '../assets/hero-image.png';
 
 // Accent color from the yellow-lime glasses in the hero image
 const ACCENT = '#d4f000';
@@ -13,7 +14,7 @@ export default function LandingPage() {
       {/* RIGHT BACKGROUND IMAGE */}
       <div className="absolute top-0 right-0 w-full md:w-[55%] h-full z-0 pointer-events-none opacity-20 md:opacity-100">
         <img
-          src="/src/assets/hero-image.png"
+          src={heroImage}
           alt="AI-powered creativity"
           className="w-full h-full object-cover object-[center_top]"
         />
@@ -91,8 +92,12 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t py-5 px-8 text-center text-xs text-white/20" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        © {new Date().getFullYear()} FLOW. All rights reserved.
+      <footer className="relative z-10 border-t py-6 px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/30" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <p>© {new Date().getFullYear()} FLOW. All rights reserved.</p>
+        <div className="flex items-center gap-6">
+          <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+          <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+        </div>
       </footer>
     </div>
   );
