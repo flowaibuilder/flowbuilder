@@ -11,6 +11,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 import ToolChoice from './components/ToolChoice';
+import PublicForm from './components/PublicForm';
 
 function AIBuilderContainer() {
   const [websiteSpec, setWebsiteSpec] = useState(null);
@@ -99,6 +100,8 @@ function App() {
         <Route path="/login" element={session ? <Navigate to="/tools" replace /> : <Login />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        
+        <Route path="/shared-form/:id" element={<PublicForm />} />
         
         <Route 
           path="/tools" 

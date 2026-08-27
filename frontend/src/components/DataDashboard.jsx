@@ -14,6 +14,7 @@ export default function DataDashboard() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [activeView, setActiveView] = useState('dashboard');
 
   const clearFile = () => {
     setCsvContent('');
@@ -73,7 +74,6 @@ export default function DataDashboard() {
   const analyzeData = async (dataToAnalyze, queryToUse) => {
     setLoading(true);
     setError(null);
-    setResult(null);
 
     try {
       const response = await fetch('http://localhost:5000/api/data/analyze', {
@@ -101,15 +101,23 @@ export default function DataDashboard() {
       setError('Please upload a CSV file first.');
       return;
     }
+    setResult(null); // Clear result only on initial upload from home page
     await analyzeData(csvContent, query);
   };
 
   // FULL SCREEN DASHBOARD VIEW
   if (result && typeof result.answer === 'object' && !result.answer.error) {
     return (
-      <div className="min-h-screen font-sans bg-slate-50 p-6">
+      <div className="min-h-screen font-sans bg-slate-50 p-6 relative">
+        {loading && (
+          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm">
+            <Loader2 className="animate-spin text-blue-600 mb-4" size={40} />
+            <h3 className="text-xl font-extrabold text-slate-800">Re-analyzing your data...</h3>
+            <p className="text-sm font-medium text-slate-500 mt-2">The AI is crunching the numbers with your latest edits.</p>
+          </div>
+        )}
         
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex-1 mr-4">
             <input 
               type="text"
@@ -120,6 +128,7 @@ export default function DataDashboard() {
               title="Click to edit dashboard name"
             />
           </div>
+
           <button 
             onClick={() => setResult(null)}
             className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl shadow-sm hover:bg-slate-50 transition-colors text-sm font-semibold shrink-0"
@@ -129,9 +138,25 @@ export default function DataDashboard() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full">
-          {/* Left Panel: Dashboard (70%) */}
-          <div className="lg:col-span-2 space-y-10 overflow-y-auto pr-2 h-[85vh] pb-20 custom-scrollbar">
+        <div className="flex justify-center mb-8">
+          <div className="flex bg-slate-200/50 p-1.5 rounded-xl">
+            <button
+              onClick={() => setActiveView('dashboard')}
+              className={`px-8 py-2.5 text-sm font-bold rounded-lg transition-all duration-200 ${activeView === 'dashboard' ? 'bg-white text-blue-600 shadow-md' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={() => setActiveView('editor')}
+              className={`px-8 py-2.5 text-sm font-bold rounded-lg transition-all duration-200 ${activeView === 'editor' ? 'bg-white text-blue-600 shadow-md' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+            >
+              Data Editor
+            </button>
+          </div>
+        </div>
+
+        <div className="h-full">
+          <div className={`space-y-10 pb-20 max-w-7xl mx-auto w-full ${activeView === 'dashboard' ? 'block' : 'hidden'}`}>
             
             {/* Metrics */}
             {result.answer.metrics && result.answer.metrics.length > 0 && (
@@ -217,9 +242,7 @@ export default function DataDashboard() {
               </div>
             )}
           </div>
-          
-          {/* Right Panel: Data Editor (30%) */}
-          <div className="lg:col-span-1 h-[85vh]">
+          <div className={`min-h-[85vh] w-full max-w-7xl mx-auto ${activeView === 'editor' ? 'block' : 'hidden'}`}>
             <DataEditor 
               initialCsvContent={csvContent} 
               onReanalyze={handleReanalyze}

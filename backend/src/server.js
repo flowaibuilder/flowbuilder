@@ -9,6 +9,7 @@ app.use(express.json());
 
 const aiRoutes = require('./routes/ai');
 const dataRoutes = require('./routes/data');
+const formRoutes = require('./routes/form');
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Backend is running' });
@@ -16,6 +17,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api', aiRoutes);
 app.use('/api/data', dataRoutes);
+app.use('/api/form', formRoutes);
 
 // For local development
 if (process.env.NODE_ENV !== 'production') {
