@@ -15,7 +15,7 @@ export default function Login() {
   
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/';
+  const from = location.state?.from?.pathname || '/choice';
 
   const handleGoogleSignIn = async () => {
     try {
@@ -23,6 +23,9 @@ export default function Login() {
       setError(null);
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/choice`
+        }
       });
       if (error) throw error;
     } catch (err) {
