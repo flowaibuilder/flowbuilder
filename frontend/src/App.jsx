@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 
 import Questionnaire from './components/Questionnaire';
@@ -10,6 +10,7 @@ import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
+import ToolChoice from './components/ToolChoice';
 
 function AIBuilderContainer() {
   const [websiteSpec, setWebsiteSpec] = useState(null);
@@ -89,10 +90,19 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={session ? <Navigate to="/choice" replace /> : <LandingPage />} />
+        <Route path="/login" element={session ? <Navigate to="/choice" replace /> : <Login />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        
+        <Route 
+          path="/choice" 
+          element={
+            <ProtectedRoute session={session}>
+              <ToolChoice />
+            </ProtectedRoute>
+          } 
+        />
         
         <Route 
           path="/aibuilder" 
