@@ -7,8 +7,8 @@ router.post('/analyze', async (req, res) => {
   try {
     const { csvContent, query } = req.body;
     
-    if (!csvContent || !query) {
-      return res.status(400).json({ error: 'csvContent and query are required.' });
+    if (!csvContent) {
+      return res.status(400).json({ error: 'csvContent is required.' });
     }
 
     const result = await analyzeDataWithLLM(csvContent, query);

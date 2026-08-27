@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 
 import Questionnaire from './components/Questionnaire';
@@ -40,6 +40,10 @@ function AIBuilderContainer() {
 }
 
 function AuthenticatedLayout({ children }) {
+  const location = useLocation();
+  const isWebBuilder = location.pathname.startsWith('/aibuilder');
+  const isDataAgent = location.pathname.startsWith('/aidashboardbuilder');
+
   return (
     <div className="min-h-screen flex flex-col font-sans" style={{ background: '#080808' }}>
       <nav className="bg-[#080808] border-b border-white/10 px-8 py-6 flex justify-between items-center sticky top-0 z-50">
