@@ -42,9 +42,8 @@ function AuthenticatedLayout({ children }) {
   return (
     <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm sticky top-0 z-50">
-        <Link to="/" className="flex items-baseline gap-2">
-          <span className="text-2xl font-normal text-gray-900" style={{fontFamily: "'Pacifico', cursive"}}>flow</span>
-          <span className="text-slate-500 text-sm font-medium tracking-wide">AI Builder</span>
+        <Link to="/" className="text-2xl font-normal text-gray-900" style={{fontFamily: "'Pacifico', cursive"}}>
+          flow
         </Link>
         <div className="flex space-x-4 items-center bg-gray-100 p-1 rounded-lg">
           <Link to="/aibuilder" className="px-4 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-sm">Website Builder</Link>

@@ -31,10 +31,9 @@ export default function LandingPage() {
 
       {/* Navbar */}
       <header className="relative z-20 w-full px-8 py-6 flex justify-between items-center max-w-7xl mx-auto">
-        <span className="flex items-baseline gap-2">
-          <span className="text-white text-2xl font-normal" style={{ fontFamily: "'Pacifico', cursive" }}>flow</span>
-          <span className="text-white/50 text-sm font-medium tracking-wide">AI Builder</span>
-        </span>
+        <Link to="/" className="text-white text-2xl font-normal" style={{ fontFamily: "'Pacifico', cursive" }}>
+          flow
+        </Link>
         <div className="flex items-center gap-4">
           <Link to="/login" className="text-white/50 hover:text-white text-sm font-medium transition-colors">
             Sign In
@@ -93,7 +92,9 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="relative z-10 border-t py-6 px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/30" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <p>© {new Date().getFullYear()} FLOW. All rights reserved.</p>
+        <p className="flex items-center gap-1.5">
+          © {new Date().getFullYear()} <span className="text-sm text-white/50" style={{ fontFamily: "'Pacifico', cursive", transform: "translateY(-1px)" }}>flow</span> All rights reserved.
+        </p>
         <div className="flex items-center gap-6">
           <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
           <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
