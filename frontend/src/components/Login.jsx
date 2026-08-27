@@ -93,9 +93,8 @@ const ACCENT = '#d4f000';
           <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-3xl" style={{ background: `radial-gradient(circle, ${ACCENT} 0%, transparent 70%)` }} />
         </div>
         <div className="relative z-10">
-          <Link to="/" className="flex items-baseline gap-2">
-            <span className="text-white text-2xl font-normal" style={{fontFamily: "'Pacifico', cursive"}}>flow</span>
-            <span className="text-white/50 text-sm font-medium tracking-wide">AI Builder</span>
+          <Link to="/" className="text-white text-2xl font-normal" style={{fontFamily: "'Pacifico', cursive"}}>
+            flow
           </Link>
         </div>
         <div className="relative z-10 max-w-md">
