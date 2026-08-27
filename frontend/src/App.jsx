@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 
 import Questionnaire from './components/Questionnaire';
@@ -40,6 +40,10 @@ function AIBuilderContainer() {
 }
 
 function AuthenticatedLayout({ children }) {
+  const location = useLocation();
+  const isWebBuilder = location.pathname.startsWith('/aibuilder');
+  const isDataAgent = location.pathname.startsWith('/aidashboardbuilder');
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm sticky top-0 z-50">
@@ -47,8 +51,8 @@ function AuthenticatedLayout({ children }) {
           flow
         </Link>
         <div className="flex space-x-4 items-center bg-gray-100 p-1 rounded-lg">
-          <Link to="/aibuilder" className="px-4 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-sm">Website Builder</Link>
-          <Link to="/aidashboardbuilder" className="px-4 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-sm">Data Agent</Link>
+          <Link to="/aibuilder" className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${isWebBuilder ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'}`}>Website Builder</Link>
+          <Link to="/aidashboardbuilder" className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${isDataAgent ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'}`}>Data Agent</Link>
           <button 
             onClick={() => supabase.auth.signOut()}
             className="px-4 py-1.5 rounded-md text-sm font-medium transition-colors text-red-500 hover:text-red-700 hover:bg-red-50"

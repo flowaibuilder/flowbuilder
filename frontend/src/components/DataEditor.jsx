@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import Papa from 'papaparse';
 import { Plus, Trash2, Download, RefreshCw } from 'lucide-react';
 
-export default function DataEditor({ initialCsvContent, onReanalyze }) {
+export default function DataEditor({ initialCsvContent, onReanalyze, dashboardName = "Data Dashboard" }) {
   const [data, setData] = useState([]);
   const [headers, setHeaders] = useState([]);
   const [isParsing, setIsParsing] = useState(true);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportFileName, setExportFileName] = useState('edited_data');
   const tableContainerRef = useRef(null);
 
   useEffect(() => {
@@ -85,12 +87,16 @@ export default function DataEditor({ initialCsvContent, onReanalyze }) {
   };
 
   const handleExport = () => {
-    const defaultName = "edited_data.csv";
-    const userFileName = window.prompt("Enter a name for the exported file:", defaultName);
+    // Make sure we strip any potential ' Dashboard' suffix for the clean export filename, or just use it raw
+    const cleanDefault = dashboardName.toLowerCase().replace(/\s+/g, '_');
+    setExportFileName(cleanDefault);
+    setShowExportModal(true);
+  };
+
+  const confirmExport = () => {
+    if (!exportFileName.trim()) return;
     
-    if (!userFileName) return; // User cancelled
-    
-    const finalFileName = userFileName.endsWith('.csv') ? userFileName : `${userFileName}.csv`;
+    const finalFileName = `${exportFileName.trim()}.csv`;
 
     const csvStr = generateCsvString();
     const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8;' });
@@ -101,6 +107,8 @@ export default function DataEditor({ initialCsvContent, onReanalyze }) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    setShowExportModal(false);
   };
 
   const handleReanalyze = () => {
@@ -210,6 +218,49 @@ export default function DataEditor({ initialCsvContent, onReanalyze }) {
           )}
         </div>
       </div>
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 shadow-xl w-full max-w-sm border border-slate-100">
+            <h4 className="text-lg font-bold text-slate-800 mb-2">Export Data</h4>
+            <p className="text-sm text-slate-500 mb-5">Give your file a name before downloading.</p>
+            
+            <div className="flex items-center mb-6 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 overflow-hidden bg-slate-50">
+              <input 
+                type="text" 
+                value={exportFileName}
+                onChange={(e) => setExportFileName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') confirmExport();
+                  if (e.key === 'Escape') setShowExportModal(false);
+                }}
+                className="flex-1 bg-transparent px-4 py-3 text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-400"
+                placeholder="File name"
+                autoFocus
+              />
+              <div className="px-4 py-3 bg-slate-100 border-l border-slate-200 text-slate-500 text-sm font-semibold">
+                .csv
+              </div>
+            </div>
+            
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => setShowExportModal(false)}
+                className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmExport}
+                className="px-4 py-2 text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 rounded-xl shadow-sm transition-colors flex items-center gap-2"
+              >
+                <Download size={16} /> Download
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

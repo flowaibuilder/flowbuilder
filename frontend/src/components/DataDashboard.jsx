@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UploadCloud, MessageSquare, Loader2, BarChart2, CheckCircle2, X, ArrowLeft } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import DataEditor from './DataEditor';
 import ReactMarkdown from 'react-markdown';
 
@@ -9,6 +9,7 @@ const COLORS = ['#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#14b8a6'];
 export default function DataDashboard() {
   const [csvContent, setCsvContent] = useState('');
   const [fileName, setFileName] = useState('');
+  const [dashboardName, setDashboardName] = useState('Data Dashboard');
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -17,6 +18,7 @@ export default function DataDashboard() {
   const clearFile = () => {
     setCsvContent('');
     setFileName('');
+    setDashboardName('Data Dashboard');
     setResult(null);
     setQuery('');
   };
@@ -26,6 +28,13 @@ export default function DataDashboard() {
     if (!file) return;
 
     setFileName(file.name);
+    
+    // Create a nice default dashboard name from the file name
+    const baseName = file.name.replace(/\.[^/.]+$/, ""); // Strip extension
+    // Capitalize first letters and replace dashes/underscores with spaces
+    const cleanName = baseName.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    setDashboardName(`${cleanName} Dashboard`);
+
     const extension = file.name.split('.').pop().toLowerCase();
     const reader = new FileReader();
 
@@ -101,13 +110,19 @@ export default function DataDashboard() {
       <div className="min-h-screen font-sans bg-slate-50 p-6">
         
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Data Dashboard</h2>
-            <p className="text-slate-500 mt-1">Generated from {fileName}</p>
+          <div className="flex-1 mr-4">
+            <input 
+              type="text"
+              value={dashboardName}
+              onChange={(e) => setDashboardName(e.target.value)}
+              className="text-4xl font-black text-slate-900 tracking-tight bg-transparent border-b-2 border-transparent hover:border-slate-200 focus:border-blue-500 outline-none w-full max-w-3xl transition-all pb-2 placeholder:text-slate-300"
+              placeholder="Enter Dashboard Name"
+              title="Click to edit dashboard name"
+            />
           </div>
           <button 
             onClick={() => setResult(null)}
-            className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl shadow-sm hover:bg-slate-50 transition-colors text-sm font-semibold"
+            className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl shadow-sm hover:bg-slate-50 transition-colors text-sm font-semibold shrink-0"
           >
             <ArrowLeft size={16} />
             Start Over
@@ -146,31 +161,34 @@ export default function DataDashboard() {
                               data={chart.data}
                               cx="50%"
                               cy="50%"
-                              innerRadius={80}
-                              outerRadius={110}
-                              paddingAngle={5}
+                              innerRadius={70}
+                              outerRadius={100}
+                              paddingAngle={6}
                               dataKey="value"
                               nameKey="name"
                               stroke="none"
+                              labelLine={false}
                             >
                               {chart.data.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
                               ))}
                             </Pie>
                             <Tooltip 
-                              contentStyle={{ borderRadius: '16px', border: 'none', backgroundColor: '#fff', fontSize: '13px', fontWeight: '600', color: '#1e293b', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' }}
+                              contentStyle={{ borderRadius: '16px', border: '1px solid #f1f5f9', backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', fontSize: '13px', fontWeight: '600', color: '#1e293b', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' }}
                               itemStyle={{ color: '#0f172a' }}
                             />
+                            <Legend wrapperStyle={{ fontSize: '12px', fontWeight: '500', color: '#64748b' }} iconType="circle" />
                           </PieChart>
                         ) : (
-                          <BarChart data={chart.data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} fontFamily="inherit" tickLine={false} axisLine={false} dy={10} />
-                            <YAxis stroke="#94a3b8" fontSize={12} fontFamily="inherit" tickLine={false} axisLine={false} dx={-10} />
+                          <BarChart data={chart.data} margin={{ top: 20, right: 10, left: -20, bottom: 20 }}>
+                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} fontFamily="inherit" tickLine={false} axisLine={false} dy={10} interval="preserveStartEnd" />
+                            <YAxis stroke="#94a3b8" fontSize={11} fontFamily="inherit" tickLine={false} axisLine={false} dx={-10} />
                             <Tooltip 
                               cursor={{ fill: '#f8fafc' }} 
-                              contentStyle={{ borderRadius: '16px', border: 'none', backgroundColor: '#fff', fontSize: '13px', fontWeight: '600', color: '#1e293b', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' }}
+                              contentStyle={{ borderRadius: '16px', border: '1px solid #f1f5f9', backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', fontSize: '13px', fontWeight: '600', color: '#1e293b', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' }}
                             />
-                            <Bar dataKey="value" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={48} />
+                            <Legend wrapperStyle={{ fontSize: '12px', fontWeight: '500', color: '#64748b', paddingTop: '10px' }} iconType="circle" />
+                            <Bar dataKey="value" name="Value" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={40} className="hover:opacity-80 transition-opacity" />
                           </BarChart>
                         )}
                       </ResponsiveContainer>
@@ -204,7 +222,8 @@ export default function DataDashboard() {
           <div className="lg:col-span-1 h-[85vh]">
             <DataEditor 
               initialCsvContent={csvContent} 
-              onReanalyze={handleReanalyze} 
+              onReanalyze={handleReanalyze}
+              dashboardName={dashboardName}
             />
           </div>
 
