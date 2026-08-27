@@ -1,14 +1,81 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Papa from 'papaparse';
-import { Plus, Trash2, Download, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Download, RefreshCw, Share2, X, Copy, CheckCircle2 } from 'lucide-react';
 
 export default function DataEditor({ initialCsvContent, onReanalyze, dashboardName = "Data Dashboard" }) {
   const [data, setData] = useState([]);
   const [headers, setHeaders] = useState([]);
   const [isParsing, setIsParsing] = useState(true);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [sharedFormId, setSharedFormId] = useState(null);
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [exportFileName, setExportFileName] = useState('edited_data');
   const tableContainerRef = useRef(null);
+  const lastFetchedRef = useRef(new Date().toISOString());
+
+  // Polling for new submissions
+  useEffect(() => {
+    if (!sharedFormId) return;
+    
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/form/${sharedFormId}/submissions?since=${encodeURIComponent(lastFetchedRef.current)}`);
+        const result = await res.json();
+        
+        if (result.success && result.submissions && result.submissions.length > 0) {
+          lastFetchedRef.current = result.submissions[result.submissions.length - 1].created_at;
+          const newRows = result.submissions.map(sub => sub.data);
+          setData(prev => {
+            const newData = [...prev];
+            const rowsToAdd = [...newRows];
+            
+            for (let i = 0; i < newData.length; i++) {
+              if (rowsToAdd.length === 0) break;
+              
+              const isEmpty = newData[i].every(cell => !cell || cell.toString().trim() === '');
+              if (isEmpty) {
+                newData[i] = rowsToAdd.shift();
+              }
+            }
+            
+            return [...newData, ...rowsToAdd];
+          });
+          
+          if (tableContainerRef.current) {
+            tableContainerRef.current.scrollTop = tableContainerRef.current.scrollHeight;
+          }
+        }
+      } catch (err) {
+        console.error("Failed to poll submissions:", err);
+      }
+    }, 3000);
+
+    return () => clearInterval(pollInterval);
+  }, [sharedFormId]);
+
+  const handleShareForm = async () => {
+    setIsGeneratingLink(true);
+    setShowShareModal(true);
+    setCopied(false);
+    try {
+      const res = await fetch('http://localhost:5000/api/form/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ headers, dashboardName })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSharedFormId(data.formId);
+        lastFetchedRef.current = data.createdAt || new Date().toISOString();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsGeneratingLink(false);
+    }
+  };
 
   useEffect(() => {
     if (initialCsvContent) {
@@ -140,6 +207,12 @@ export default function DataEditor({ initialCsvContent, onReanalyze, dashboardNa
             <Plus size={14} /> Add Column
           </button>
           <button 
+            onClick={handleShareForm}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-lg text-xs font-semibold hover:bg-indigo-100 transition-colors shadow-sm"
+          >
+            <Share2 size={14} /> Share Form
+          </button>
+          <button 
             onClick={handleExport}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm"
           >
@@ -261,6 +334,54 @@ export default function DataEditor({ initialCsvContent, onReanalyze, dashboardNa
           </div>
         </div>
       )}
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-2xl w-full max-w-lg border border-slate-100 flex flex-col relative overflow-hidden">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h4 className="text-2xl font-black text-slate-900 tracking-tight">Share Data Form</h4>
+                <p className="text-sm text-slate-500 font-medium mt-1">Send this link to others to collect data directly into your editor.</p>
+              </div>
+              <button onClick={() => setShowShareModal(false)} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2 rounded-full transition-colors self-start mt-1 shrink-0 ml-4">
+                <X size={20} />
+              </button>
+            </div>
+            
+            {isGeneratingLink ? (
+              <div className="py-8 flex flex-col items-center justify-center gap-3">
+                <RefreshCw className="animate-spin text-blue-500" size={24} />
+                <p className="text-sm font-semibold text-slate-500">Generating secure link...</p>
+              </div>
+            ) : sharedFormId ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`${window.location.origin}/shared-form/${sharedFormId}`}
+                    className="flex-1 bg-transparent text-sm font-medium text-slate-700 outline-none"
+                  />
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/shared-form/${sharedFormId}`);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-slate-600"
+                  >
+                    {copied ? <CheckCircle2 size={16} className="text-green-500" /> : <Copy size={16} />}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-red-500 text-sm font-semibold text-center py-4">Failed to generate link. Make sure backend is running and connected.</p>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
