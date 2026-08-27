@@ -1,10 +1,54 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Layout, LineChart, ArrowRight, Sparkles, Star } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function LandingPage() {
+  const [user, setUser] = useState(null);
+  const [showSignOutModal, setShowSignOutModal] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setShowSignOutModal(false);
+  };
+
   return (
     <div className="min-h-screen font-sans text-slate-900 bg-white flex flex-col">
+      {/* Sign Out Confirmation Modal */}
+      {showSignOutModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Sign out</h3>
+            <p className="text-sm text-slate-500 mb-6">Are you sure you want to sign out of your account?</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowSignOutModal(false)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSignOut}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Navbar */}
       <header className="w-full border-b border-slate-100 bg-white z-50">
@@ -16,12 +60,25 @@ export default function LandingPage() {
             <a href="#" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">Docs</a>
           </nav>
           <div className="flex items-center gap-3">
-            <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors px-4 py-2">
-              Sign In
-            </Link>
-            <Link to="/login" className="text-sm font-semibold bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors">
-              Try for Free
-            </Link>
+            {user ? (
+              <>
+                <button
+                  onClick={() => setShowSignOutModal(true)}
+                  className="text-sm font-semibold bg-slate-100 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors px-4 py-2">
+                  Sign In
+                </Link>
+                <Link to="/login" className="text-sm font-semibold bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors">
+                  Try for Free
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
