@@ -1,380 +1,757 @@
-import React, { useState } from 'react';
-import { UploadCloud, MessageSquare, Loader2, BarChart2, CheckCircle2, X, ArrowLeft } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import {
+  UploadCloud, Loader2, BarChart2, CheckCircle2, X,
+  ArrowLeft, FileSpreadsheet, Pencil, Trash2, MoreVertical, Plus,
+  Sparkles, ChevronRight, AlertTriangle, Table2, TrendingUp,
+  Package, DollarSign, Users, Sliders,
+} from 'lucide-react';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend,
+} from 'recharts';
 import DataEditor from './DataEditor';
 import ReactMarkdown from 'react-markdown';
 
-const COLORS = ['#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#14b8a6'];
+// ── Constants ─────────────────────────────────────────────────────────────────
 
-export default function DataDashboard() {
-  const [csvContent, setCsvContent] = useState('');
-  const [fileName, setFileName] = useState('');
-  const [dashboardName, setDashboardName] = useState('Data Dashboard');
-  const [query, setQuery] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState(null);
-  const [activeView, setActiveView] = useState('dashboard');
+const ACCENT = '#d4f000';
+const CHART_COLORS = ['#d4f000', '#a3b800', '#ffffff', '#888888', '#444444'];
 
-  const clearFile = () => {
-    setCsvContent('');
-    setFileName('');
-    setDashboardName('Data Dashboard');
-    setResult(null);
-    setQuery('');
+const ANALYSIS_TYPES = [
+  { id: 'general',   label: 'General Analytics', icon: BarChart2 },
+  { id: 'sales',     label: 'Sales',              icon: TrendingUp },
+  { id: 'inventory', label: 'Inventory',           icon: Package },
+  { id: 'finance',   label: 'Finance',             icon: DollarSign },
+  { id: 'customer',  label: 'Customer Insights',   icon: Users },
+  { id: 'custom',    label: 'Custom',              icon: Sliders },
+];
+
+const STORAGE_KEY = 'flow_saved_dashboards';
+
+function loadSavedDashboards() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveDashboards(list) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch {}
+}
+
+// ── Dashboard Card ────────────────────────────────────────────────────────────
+
+function DashboardCard({ dashboard, isSelected, onOpen, onRename, onDelete }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [nameValue, setNameValue] = useState(dashboard.name);
+  const inputRef = useRef(null);
+  const menuRef = useRef(null);
+
+  useEffect(() => { if (editing && inputRef.current) inputRef.current.focus(); }, [editing]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const h = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [menuOpen]);
+
+  const commitRename = () => {
+    const t = nameValue.trim();
+    if (t && t !== dashboard.name) onRename(dashboard.id, t);
+    else setNameValue(dashboard.name);
+    setEditing(false);
   };
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
+  const onKey = (e) => {
+    if (e.key === 'Enter') commitRename();
+    if (e.key === 'Escape') { setNameValue(dashboard.name); setEditing(false); }
+  };
+
+  const date = new Date(dashboard.createdAt).toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
+  });
+
+  return (
+    <div
+      onClick={() => !editing && onOpen(dashboard)}
+      style={{
+        position: 'relative', cursor: 'pointer',
+        background: isSelected ? 'rgba(212,240,0,0.06)' : 'rgba(255,255,255,0.02)',
+        border: `1px solid ${isSelected ? ACCENT : 'rgba(255,255,255,0.08)'}`,
+        padding: '16px', marginBottom: '4px', transition: 'all 0.2s',
+      }}
+      className="group"
+      onMouseOver={(e) => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+      onMouseOut={(e) => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+    >
+      {isSelected && (
+        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '2px', background: ACCENT }} />
+      )}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+        <div
+          style={{
+            flexShrink: 0, width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: `1px solid ${isSelected ? ACCENT : 'rgba(255,255,255,0.1)'}`,
+            color: isSelected ? ACCENT : 'rgba(255,255,255,0.4)', marginTop: '2px',
+          }}
+        >
+          <FileSpreadsheet size={15} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {editing ? (
+            <input
+              ref={inputRef}
+              value={nameValue}
+              onChange={(e) => setNameValue(e.target.value)}
+              onBlur={commitRename}
+              onKeyDown={onKey}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: '100%', background: 'transparent', color: '#fff', fontSize: '14px',
+                fontWeight: 600, outline: 'none', border: 'none', borderBottom: `1px solid ${ACCENT}`,
+                paddingBottom: '2px', boxSizing: 'border-box',
+              }}
+            />
+          ) : (
+            <p style={{
+              fontSize: '14px', fontWeight: 600,
+              color: isSelected ? ACCENT : 'rgba(255,255,255,0.85)',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
+              {dashboard.name}
+            </p>
+          )}
+          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '3px' }}>
+            {dashboard.fileName} · {date}
+          </p>
+        </div>
+        <div
+          className="opacity-0 group-hover:opacity-100"
+          style={{ display: 'flex', alignItems: 'center', gap: '2px', transition: 'opacity 0.15s' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => { setEditing(true); setMenuOpen(false); }}
+            style={{ padding: '6px', color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer' }}
+            onMouseOver={(e) => e.currentTarget.style.color = '#fff'}
+            onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
+            title="Rename"
+          >
+            <Pencil size={13} />
+          </button>
+          <div ref={menuRef} style={{ position: 'relative' }}>
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              style={{ padding: '6px', color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer' }}
+              onMouseOver={(e) => e.currentTarget.style.color = '#fff'}
+              onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
+              title="More"
+            >
+              <MoreVertical size={13} />
+            </button>
+            {menuOpen && (
+              <div style={{
+                position: 'absolute', right: 0, top: '32px', zIndex: 50, width: '144px',
+                background: '#111', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 0', boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+              }}>
+                <button
+                  onClick={() => { setEditing(true); setMenuOpen(false); }}
+                  style={{ width: '100%', textAlign: 'left', padding: '8px 12px', fontSize: '12px', color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                >
+                  <Pencil size={12} /> Rename
+                </button>
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '4px 0' }} />
+                <button
+                  onClick={() => { onDelete(dashboard.id); setMenuOpen(false); }}
+                  style={{ width: '100%', textAlign: 'left', padding: '8px 12px', fontSize: '12px', color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(248,113,113,0.1)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                >
+                  <Trash2 size={12} /> Delete
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Empty State ───────────────────────────────────────────────────────────────
+
+function EmptyState() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '48px 24px' }}>
+      <div style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.2)', marginBottom: '16px' }}>
+        <Table2 size={20} />
+      </div>
+      <p style={{ fontSize: '14px', fontWeight: 600, color: 'rgba(255,255,255,0.4)', marginBottom: '6px' }}>No saved dashboards</p>
+      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', lineHeight: '1.6' }}>
+        Upload and analyze a file to generate your first dashboard.
+      </p>
+    </div>
+  );
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+
+function Sidebar({ savedDashboards, activeDashboard, onOpen, onRename, onDelete, onNewAnalysis, style, className }) {
+  return (
+    <aside className={className} style={{
+      display: 'flex', flexDirection: 'column', flexShrink: 0,
+      width: '280px', borderRight: '1px solid rgba(255,255,255,0.08)', background: '#080808',
+      ...style,
+    }}>
+      <div style={{ padding: '32px 24px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <h2 style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.35)', margin: 0 }}>
+          Saved Dashboards
+        </h2>
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
+        {savedDashboards.length === 0 ? <EmptyState /> : (
+          savedDashboards.map((d) => (
+            <DashboardCard
+              key={d.id} dashboard={d} isSelected={activeDashboard?.id === d.id}
+              onOpen={onOpen} onRename={onRename} onDelete={onDelete}
+            />
+          ))
+        )}
+      </div>
+      {onNewAnalysis && (
+        <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <button
+            onClick={onNewAnalysis}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              padding: '10px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em',
+              border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)', background: 'none', cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
+            onMouseOut={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
+          >
+            <Plus size={13} /> New Analysis
+          </button>
+        </div>
+      )}
+    </aside>
+  );
+}
+
+// ── Dashboard Results View ────────────────────────────────────────────────────
+
+function DashboardView({ dashboard, onBack, onUpdateName }) {
+  const { result, csvContent, name } = dashboard;
+  const [activeView, setActiveView] = useState('dashboard');
+  const [dashboardName, setDashboardName] = useState(name);
+
+  const handleReanalyze = async () => {};
+
+  if (!result || typeof result.answer !== 'object' || result.answer.error) {
+    return (
+      <div style={{ padding: '32px' }}>
+        <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', marginBottom: '24px' }}>
+          <ArrowLeft size={14} /> Back
+        </button>
+        <div style={{ border: '1px solid rgba(255,255,255,0.08)', padding: '24px', fontSize: '13px', fontFamily: 'monospace', overflow: 'auto', color: 'rgba(255,255,255,0.5)' }}>
+          {typeof result?.answer === 'string' ? result.answer : JSON.stringify(result?.answer, null, 2)}
+        </div>
+      </div>
+    );
+  }
+
+  const { metrics, charts, insights } = result.answer;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Header bar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '20px 32px', borderBottom: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
+        <button
+          onClick={onBack}
+          style={{ padding: '4px', color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0 }}
+          onMouseOver={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.9)'}
+          onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
+        >
+          <ArrowLeft size={14} />
+        </button>
+        <input
+          type="text"
+          value={dashboardName}
+          onChange={(e) => { setDashboardName(e.target.value); onUpdateName(dashboard.id, e.target.value); }}
+          style={{ flex: 1, background: 'transparent', color: 'rgba(255,255,255,0.9)', fontSize: '18px', fontWeight: 700, outline: 'none', border: 'none', borderBottom: '1px solid transparent', paddingBottom: '2px', fontFamily: 'inherit', transition: 'border-color 0.2s' }}
+          onFocus={(e) => e.target.style.borderColor = ACCENT}
+          onBlur={(e) => e.target.style.borderColor = 'transparent'}
+          title="Click to rename"
+        />
+        <div style={{ display: 'flex', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+          {['dashboard', 'editor'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveView(tab)}
+              style={{
+                padding: '8px 16px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
+                background: activeView === tab ? ACCENT : 'transparent',
+                color: activeView === tab ? '#080808' : 'rgba(255,255,255,0.4)',
+                border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+              }}
+            >
+              {tab === 'dashboard' ? 'Dashboard' : 'Data Editor'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Scrollable content */}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        {/* Dashboard panel */}
+        <div style={{ display: activeView === 'dashboard' ? 'block' : 'none', background: '#0a0a0a', padding: '24px', paddingBottom: '80px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', maxWidth: '1200px', margin: '0 auto' }}>
+
+            {metrics && metrics.length > 0 && (
+              <div>
+                <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', marginBottom: '16px' }}>Key Metrics</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
+                  {metrics.map((m, i) => (
+                    <div
+                      key={i}
+                      style={{ padding: '20px', border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', transition: 'border-color 0.2s' }}
+                      onMouseOver={(e) => e.currentTarget.style.borderColor = 'rgba(212,240,0,0.3)'}
+                      onMouseOut={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'}
+                    >
+                      <p style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: '12px' }}>{m.label}</p>
+                      <p style={{ fontSize: '24px', fontWeight: 900, color: ACCENT, wordBreak: 'break-word' }}>{m.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {charts && charts.length > 0 && (
+              <div>
+                <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', marginBottom: '16px' }}>Charts</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '20px' }}>
+                  {charts.map((chart, i) => (
+                    <div key={i} style={{ padding: '24px', border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)' }}>
+                      <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.8)', marginBottom: '24px', paddingLeft: '12px', borderLeft: `2px solid ${ACCENT}` }}>{chart.title}</h4>
+                      <div style={{ height: '256px', width: '100%' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          {chart.type === 'pie' ? (
+                            <PieChart>
+                              <Pie data={chart.data} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={4} dataKey="value" nameKey="name" stroke="none" labelLine={false}>
+                                {chart.data.map((_, idx) => <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />)}
+                              </Pie>
+                              <Tooltip contentStyle={{ borderRadius: 0, border: '1px solid rgba(255,255,255,0.1)', background: '#111', fontSize: 12, fontWeight: 600, color: '#fff' }} itemStyle={{ color: ACCENT }} />
+                              <Legend wrapperStyle={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)' }} iconType="circle" />
+                            </PieChart>
+                          ) : (
+                            <BarChart data={chart.data} margin={{ top: 10, right: 10, left: -20, bottom: 15 }}>
+                              <XAxis dataKey="name" fontSize={10} fontFamily="inherit" tickLine={false} axisLine={false} dy={8} interval="preserveStartEnd" tick={{ fill: 'rgba(255,255,255,0.3)' }} />
+                              <YAxis fontSize={10} fontFamily="inherit" tickLine={false} axisLine={false} dx={-5} tick={{ fill: 'rgba(255,255,255,0.3)' }} />
+                              <Tooltip cursor={{ fill: 'rgba(255,255,255,0.03)' }} contentStyle={{ borderRadius: 0, border: '1px solid rgba(255,255,255,0.1)', background: '#111', fontSize: 12, fontWeight: 600, color: '#fff' }} itemStyle={{ color: ACCENT }} />
+                              <Bar dataKey="value" name="Value" fill={ACCENT} radius={[2, 2, 0, 0]} barSize={32} />
+                            </BarChart>
+                          )}
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {insights && (
+              <div>
+                <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', marginBottom: '16px' }}>AI Insights</p>
+                <div style={{ border: '1px solid rgba(212,240,0,0.15)', background: 'rgba(212,240,0,0.03)', padding: '24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                    <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(212,240,0,0.3)', color: ACCENT }}>
+                      <Sparkles size={14} />
+                    </div>
+                    <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: ACCENT }}>Analysis Summary</span>
+                  </div>
+                  <div style={{ fontSize: '14px', lineHeight: '1.75', color: 'rgba(255,255,255,0.65)' }}>
+                    <ReactMarkdown
+                      components={{
+                        h1: ({ children }) => <h1 style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700, fontSize: '16px', marginBottom: '12px' }}>{children}</h1>,
+                        h2: ({ children }) => <h2 style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700, fontSize: '14px', marginBottom: '8px', marginTop: '20px' }}>{children}</h2>,
+                        p: ({ children }) => <p style={{ marginBottom: '12px' }}>{children}</p>,
+                        ul: ({ children }) => <ul style={{ listStyle: 'disc', marginLeft: '20px', marginBottom: '12px' }}>{children}</ul>,
+                        ol: ({ children }) => <ol style={{ listStyle: 'decimal', marginLeft: '20px', marginBottom: '12px' }}>{children}</ol>,
+                        strong: ({ children }) => <strong style={{ color: ACCENT }}>{children}</strong>,
+                      }}
+                    >
+                      {insights}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Editor panel */}
+        <div style={{ display: activeView === 'editor' ? 'block' : 'none', background: '#0a0a0a', padding: '24px' }}>
+          <DataEditor initialCsvContent={csvContent} onReanalyze={handleReanalyze} dashboardName={dashboardName} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Component ────────────────────────────────────────────────────────────
+
+export default function DataDashboard() {
+  const [savedDashboards, setSavedDashboards] = useState(loadSavedDashboards);
+  const [activeDashboard, setActiveDashboard] = useState(null);
+  const [fileState, setFileState] = useState({ file: null, fileName: '', fileSize: '', csvContent: '' });
+  const [isDragging, setIsDragging] = useState(false);
+  const [query, setQuery] = useState('');
+  const [analysisType, setAnalysisType] = useState('general');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const persistDashboards = (next) => { setSavedDashboards(next); saveDashboards(next); };
+
+  const handleDeleteDashboard = (id) => {
+    const next = savedDashboards.filter((d) => d.id !== id);
+    persistDashboards(next);
+    if (activeDashboard?.id === id) setActiveDashboard(null);
+  };
+
+  const handleRenameDashboard = (id, newName) => {
+    const next = savedDashboards.map((d) => d.id === id ? { ...d, name: newName } : d);
+    persistDashboards(next);
+    if (activeDashboard?.id === id) setActiveDashboard((p) => ({ ...p, name: newName }));
+  };
+
+  const handleOpenDashboard = (dashboard) => {
+    setActiveDashboard(dashboard);
+    setFileState({ file: null, fileName: '', fileSize: '', csvContent: '' });
+    setError(null);
+  };
+
+  const formatSize = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
+  };
+
+  const processFile = useCallback(async (file) => {
     if (!file) return;
-
-    setFileName(file.name);
-    
-    // Create a nice default dashboard name from the file name
-    const baseName = file.name.replace(/\.[^/.]+$/, ""); // Strip extension
-    // Capitalize first letters and replace dashes/underscores with spaces
-    const cleanName = baseName.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-    setDashboardName(`${cleanName} Dashboard`);
-
-    const extension = file.name.split('.').pop().toLowerCase();
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['csv', 'xlsx', 'xls'].includes(ext)) {
+      setError('Unsupported file type. Please upload a .csv or .xlsx file.');
+      return;
+    }
+    setError(null);
     const reader = new FileReader();
-
     reader.onload = async (evt) => {
-      if (extension === 'csv') {
-        setCsvContent(evt.target.result);
-      } else if (extension === 'xlsx' || extension === 'xls') {
+      let csv = '';
+      if (ext === 'csv') {
+        csv = evt.target.result;
+      } else {
         try {
           const XLSX = await import('xlsx');
           const data = new Uint8Array(evt.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[firstSheetName];
-          const csv = XLSX.utils.sheet_to_csv(worksheet);
-          setCsvContent(csv);
-        } catch (err) {
-          setError('Failed to parse Excel file: ' + err.message);
-        }
-      } else {
-        setError('Unsupported file type');
+          const wb = XLSX.read(data, { type: 'array' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          csv = XLSX.utils.sheet_to_csv(ws);
+        } catch (err) { setError('Failed to parse Excel file: ' + err.message); return; }
       }
+      setFileState({ file, fileName: file.name, fileSize: formatSize(file.size), csvContent: csv });
     };
+    if (ext === 'csv') reader.readAsText(file);
+    else reader.readAsArrayBuffer(file);
+  }, []);
 
-    if (extension === 'csv') {
-      reader.readAsText(file);
-    } else {
-      reader.readAsArrayBuffer(file);
-    }
-  };
+  const handleDrop = useCallback((e) => {
+    e.preventDefault(); setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) processFile(file);
+  }, [processFile]);
 
-  const handleReanalyze = async (newCsvContent) => {
-    setCsvContent(newCsvContent);
-    await analyzeData(newCsvContent, query);
-  };
-
-  const analyzeData = async (dataToAnalyze, queryToUse) => {
-    setLoading(true);
+  const clearFile = () => {
+    setFileState({ file: null, fileName: '', fileSize: '', csvContent: '' });
     setError(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
+  const analyzeData = async () => {
+    if (!fileState.csvContent) { setError('Please upload a file first.'); return; }
+    setLoading(true); setError(null);
+    const typeLabel = ANALYSIS_TYPES.find((t) => t.id === analysisType)?.label || '';
+    const finalQuery = query.trim() ? query :
+      (analysisType !== 'general' && analysisType !== 'custom')
+        ? `Perform a comprehensive ${typeLabel} analysis of this data.` : '';
     try {
-      const response = await fetch('/api/data/analyze', {
+      const response = await fetch('http://localhost:5000/api/data/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ csvContent: dataToAnalyze, query: queryToUse }),
+        body: JSON.stringify({ csvContent: fileState.csvContent, query: finalQuery }),
       });
-
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to analyze data');
-      }
-
-      setResult(data.result);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+      if (!response.ok) throw new Error(data.error || 'Failed to analyze data');
+      const baseName = fileState.fileName.replace(/\.[^/.]+$/, '');
+      const cleanName = baseName.replace(/[-_]/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+      const newDash = {
+        id: `dash_${Date.now()}`,
+        name: `${cleanName} Dashboard`,
+        fileName: fileState.fileName,
+        csvContent: fileState.csvContent,
+        result: data.result,
+        createdAt: new Date().toISOString(),
+        analysisType,
+      };
+      const next = [newDash, ...savedDashboards];
+      persistDashboards(next);
+      setActiveDashboard(newDash);
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
   };
 
-  const handleQuerySubmit = async (e) => {
-    e.preventDefault();
-    if (!csvContent) {
-      setError('Please upload a CSV file first.');
-      return;
-    }
-    setResult(null); // Clear result only on initial upload from home page
-    await analyzeData(csvContent, query);
-  };
+  // ── Active dashboard view ──────────────────────────────────────────────────
 
-  // FULL SCREEN DASHBOARD VIEW
-  if (result && typeof result.answer === 'object' && !result.answer.error) {
+  if (activeDashboard && activeDashboard.result) {
     return (
-      <div className="min-h-screen font-sans bg-slate-50 p-6 relative">
-        {loading && (
-          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm">
-            <Loader2 className="animate-spin text-blue-600 mb-4" size={40} />
-            <h3 className="text-xl font-extrabold text-slate-800">Re-analyzing your data...</h3>
-            <p className="text-sm font-medium text-slate-500 mt-2">The AI is crunching the numbers with your latest edits.</p>
-          </div>
-        )}
-        
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex-1 mr-4">
-            <input 
-              type="text"
-              value={dashboardName}
-              onChange={(e) => setDashboardName(e.target.value)}
-              className="text-4xl font-black text-slate-900 tracking-tight bg-transparent border-b-2 border-transparent hover:border-slate-200 focus:border-blue-500 outline-none w-full max-w-3xl transition-all pb-2 placeholder:text-slate-300"
-              placeholder="Enter Dashboard Name"
-              title="Click to edit dashboard name"
-            />
-          </div>
-
-          <button 
-            onClick={() => setResult(null)}
-            className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl shadow-sm hover:bg-slate-50 transition-colors text-sm font-semibold shrink-0"
-          >
-            <ArrowLeft size={16} />
-            Start Over
-          </button>
+      <div style={{ display: 'flex', height: 'calc(100vh - 73px)', background: '#080808' }}>
+        <div style={{ display: 'none' }} className="lg-sidebar-placeholder" />
+        <style>{`.lg-sidebar-placeholder { display: none; } @media(min-width:1024px){.lg-sidebar-placeholder{display:flex;} .dash-sidebar{display:flex !important;}}`}</style>
+        <div className="dash-sidebar" style={{ display: 'none', flexShrink: 0 }}>
+          <Sidebar
+            savedDashboards={savedDashboards}
+            activeDashboard={activeDashboard}
+            onOpen={handleOpenDashboard}
+            onRename={handleRenameDashboard}
+            onDelete={handleDeleteDashboard}
+            onNewAnalysis={() => setActiveDashboard(null)}
+            style={{ width: '240px' }}
+          />
         </div>
-
-        <div className="flex justify-center mb-8">
-          <div className="flex bg-slate-200/50 p-1.5 rounded-xl">
-            <button
-              onClick={() => setActiveView('dashboard')}
-              className={`px-8 py-2.5 text-sm font-bold rounded-lg transition-all duration-200 ${activeView === 'dashboard' ? 'bg-white text-blue-600 shadow-md' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
-            >
-              Dashboard
-            </button>
-            <button
-              onClick={() => setActiveView('editor')}
-              className={`px-8 py-2.5 text-sm font-bold rounded-lg transition-all duration-200 ${activeView === 'editor' ? 'bg-white text-blue-600 shadow-md' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
-            >
-              Data Editor
-            </button>
-          </div>
-        </div>
-
-        <div className="h-full">
-          <div className={`space-y-10 pb-20 max-w-7xl mx-auto w-full ${activeView === 'dashboard' ? 'block' : 'hidden'}`}>
-            
-            {/* Metrics */}
-            {result.answer.metrics && result.answer.metrics.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {result.answer.metrics.map((metric, i) => (
-                  <div key={i} className="bg-white border border-slate-100 p-6 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-md transition-all group">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 group-hover:text-blue-500 transition-colors">{metric.label}</p>
-                    <p className="text-2xl lg:text-3xl font-extrabold text-slate-900 break-words">{metric.value}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Charts */}
-            {result.answer.charts && result.answer.charts.length > 0 && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {result.answer.charts.map((chart, i) => (
-                  <div key={i} className="bg-white border border-slate-100 p-8 rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-md transition-shadow">
-                    <h4 className="text-lg font-bold text-slate-800 mb-8 border-l-4 border-blue-500 pl-4">
-                      {chart.title}
-                    </h4>
-                    <div className="h-80 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        {chart.type === 'pie' ? (
-                          <PieChart>
-                            <Pie
-                              data={chart.data}
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={70}
-                              outerRadius={100}
-                              paddingAngle={6}
-                              dataKey="value"
-                              nameKey="name"
-                              stroke="none"
-                              labelLine={false}
-                            >
-                              {chart.data.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="hover:opacity-80 transition-opacity" />
-                              ))}
-                            </Pie>
-                            <Tooltip 
-                              contentStyle={{ borderRadius: '16px', border: '1px solid #f1f5f9', backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', fontSize: '13px', fontWeight: '600', color: '#1e293b', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' }}
-                              itemStyle={{ color: '#0f172a' }}
-                            />
-                            <Legend wrapperStyle={{ fontSize: '12px', fontWeight: '500', color: '#64748b' }} iconType="circle" />
-                          </PieChart>
-                        ) : (
-                          <BarChart data={chart.data} margin={{ top: 20, right: 10, left: -20, bottom: 20 }}>
-                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} fontFamily="inherit" tickLine={false} axisLine={false} dy={10} interval="preserveStartEnd" />
-                            <YAxis stroke="#94a3b8" fontSize={11} fontFamily="inherit" tickLine={false} axisLine={false} dx={-10} />
-                            <Tooltip 
-                              cursor={{ fill: '#f8fafc' }} 
-                              contentStyle={{ borderRadius: '16px', border: '1px solid #f1f5f9', backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', fontSize: '13px', fontWeight: '600', color: '#1e293b', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' }}
-                            />
-                            <Legend wrapperStyle={{ fontSize: '12px', fontWeight: '500', color: '#64748b', paddingTop: '10px' }} iconType="circle" />
-                            <Bar dataKey="value" name="Value" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={40} className="hover:opacity-80 transition-opacity" />
-                          </BarChart>
-                        )}
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Insights */}
-            {result.answer.insights && (
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 p-8 md:p-10 rounded-[2rem] shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/40 rounded-full blur-3xl" />
-                
-                <div className="relative z-10">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="p-3 bg-white text-blue-600 rounded-2xl shadow-sm border border-blue-100">
-                      <MessageSquare size={24} />
-                    </div>
-                    <h4 className="text-xl font-bold text-slate-900">AI Insights & Analysis</h4>
-                  </div>
-                  <div className="text-slate-700 text-base leading-relaxed font-medium [&>h1]:text-xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:mb-3 [&>h2]:mt-6 [&>p]:mb-4 [&>ul]:list-disc [&>ul]:ml-6 [&>ul]:mb-4 [&>ol]:list-decimal [&>ol]:ml-6 [&>ol]:mb-4 [&>li]:mb-1 [&>strong]:text-slate-900">
-                    <ReactMarkdown>{result.answer.insights}</ReactMarkdown>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          <div className={`min-h-[85vh] w-full max-w-7xl mx-auto ${activeView === 'editor' ? 'block' : 'hidden'}`}>
-            <DataEditor 
-              initialCsvContent={csvContent} 
-              onReanalyze={handleReanalyze}
-              dashboardName={dashboardName}
-            />
-          </div>
-
+        <div style={{ flex: 1, overflow: 'hidden' }}>
+          <DashboardView
+            dashboard={activeDashboard}
+            onBack={() => setActiveDashboard(null)}
+            onUpdateName={handleRenameDashboard}
+          />
         </div>
       </div>
     );
   }
 
-  // Raw Error output if JSON parsing failed
-  if (result) {
-    return (
-      <div className="min-h-screen font-sans bg-slate-50 py-10 px-4 sm:px-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-extrabold text-slate-900">Analysis Results</h2>
-            <button onClick={() => setResult(null)} className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl shadow-sm hover:bg-slate-50 transition-colors text-sm font-semibold"><ArrowLeft size={16} /> Start Over</button>
-          </div>
-          <div className="bg-white border border-slate-200 p-8 rounded-3xl text-slate-600 text-sm font-mono overflow-auto shadow-sm">
-            {typeof result.answer === 'string' ? result.answer : JSON.stringify(result.answer, null, 2)}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // ── Main two-column layout ─────────────────────────────────────────────────
 
-  // MAIN UPLOAD FORM VIEW
   return (
-    <div className="min-h-screen font-sans bg-slate-50 py-12 px-4 sm:px-6 relative overflow-hidden">
-      
-      {/* Background Ambient Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-200/50 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-200/50 rounded-full blur-[120px] pointer-events-none" />
+    <>
+      <style>{`
+        .da-layout { display: flex; min-height: calc(100vh - 73px); background: #080808; }
+        .da-sidebar { width: 280px; flex-shrink: 0; }
+        .da-main { flex: 1; overflow-y: auto; }
+        @media (max-width: 767px) {
+          .da-layout { flex-direction: column; }
+          .da-sidebar { width: 100%; border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.08); max-height: 260px; overflow-y: auto; }
+        }
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .da-sidebar { width: 220px; }
+        }
+        .da-browse-btn:hover { border-color: #d4f000 !important; color: #d4f000 !important; }
+        .da-type-btn:hover { border-color: rgba(255,255,255,0.2) !important; color: rgba(255,255,255,0.7) !important; }
+      `}</style>
+      <div className="da-layout">
 
-      {/* Main Glass Card */}
-      <div className="relative max-w-4xl mx-auto w-full rounded-[2.5rem] bg-white/80 backdrop-blur-2xl p-8 md:p-14 shadow-[0_8px_40px_rgb(0,0,0,0.04)] border border-white">
-        
-        {/* Subtle light grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
-          style={{
-            backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 40px, #000 40px, #000 41px), repeating-linear-gradient(90deg, transparent, transparent 40px, #000 40px, #000 41px)`
-          }}
+        {/* LEFT: Saved Dashboards */}
+        <Sidebar
+          savedDashboards={savedDashboards}
+          activeDashboard={activeDashboard}
+          onOpen={handleOpenDashboard}
+          onRename={handleRenameDashboard}
+          onDelete={handleDeleteDashboard}
+          onNewAnalysis={null}
+          style={{}}
+          className="da-sidebar"
         />
 
-        <div className="relative z-10">
-          
-          <div className="mb-12 text-center">
-            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full mb-6 border border-blue-100 shadow-sm">
-              <BarChart2 size={16} />
-              AI Data Agent
-            </div>
-            <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-5 tracking-tight">Data Intelligence</h2>
-            <p className="text-slate-500 max-w-xl mx-auto text-lg leading-relaxed">Upload an Excel or CSV file. We'll instantly analyze the entire dataset and build a comprehensive dashboard for you.</p>
-          </div>
+        {/* RIGHT: Data Analysis */}
+        <main className="da-main">
+          <div style={{ maxWidth: '640px', margin: '0 auto', padding: '48px 32px' }}>
 
-          {/* Upload Box */}
-          {csvContent && fileName ? (
-            <div className="mb-10 p-6 bg-white border border-blue-100 rounded-2xl flex items-center justify-between shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="bg-green-50 text-green-600 p-3 rounded-xl">
-                  <CheckCircle2 size={24} />
-                </div>
-                <div>
-                  <p className="text-slate-900 font-semibold text-sm">{fileName}</p>
-                  <p className="text-slate-500 text-xs mt-0.5">Ready for analysis</p>
-                </div>
+            {/* Heading */}
+            <div style={{ marginBottom: '40px' }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em',
+                marginBottom: '20px', padding: '6px 12px',
+                border: '1px solid rgba(212,240,0,0.3)', color: ACCENT,
+              }}>
+                <BarChart2 size={12} /> Data Agent
               </div>
-              <button 
-                onClick={(e) => { e.preventDefault(); clearFile(); }}
-                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                title="Remove file"
+              <h1 style={{ fontSize: '42px', fontWeight: 900, letterSpacing: '-0.025em', color: '#fff', marginBottom: '12px', lineHeight: 1.05, margin: '0 0 12px' }}>
+                Data Intelligence
+              </h1>
+              <p style={{ fontSize: '14px', lineHeight: '1.7', color: 'rgba(255,255,255,0.4)', maxWidth: '480px', margin: 0 }}>
+                Upload an Excel or CSV file. The AI will analyze your entire dataset and generate a comprehensive dashboard with charts, KPIs, and insights.
+              </p>
+            </div>
+
+            {/* Upload */}
+            {fileState.csvContent ? (
+              <div style={{
+                marginBottom: '32px', padding: '16px',
+                border: '1px solid rgba(212,240,0,0.25)', background: 'rgba(212,240,0,0.04)',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <CheckCircle2 size={18} style={{ color: ACCENT, flexShrink: 0 }} />
+                  <div>
+                    <p style={{ fontSize: '14px', fontWeight: 600, color: '#fff', margin: 0 }}>{fileState.fileName}</p>
+                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginTop: '2px', marginBottom: 0 }}>{fileState.fileSize} · Ready for analysis</p>
+                  </div>
+                </div>
+                <button
+                  onClick={clearFile}
+                  style={{ padding: '6px', color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer' }}
+                  onMouseOver={(e) => e.currentTarget.style.color = '#f87171'}
+                  onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ) : (
+              <label
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={handleDrop}
+                style={{
+                  display: 'block', marginBottom: '32px', padding: '48px 32px', textAlign: 'center', cursor: 'pointer',
+                  border: isDragging ? `1.5px dashed ${ACCENT}` : '1.5px dashed rgba(255,255,255,0.12)',
+                  background: isDragging ? 'rgba(212,240,0,0.04)' : 'rgba(255,255,255,0.01)',
+                  transition: 'all 0.2s',
+                }}
               >
-                <X size={20} />
-              </button>
-            </div>
-          ) : (
-            <label className="block mb-10 p-10 bg-white/50 border border-dashed border-blue-200 rounded-3xl text-center hover:bg-white hover:border-blue-400 hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300 cursor-pointer relative group w-full">
-              <UploadCloud className="mx-auto h-12 w-12 text-slate-300 mb-5 group-hover:text-blue-500 transition-colors duration-300" />
-              <div className="flex justify-center mb-3">
-                <span className="bg-white border border-slate-200 text-slate-700 text-sm font-semibold px-6 py-3 rounded-xl shadow-sm group-hover:bg-slate-50 group-hover:text-blue-600 transition-colors inline-block">
-                  Browse files
-                </span>
-                <input type="file" className="sr-only" accept=".csv, .xlsx, .xls" onChange={handleFileUpload} />
-              </div>
-              <p className="text-xs text-slate-400 mt-2 font-medium">Supports .csv, .xlsx up to 10MB</p>
-            </label>
-          )}
-
-          <form onSubmit={handleQuerySubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-3">Specific requirements? (Optional)</label>
-              <div className="relative group">
                 <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="e.g. Show me a breakdown of revenue by product category"
-                  className="w-full px-5 py-4 pl-14 rounded-2xl border border-slate-200 text-slate-900 text-base bg-white focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm group-hover:border-blue-300 placeholder:text-slate-400"
+                  ref={fileInputRef} type="file" style={{ display: 'none' }}
+                  accept=".csv,.xlsx,.xls"
+                  onChange={(e) => { if (e.target.files[0]) processFile(e.target.files[0]); }}
                 />
-                <BarChart2 className="absolute left-5 top-4 h-6 w-6 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                <UploadCloud size={32} style={{ display: 'block', margin: '0 auto 16px', color: isDragging ? ACCENT : 'rgba(255,255,255,0.2)' }} />
+                <p style={{ fontSize: '14px', fontWeight: 600, color: '#fff', marginBottom: '4px' }}>Drag &amp; drop your file here</p>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', marginBottom: '20px' }}>or</p>
+                <span
+                  className="da-browse-btn"
+                  style={{
+                    display: 'inline-block', padding: '10px 20px',
+                    fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em',
+                    border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.7)', transition: 'all 0.15s',
+                  }}
+                >
+                  Browse Files
+                </span>
+                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)', marginTop: '16px' }}>Supports .csv, .xlsx — up to 10 MB</p>
+              </label>
+            )}
+
+            {/* Analysis Type */}
+            <div style={{ marginBottom: '28px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)', marginBottom: '12px' }}>
+                Analysis Type
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                {ANALYSIS_TYPES.map(({ id, label, icon: Icon }) => {
+                  const selected = analysisType === id;
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => setAnalysisType(id)}
+                      className={!selected ? 'da-type-btn' : ''}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '8px',
+                        padding: '10px 12px', fontSize: '12px', fontWeight: 600, textAlign: 'left',
+                        border: `1px solid ${selected ? ACCENT : 'rgba(255,255,255,0.08)'}`,
+                        background: selected ? 'rgba(212,240,0,0.07)' : 'transparent',
+                        color: selected ? ACCENT : 'rgba(255,255,255,0.45)',
+                        cursor: 'pointer', transition: 'all 0.15s',
+                      }}
+                    >
+                      <Icon size={13} style={{ flexShrink: 0 }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+                    </button>
+                  );
+                })}
               </div>
-              <p className="text-xs text-slate-400 mt-2 ml-1">If left blank, the AI will automatically find the most important trends for you.</p>
             </div>
 
+            {/* Prompt */}
+            <div style={{ marginBottom: '28px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)', marginBottom: '12px' }}>
+                What would you like to know about your data?
+              </label>
+              <textarea
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="e.g. Show me a breakdown of revenue by product category, highlight top performers…"
+                rows={4}
+                style={{
+                  width: '100%', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#fff', fontSize: '14px', padding: '16px', outline: 'none', resize: 'none',
+                  fontFamily: 'inherit', boxSizing: 'border-box', transition: 'border-color 0.2s',
+                }}
+                onFocus={(e) => e.target.style.borderColor = 'rgba(212,240,0,0.5)'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+              />
+              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', marginTop: '8px' }}>
+                Optional — leave blank and the AI will auto-discover the most important trends.
+              </p>
+            </div>
+
+            {/* Error */}
             {error && (
-              <div className="bg-red-50 border border-red-100 text-red-600 text-sm font-medium px-5 py-4 rounded-2xl flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-red-500" />
+              <div style={{
+                marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px',
+                padding: '14px 16px', fontSize: '14px', fontWeight: 500,
+                border: '1px solid rgba(248,113,113,0.25)', background: 'rgba(248,113,113,0.06)', color: '#f87171',
+              }}>
+                <AlertTriangle size={15} style={{ flexShrink: 0 }} />
                 {error}
               </div>
             )}
 
+            {/* CTA */}
             <button
-              type="submit"
-              disabled={loading || !csvContent}
-              className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-lg py-4 px-4 rounded-2xl transition-all duration-300 flex items-center justify-center shadow-lg shadow-blue-600/20 hover:shadow-xl hover:shadow-blue-600/30 disabled:shadow-none disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed"
+              onClick={analyzeData}
+              disabled={loading || !fileState.csvContent}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px',
+                padding: '16px', fontSize: '13px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em',
+                background: (loading || !fileState.csvContent) ? 'rgba(255,255,255,0.06)' : ACCENT,
+                color: (loading || !fileState.csvContent) ? 'rgba(255,255,255,0.2)' : '#080808',
+                border: 'none', cursor: (loading || !fileState.csvContent) ? 'not-allowed' : 'pointer',
+                transition: 'background 0.2s',
+              }}
+              onMouseOver={(e) => { if (!loading && fileState.csvContent) e.currentTarget.style.background = '#b8d000'; }}
+              onMouseOut={(e) => { if (!loading && fileState.csvContent) e.currentTarget.style.background = ACCENT; }}
             >
               {loading ? (
-                <>
-                  <Loader2 className="animate-spin mr-3" size={22} />
-                  Analyzing entire dataset...
-                </>
+                <><Loader2 className="animate-spin" size={18} /> Analyzing dataset…</>
               ) : (
-                'Generate Full Dashboard'
+                <>Generate Dashboard <ChevronRight size={16} /></>
               )}
             </button>
-          </form>
 
-        </div>
+            {loading && (
+              <p className="animate-pulse" style={{ fontSize: '12px', textAlign: 'center', marginTop: '16px', color: 'rgba(255,255,255,0.25)' }}>
+                The AI is crunching your numbers — this usually takes 10–30 seconds.
+              </p>
+            )}
+          </div>
+        </main>
       </div>
-    </div>
+    </>
   );
 }
