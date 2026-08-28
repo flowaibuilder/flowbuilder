@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { Loader2, ChevronRight, ChevronLeft, Check, Sparkles, Globe, Palette, FileText, Rocket, Zap } from 'lucide-react';
 
 const ACCENT = '#d4f000';
@@ -666,6 +667,36 @@ export default function Questionnaire({ onWebsiteGenerated }) {
   const [error, setError] = useState(null);
   const [suggesting, setSuggesting] = useState(false);
   const [suggestSuccess, setSuggestSuccess] = useState(false);
+  
+  const [savedWebsites, setSavedWebsites] = useState([]);
+  const [loadingWebsites, setLoadingWebsites] = useState(true);
+
+  useEffect(() => {
+    const fetchWebsites = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setLoadingWebsites(false);
+          return;
+        }
+        
+        const { data, error } = await supabase
+          .from('saved_websites')
+          .select('id, name, updated_at, theme, config, spec')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false });
+          
+        if (error) throw error;
+        setSavedWebsites(data || []);
+      } catch (err) {
+        console.error('Error fetching websites:', err);
+      } finally {
+        setLoadingWebsites(false);
+      }
+    };
+    
+    fetchWebsites();
+  }, []);
 
   const handleSuggest = async () => {
     if (!data.name.trim() || !data.industry.trim()) return;
@@ -771,12 +802,59 @@ export default function Questionnaire({ onWebsiteGenerated }) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-8 sm:p-10 bg-[#0e0e0e] border border-white/8 relative overflow-hidden">
-      {/* Accent glow */}
-      <div
-        className="absolute top-0 right-0 w-[360px] h-[360px] rounded-full blur-3xl opacity-[0.06] pointer-events-none"
-        style={{ background: ACCENT }}
-      />
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full max-w-7xl mx-auto">
+      {/* Left Column: Saved Projects */}
+      <div className="lg:col-span-4 bg-[#0e0e0e] border border-white/10 rounded-xl p-6">
+        <h3 className="text-lg font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+          <Globe size={18} className="text-[#d4f000]" /> Saved Projects
+        </h3>
+        
+        {loadingWebsites ? (
+          <div className="flex items-center justify-center p-8">
+            <Loader2 size={24} className="animate-spin text-[#d4f000]" />
+          </div>
+        ) : savedWebsites.length > 0 ? (
+          <div className="space-y-3">
+            {savedWebsites.map(site => (
+              <button
+                key={site.id}
+                onClick={() => {
+                  if (onWebsiteGenerated) {
+                    onWebsiteGenerated(
+                      site.spec,
+                      site.theme,
+                      site.config?.businessName || site.name,
+                      site.config?.pages,
+                      site.config?.logo,
+                      site.config?.feel,
+                      site.config?.fontStyle,
+                      site.id
+                    );
+                  }
+                }}
+                className="w-full text-left p-4 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-[#d4f000]/30 transition-all rounded-lg group"
+              >
+                <h4 className="text-sm font-bold text-white mb-1 group-hover:text-[#d4f000] transition-colors">{site.name}</h4>
+                <p className="text-[10px] text-white/40 uppercase tracking-wider">
+                  Updated: {new Date(site.updated_at).toLocaleDateString()}
+                </p>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-lg">
+            <p className="text-xs text-white/40">No saved projects yet.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Right Column: Questionnaire */}
+      <div className="lg:col-span-8 p-8 sm:p-10 bg-[#0e0e0e] border border-white/10 rounded-xl relative overflow-hidden">
+        {/* Accent glow */}
+        <div
+          className="absolute top-0 right-0 w-[360px] h-[360px] rounded-full blur-3xl opacity-[0.06] pointer-events-none"
+          style={{ background: ACCENT }}
+        />
 
       <div className="relative z-10">
         {/* Header */}
@@ -848,6 +926,7 @@ export default function Questionnaire({ onWebsiteGenerated }) {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }

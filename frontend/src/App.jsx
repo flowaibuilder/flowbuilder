@@ -21,8 +21,9 @@ function AIBuilderContainer() {
   const [logo, setLogo] = useState(null);
   const [feel, setFeel] = useState('');
   const [fontStyle, setFontStyle] = useState('');
+  const [websiteId, setWebsiteId] = useState(null);
 
-  const handleWebsiteGenerated = (spec, themeColors, name, selectedPages, selectedLogo, selectedFeel, selectedFont) => {
+  const handleWebsiteGenerated = (spec, themeColors, name, selectedPages, selectedLogo, selectedFeel, selectedFont, id = null) => {
     setWebsiteSpec(spec);
     setTheme(themeColors);
     setBusinessName(name || '');
@@ -30,6 +31,7 @@ function AIBuilderContainer() {
     setLogo(selectedLogo || null);
     setFeel(selectedFeel || '');
     setFontStyle(selectedFont || '');
+    setWebsiteId(id);
   };
 
   return (
@@ -52,6 +54,8 @@ function AIBuilderContainer() {
           logo={logo} 
           feel={feel} 
           fontStyle={fontStyle} 
+          websiteId={websiteId}
+          onSave={(id) => setWebsiteId(id)}
         />
       )}
     </div>

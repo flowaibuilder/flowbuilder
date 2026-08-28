@@ -19,6 +19,7 @@ import { GripVertical, Sparkles, Send, Loader2, Menu, X, ChevronDown, ChevronUp,
 import FloatingImage from './FloatingImage';
 
 import { EditableContext } from './EditableText';
+import { supabase } from '../lib/supabase';
 
 import Hero from './sections/Hero';
 import Features from './sections/Features';
@@ -242,13 +243,58 @@ function SortableSection({ id, section, feel, isEditingText, isExpanded, onClick
 
 // ─── WEBSITE BUILDER ──────────────────────────────────────────────────────────
 
-export default function WebsiteBuilder({ initialSpec, theme, businessName, pages, logo, feel, fontStyle }) {
+export default function WebsiteBuilder({ initialSpec, theme, businessName, pages, logo, feel, fontStyle, websiteId, onSave }) {
   const [sections, setSections] = useState(
     (initialSpec || []).map((s, idx) => ({ ...s, id: s.id || `section-${idx}` }))
   );
 
   const [currentTheme, setCurrentTheme] = useState(theme);
   const [currentFeel, setCurrentFeel] = useState(feel);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const handleSaveProject = async () => {
+    setIsSaving(true);
+    setSaveSuccess(false);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('You must be logged in to save.');
+
+      const payload = {
+        user_id: user.id,
+        name: businessName || 'My Website',
+        spec: sections,
+        theme: currentTheme || theme,
+        config: { businessName, pages, logo, feel: currentFeel || feel, fontStyle },
+        updated_at: new Date().toISOString()
+      };
+
+      if (websiteId) {
+        const { error } = await supabase
+          .from('saved_websites')
+          .update(payload)
+          .eq('id', websiteId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from('saved_websites')
+          .insert([payload])
+          .select()
+          .single();
+        if (error) throw error;
+        if (data && onSave) {
+          onSave(data.id);
+        }
+      }
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      console.error('Save failed:', err);
+      alert('Failed to save project: ' + err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
   const [refineSummary, setRefineSummary] = useState(null);
 
   const [chatMessages, setChatMessages] = useState([
@@ -1284,9 +1330,18 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         </div>
 
         <div className="p-4 border-t border-white/10 flex flex-col gap-2">
-          <button className="w-full bg-[#d4f000] hover:bg-[#b8d000] text-[#080808] px-6 py-2.5 font-bold text-xs uppercase tracking-wider transition-colors">
-            Publish Website
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleSaveProject}
+              disabled={isSaving}
+              className={`flex-1 ${saveSuccess ? 'bg-emerald-500 text-white' : 'bg-white/10 hover:bg-white/20 text-white'} px-4 py-2.5 font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2`}
+            >
+              {isSaving ? <Loader2 size={14} className="animate-spin" /> : saveSuccess ? 'Saved!' : 'Save'}
+            </button>
+            <button className="flex-1 bg-[#d4f000] hover:bg-[#b8d000] text-[#080808] px-4 py-2.5 font-bold text-xs uppercase tracking-wider transition-colors">
+              Publish
+            </button>
+          </div>
           <button
             onClick={() => window.location.href = '/tools'}
             className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white px-6 py-2.5 font-bold text-xs uppercase tracking-wider transition-colors"
