@@ -31,7 +31,7 @@ import Testimonials from './sections/Testimonials';
 import FAQ from './sections/FAQ';
 import Contact from './sections/Contact';
 
-const SectionComponents = {
+export const SectionComponents = {
   hero: Hero,
   home: Hero,
   about: About,
@@ -47,9 +47,20 @@ const SectionComponents = {
   blog: Features, // fallback
 };
 
+// ─── UTILS ─────────────────────────────────────────────────────────────────────
+
+export function isLight(hex) {
+  if (!hex) return true;
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 128;
+}
+
 // ─── SITE NAVBAR ─────────────────────────────────────────────────────────────
 
-function SiteNavbar({ businessName, sections, theme, logo }) {
+export function SiteNavbar({ businessName, sections, theme, logo }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navLinks = sections
@@ -148,15 +159,6 @@ function SiteNavbar({ businessName, sections, theme, logo }) {
   );
 }
 
-function isLight(hex) {
-  if (!hex) return true;
-  const h = hex.replace('#', '');
-  const r = parseInt(h.substring(0, 2), 16);
-  const g = parseInt(h.substring(2, 4), 16);
-  const b = parseInt(h.substring(4, 6), 16);
-  return (r * 299 + g * 587 + b * 114) / 1000 > 128;
-}
-
 // ─── SORTABLE SECTION ─────────────────────────────────────────────────────────
 
 function SortableSection({ id, section, feel, isEditingText, isExpanded, onClick, onUpdateText, activeTab, selectedText, onSelectText }) {
@@ -252,6 +254,69 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
   const [currentFeel, setCurrentFeel] = useState(feel);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  
+  // Publish State
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [subdomainInput, setSubdomainInput] = useState('');
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishError, setPublishError] = useState(null);
+  const [publishSuccessUrl, setPublishSuccessUrl] = useState(null);
+
+  const handlePublish = async (e) => {
+    e.preventDefault();
+    if (!subdomainInput.trim()) return;
+    
+    setIsPublishing(true);
+    setPublishError(null);
+    setPublishSuccessUrl(null);
+    
+    const subdomain = subdomainInput.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('You must be logged in to publish.');
+
+      // Check availability
+      const { data: existing } = await supabase
+        .from('published_sites')
+        .select('subdomain, user_id')
+        .eq('subdomain', subdomain)
+        .single();
+        
+      if (existing && existing.user_id !== user.id) {
+        throw new Error('This subdomain is already taken by another user.');
+      }
+
+      const payload = {
+        subdomain,
+        user_id: user.id,
+        website_id: websiteId || null,
+        config: {
+          businessName,
+          sections,
+          theme: currentTheme || theme,
+          logo,
+          feel: currentFeel || feel,
+          fontStyle
+        },
+        published_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('published_sites')
+        .upsert(payload, { onConflict: 'subdomain' });
+        
+      if (error) throw error;
+      
+      const domainUrl = `http://${subdomain}.flow.devshahid.me`;
+      setPublishSuccessUrl(domainUrl);
+    } catch (err) {
+      console.error('Publish failed:', err);
+      setPublishError(err.message);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
   const handleSaveProject = async () => {
     setIsSaving(true);
@@ -1338,7 +1403,9 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             >
               {isSaving ? <Loader2 size={14} className="animate-spin" /> : saveSuccess ? 'Saved!' : 'Save'}
             </button>
-            <button className="flex-1 bg-[#d4f000] hover:bg-[#b8d000] text-[#080808] px-4 py-2.5 font-bold text-xs uppercase tracking-wider transition-colors">
+            <button 
+              onClick={() => setShowPublishModal(true)}
+              className="flex-1 bg-[#d4f000] hover:bg-[#b8d000] text-[#080808] px-4 py-2.5 font-bold text-xs uppercase tracking-wider transition-colors">
               Publish
             </button>
           </div>
@@ -1443,6 +1510,74 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           </div>
         )}
       </div>
+
+      {/* Publish Modal */}
+      {showPublishModal && (
+        <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4">
+          <div className="bg-[#0e0e0e] border border-white/10 rounded-xl p-8 max-w-md w-full relative shadow-2xl">
+            <button 
+              onClick={() => setShowPublishModal(false)}
+              className="absolute top-4 right-4 text-white/50 hover:text-white"
+            >
+              <X size={20} />
+            </button>
+            <h2 className="text-2xl font-black text-white uppercase tracking-wider mb-2">Publish Website</h2>
+            <p className="text-sm text-white/60 mb-6">Claim your subdomain and go live instantly.</p>
+            
+            {publishSuccessUrl ? (
+              <div className="space-y-6">
+                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded p-4 text-center">
+                  <p className="text-emerald-400 font-bold mb-2 flex items-center justify-center gap-2">
+                    <CheckCircle2 size={18} /> Published Successfully!
+                  </p>
+                  <a href={publishSuccessUrl} target="_blank" rel="noreferrer" className="text-white hover:text-[#d4f000] transition-colors break-all text-sm block mb-1">
+                    {publishSuccessUrl}
+                  </a>
+                  <p className="text-[10px] text-white/40">It might take a few moments for the DNS to propagate.</p>
+                </div>
+                <button
+                  onClick={() => setShowPublishModal(false)}
+                  className="w-full bg-[#d4f000] text-[#080808] font-bold uppercase tracking-wider py-3 rounded"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handlePublish} className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-white/50 uppercase tracking-widest block mb-2">Subdomain</label>
+                  <div className="flex items-center">
+                    <input
+                      type="text"
+                      value={subdomainInput}
+                      onChange={(e) => setSubdomainInput(e.target.value)}
+                      placeholder="my-startup"
+                      className="w-full bg-white/5 border border-r-0 border-white/10 rounded-l p-3 text-white focus:outline-none focus:border-[#d4f000]"
+                      pattern="[a-zA-Z0-9-]+"
+                      required
+                    />
+                    <span className="bg-white/5 border border-l-0 border-white/10 rounded-r p-3 text-white/50 select-none">
+                      .flow.devshahid.me
+                    </span>
+                  </div>
+                </div>
+
+                {publishError && (
+                  <p className="text-red-400 text-sm bg-red-400/10 p-3 rounded">{publishError}</p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isPublishing || !subdomainInput}
+                  className="w-full bg-[#d4f000] text-[#080808] font-bold uppercase tracking-wider py-3 rounded hover:bg-[#b8d000] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isPublishing ? <Loader2 size={16} className="animate-spin" /> : 'Publish Now'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

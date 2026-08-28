@@ -1,0 +1,93 @@
+import React, { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { SiteNavbar, SectionComponents } from './WebsiteBuilder';
+import Footer from './sections/Footer';
+
+export default function PublishedSiteViewer({ subdomain }) {
+  const [siteData, setSiteData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchSite = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('published_sites')
+          .select('config')
+          .eq('subdomain', subdomain)
+          .single();
+
+        if (error) throw error;
+        if (!data) throw new Error('Site not found');
+        
+        setSiteData(data.config);
+      } catch (err) {
+        console.error('Failed to load published site:', err);
+        setError('Website not found or unavailable.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSite();
+  }, [subdomain]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#080808] flex items-center justify-center">
+        <Loader2 size={32} className="animate-spin text-[#d4f000]" />
+      </div>
+    );
+  }
+
+  if (error || !siteData) {
+    return (
+      <div className="min-h-screen bg-[#080808] flex flex-col items-center justify-center text-center p-8">
+        <h1 className="text-4xl font-black uppercase text-white mb-4">404</h1>
+        <p className="text-xl text-white/60 mb-8">{error || 'Website not found'}</p>
+        <a href="https://flow.devshahid.me" className="px-6 py-3 bg-[#d4f000] text-[#080808] font-bold uppercase tracking-wider hover:bg-[#b8d000] transition-colors">
+          Build Your Own AI Website
+        </a>
+      </div>
+    );
+  }
+
+  const { businessName, sections, theme, logo, feel } = siteData;
+
+  // Setup CSS variables for the theme
+  const themeStyle = theme ? {
+    '--color-primary': theme.primary,
+    '--color-secondary': theme.secondary,
+    '--color-bg-base': theme.background,
+    backgroundColor: theme.background,
+  } : {};
+
+  const mainSections = sections.filter(s => s.type !== 'footer');
+  const footerSection = sections.find(s => s.type === 'footer');
+
+  return (
+    <div className="w-full min-h-screen font-sans" style={themeStyle}>
+      <SiteNavbar businessName={businessName} sections={sections} theme={theme} logo={logo} />
+      
+      <main>
+        {mainSections.map((section) => {
+          const Component = SectionComponents[section.type];
+          if (!Component) return null;
+          
+          return (
+            <div key={section.id} id={`section-${section.id}`}>
+              <Component content={section.content || {}} feel={feel} />
+            </div>
+          );
+        })}
+      </main>
+
+      {footerSection && (
+        <div id={`section-${footerSection.id}`}>
+          <Footer content={footerSection.content || {}} feel={feel} />
+        </div>
+      )}
+    </div>
+  );
+}
