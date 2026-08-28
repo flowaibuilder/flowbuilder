@@ -16,10 +16,22 @@ import PublicForm from './components/PublicForm';
 function AIBuilderContainer() {
   const [websiteSpec, setWebsiteSpec] = useState(null);
   const [theme, setTheme] = useState(null);
+  const [businessName, setBusinessName] = useState('');
+  const [pages, setPages] = useState([]);
+  const [logo, setLogo] = useState(null);
+  const [feel, setFeel] = useState('');
+  const [fontStyle, setFontStyle] = useState('');
+  const [websiteId, setWebsiteId] = useState(null);
 
-  const handleWebsiteGenerated = (spec, themeColors) => {
+  const handleWebsiteGenerated = (spec, themeColors, name, selectedPages, selectedLogo, selectedFeel, selectedFont, id = null) => {
     setWebsiteSpec(spec);
     setTheme(themeColors);
+    setBusinessName(name || '');
+    setPages(selectedPages || []);
+    setLogo(selectedLogo || null);
+    setFeel(selectedFeel || '');
+    setFontStyle(selectedFont || '');
+    setWebsiteId(id);
   };
 
   return (
@@ -34,7 +46,17 @@ function AIBuilderContainer() {
           <Questionnaire onWebsiteGenerated={handleWebsiteGenerated} />
         </div>
       ) : (
-        <WebsiteBuilder initialSpec={websiteSpec} theme={theme} />
+        <WebsiteBuilder 
+          initialSpec={websiteSpec} 
+          theme={theme} 
+          businessName={businessName} 
+          pages={pages} 
+          logo={logo} 
+          feel={feel} 
+          fontStyle={fontStyle} 
+          websiteId={websiteId}
+          onSave={(id) => setWebsiteId(id)}
+        />
       )}
     </div>
   );

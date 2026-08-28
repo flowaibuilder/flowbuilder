@@ -1,13 +1,24 @@
-export default function Footer({ content }) {
+import React from 'react';
+import { getStyles } from '../../utils/themeHelper';
+import EditableText from '../EditableText';
+
+export default function Footer({ content, feel }) {
+  const s = getStyles(feel);
+  const isDarkBase = ['luxury', 'futuristic', 'bold'].includes(feel);
+  
+  // Custom styling for Footer depending on feel
+  const footerBg = isDarkBase ? 'bg-black text-white/80' : 'bg-slate-50 text-slate-600';
+  const borderStyle = feel === 'bold' ? 'border-t-4 border-black' : 'border-t border-current/10';
+
   return (
-    <footer className="bg-black text-white border-t-8 border-white">
-      <div className="mx-auto max-w-7xl px-6 py-16 md:flex md:items-center md:justify-between lg:px-8">
-        <div className="mt-8 md:order-1 md:mt-0 flex flex-col sm:flex-row items-center gap-6 w-full justify-between">
-          <div className="bg-secondary text-black font-black uppercase border-4 border-white px-6 py-3 text-xl rotate-[-2deg] shadow-[4px_4px_0_0_#fff]">
-            {content.companyName || 'Your Company, Inc'}
+    <footer className={`${footerBg} ${borderStyle}`}>
+      <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
+        <div className="md:order-1 flex flex-col sm:flex-row items-center gap-6 w-full justify-between">
+          <div className="text-lg font-black uppercase tracking-wider">
+            <EditableText path="companyName" value={content.companyName || 'Your Company, Inc'} />
           </div>
-          <p className="text-center text-sm font-bold leading-5">
-            &copy; {new Date().getFullYear()} All rights reserved. <br/> Built with Neo-Brutalism.
+          <p className="text-center text-xs opacity-65 leading-relaxed sm:text-right">
+            &copy; {new Date().getFullYear()} All rights reserved.
           </p>
         </div>
       </div>

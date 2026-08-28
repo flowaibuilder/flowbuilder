@@ -21,7 +21,7 @@ export default function DataEditor({ initialCsvContent, onReanalyze, dashboardNa
     
     const pollInterval = setInterval(async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/form/${sharedFormId}/submissions?since=${encodeURIComponent(lastFetchedRef.current)}`);
+        const res = await fetch(`/api/form/${sharedFormId}/submissions?since=${encodeURIComponent(lastFetchedRef.current)}`);
         const result = await res.json();
         
         if (result.success && result.submissions && result.submissions.length > 0) {
@@ -60,7 +60,7 @@ export default function DataEditor({ initialCsvContent, onReanalyze, dashboardNa
     setShowShareModal(true);
     setCopied(false);
     try {
-      const res = await fetch('http://localhost:5000/api/form/create', {
+      const res = await fetch('/api/form/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ headers, dashboardName })
