@@ -14,7 +14,7 @@ export default function PublicForm() {
   useEffect(() => {
     const fetchForm = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/form/${id}`);
+        const res = await fetch(`/api/form/${id}`);
         const data = await res.json();
         
         if (!res.ok) throw new Error(data.error || 'Failed to load form');
@@ -38,7 +38,7 @@ export default function PublicForm() {
       // Data is sent as an array matching the headers
       const orderedData = formConfig.headers.map((_, idx) => formData[idx] || '');
 
-      const res = await fetch(`http://localhost:5000/api/form/${id}/submit`, {
+      const res = await fetch(`/api/form/${id}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data: orderedData })

@@ -49,7 +49,7 @@ export default function Questionnaire({ onWebsiteGenerated }) {
     const selectedTheme = THEMES.find(t => t.id === formData.themeId).colors;
 
     try {
-      const response = await fetch('http://localhost:5000/api/generate-website', {
+      const response = await fetch('/api/generate-website', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

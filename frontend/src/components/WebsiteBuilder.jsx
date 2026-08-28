@@ -97,7 +97,7 @@ export default function WebsiteBuilder({ initialSpec, theme }) {
 
     setIsRefining(true);
     try {
-      const response = await fetch('http://localhost:5000/api/refine-website', {
+      const response = await fetch('/api/refine-website', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentSpec: sections, instruction }),
