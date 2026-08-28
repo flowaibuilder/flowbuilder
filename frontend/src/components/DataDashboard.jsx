@@ -76,7 +76,7 @@ export default function DataDashboard() {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:5000/api/data/analyze', {
+      const response = await fetch('http://localhost:5001/api/data/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ csvContent: dataToAnalyze, query: queryToUse }),
