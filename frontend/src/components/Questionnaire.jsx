@@ -671,7 +671,7 @@ export default function Questionnaire({ onWebsiteGenerated }) {
     if (!data.name.trim() || !data.industry.trim()) return;
     setSuggesting(true);
     try {
-      const response = await fetch('http://localhost:5001/api/suggest-profile', {
+      const response = await fetch('/api/suggest-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: data.name, industry: data.industry }),
