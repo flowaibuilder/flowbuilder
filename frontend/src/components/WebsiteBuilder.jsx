@@ -692,7 +692,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
     setRefineSummary(null);
 
     try {
-      const response = await fetch('http://localhost:5001/api/refine-website', {
+      const response = await fetch('/api/refine-website', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

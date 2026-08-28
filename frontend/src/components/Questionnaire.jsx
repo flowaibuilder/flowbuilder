@@ -753,7 +753,7 @@ export default function Questionnaire({ onWebsiteGenerated }) {
     };
 
     try {
-      const response = await fetch('http://localhost:5001/api/generate-website', {
+      const response = await fetch('/api/generate-website', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
