@@ -247,12 +247,41 @@ function Sidebar({ savedDashboards, activeDashboard, onOpen, onRename, onDelete,
 
 // ── Dashboard Results View ────────────────────────────────────────────────────
 
-function DashboardView({ dashboard, onBack, onUpdateName }) {
-  const { result, csvContent, name } = dashboard;
+function DashboardView({ dashboard, onBack, onUpdateName, onUpdateDashboard }) {
+  const { result, csvContent, name, analysisType } = dashboard;
   const [activeView, setActiveView] = useState('dashboard');
   const [dashboardName, setDashboardName] = useState(name);
+  const [isReanalyzing, setIsReanalyzing] = useState(false);
 
-  const handleReanalyze = async () => {};
+  const handleReanalyze = async (newCsvContent) => {
+    setIsReanalyzing(true);
+    try {
+      const typeLabel = ANALYSIS_TYPES.find((t) => t.id === analysisType)?.label || '';
+      const finalQuery = (analysisType !== 'general' && analysisType !== 'custom')
+        ? `Perform a comprehensive ${typeLabel} analysis of this data.` : '';
+
+      const response = await fetch('http://localhost:5000/api/data/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ csvContent: newCsvContent, query: finalQuery }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to analyze data');
+      
+      if (onUpdateDashboard) {
+        onUpdateDashboard({
+          ...dashboard,
+          csvContent: newCsvContent,
+          result: data.result,
+        });
+      }
+      setActiveView('dashboard');
+    } catch (err) {
+      alert('Error re-analyzing: ' + err.message);
+    } finally {
+      setIsReanalyzing(false);
+    }
+  };
 
   if (!result || typeof result.answer !== 'object' || result.answer.error) {
     return (
@@ -397,8 +426,15 @@ function DashboardView({ dashboard, onBack, onUpdateName }) {
         </div>
 
         {/* Editor panel */}
-        <div style={{ display: activeView === 'editor' ? 'block' : 'none', background: '#0a0a0a', padding: '24px' }}>
-          <DataEditor initialCsvContent={csvContent} onReanalyze={handleReanalyze} dashboardName={dashboardName} />
+        <div style={{ display: activeView === 'editor' ? 'block' : 'none', background: '#0a0a0a', padding: '24px', height: '100%' }}>
+          {isReanalyzing ? (
+            <div className="h-full min-h-[500px] flex flex-col items-center justify-center bg-[#0a0a0a] border border-white/10 text-white/40">
+              <Loader2 className="animate-spin text-[#d4f000] mb-4" size={32} />
+              <p className="text-[11px] font-bold uppercase tracking-widest">Re-analyzing dataset...</p>
+            </div>
+          ) : (
+            <DataEditor initialCsvContent={csvContent} onReanalyze={handleReanalyze} dashboardName={dashboardName} />
+          )}
         </div>
       </div>
     </div>
@@ -540,6 +576,11 @@ export default function DataDashboard() {
             dashboard={activeDashboard}
             onBack={() => setActiveDashboard(null)}
             onUpdateName={handleRenameDashboard}
+            onUpdateDashboard={(updatedDash) => {
+              const next = savedDashboards.map(d => d.id === updatedDash.id ? updatedDash : d);
+              persistDashboards(next);
+              setActiveDashboard(updatedDash);
+            }}
           />
         </div>
       </div>

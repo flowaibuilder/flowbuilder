@@ -57,23 +57,23 @@ export default function PublicForm() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 font-sans">
-        <Loader2 className="animate-spin text-blue-500 mb-4" size={32} />
-        <p className="text-slate-500 font-medium">Loading form...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#080808] font-sans">
+        <Loader2 className="animate-spin text-[#d4f000] mb-4" size={32} />
+        <p className="text-white/40 text-[11px] font-bold uppercase tracking-widest">Loading form...</p>
       </div>
     );
   }
 
   if (error && !formConfig) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 font-sans p-6">
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-red-100 max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="min-h-screen flex items-center justify-center bg-[#080808] font-sans p-6">
+        <div className="bg-[#111] p-8 shadow-2xl border border-white/10 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-red-500/10 text-red-500 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <span className="text-2xl font-bold">!</span>
           </div>
-          <h2 className="text-xl font-bold text-slate-800 mb-2">Form Not Found</h2>
-          <p className="text-slate-500 mb-6">{error}</p>
-          <Link to="/" className="inline-block bg-blue-600 text-white font-semibold px-6 py-2 rounded-xl hover:bg-blue-700 transition-colors">
+          <h2 className="text-xl font-bold text-white/90 mb-2">Form Not Found</h2>
+          <p className="text-white/40 mb-8">{error}</p>
+          <Link to="/" className="inline-block bg-transparent border border-white/10 text-white/40 hover:text-white/90 hover:bg-white/5 uppercase tracking-widest text-[11px] font-bold px-6 py-3 transition-colors">
             Go to Flow.ai
           </Link>
         </div>
@@ -83,18 +83,18 @@ export default function PublicForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 font-sans p-6">
-        <div className="bg-white p-10 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 max-w-md w-full text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-2 bg-green-500" />
-          <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-green-100">
+      <div className="min-h-screen flex items-center justify-center bg-[#080808] font-sans p-6">
+        <div className="bg-[#111] p-10 shadow-[0_0_30px_rgba(212,240,0,0.05)] border border-[#d4f000]/20 max-w-md w-full text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-[#d4f000]" />
+          <div className="w-20 h-20 bg-[#d4f000]/10 text-[#d4f000] border border-[#d4f000]/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 size={40} />
           </div>
-          <h2 className="text-3xl font-black text-slate-900 mb-3 tracking-tight">Success!</h2>
-          <p className="text-slate-500 font-medium text-lg mb-8">Your information has been securely submitted.</p>
+          <h2 className="text-3xl font-black text-white/90 mb-3 tracking-tight">Success!</h2>
+          <p className="text-white/40 font-medium text-sm mb-10">Your information has been securely submitted.</p>
           
           <button 
             onClick={() => { setSuccess(false); setFormData({}); }}
-            className="text-blue-600 font-bold hover:text-blue-800 transition-colors"
+            className="text-[#d4f000] hover:text-[#e4ff1a] uppercase tracking-widest text-[11px] font-bold transition-colors"
           >
             Submit another response
           </button>
@@ -104,31 +104,31 @@ export default function PublicForm() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans py-12 px-4 sm:px-6 flex flex-col items-center">
-      <div className="w-full max-w-2xl mb-8 flex items-center gap-2 justify-center">
-        <div className="p-2 bg-blue-100 text-blue-600 rounded-xl">
-          <Share2 size={24} />
+    <div className="min-h-screen bg-[#080808] font-sans py-12 px-4 sm:px-6 flex flex-col items-center">
+      <div className="w-full max-w-2xl mb-10 flex justify-center">
+        <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-black/40 border border-[#d4f000]/30 rounded-full shadow-[0_0_20px_rgba(212,240,0,0.05)] backdrop-blur-md">
+          <Share2 size={16} className="text-[#d4f000]" />
+          <h1 className="text-[12px] font-black text-white/90 uppercase tracking-[0.2em]">Data Collection</h1>
         </div>
-        <h1 className="text-2xl font-black text-slate-800 tracking-tight">Data Collection</h1>
       </div>
       
-      <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-slate-100 w-full max-w-2xl overflow-hidden">
-        <div className="bg-blue-600 p-8 sm:p-10 text-white">
-          <h2 className="text-3xl font-black mb-2">{formConfig.dashboard_name || 'Data Entry Form'}</h2>
-          <p className="text-blue-100 font-medium">Please fill out the details below. Required fields are marked.</p>
+      <div className="bg-[#111] shadow-2xl border border-white/10 w-full max-w-2xl overflow-hidden">
+        <div className="bg-[#0a0a0a] border-b border-white/10 p-8 sm:p-10 text-white">
+          <h2 className="text-[#d4f000] text-3xl font-black mb-3">{formConfig.dashboard_name || 'Data Entry Form'}</h2>
+          <p className="text-white/40 font-medium text-sm">Please fill out the details below. Required fields are marked.</p>
         </div>
         
         <form onSubmit={handleSubmit} className="p-8 sm:p-10">
-          <div className="space-y-6">
+          <div className="space-y-8">
             {formConfig.headers.map((header, idx) => (
               <div key={idx}>
-                <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">{header}</label>
+                <label className="block text-[11px] font-bold uppercase tracking-widest text-white/40 mb-3 ml-1">{header}</label>
                 <input
                   type="text"
                   required
                   value={formData[idx] || ''}
                   onChange={(e) => setFormData({ ...formData, [idx]: e.target.value })}
-                  className="w-full px-5 py-3.5 rounded-xl border border-slate-200 text-slate-900 text-base bg-slate-50 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm placeholder:text-slate-400"
+                  className="w-full px-5 py-4 border border-white/10 text-white/90 text-sm bg-black/50 focus:bg-black focus:ring-1 focus:ring-[#d4f000] focus:border-[#d4f000] outline-none transition-all placeholder:text-white/20"
                   placeholder={`Enter ${header}`}
                 />
               </div>
@@ -136,25 +136,27 @@ export default function PublicForm() {
           </div>
 
           {error && (
-            <div className="mt-6 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-semibold">
+            <div className="mt-8 bg-red-500/10 border border-red-500/30 text-red-400 px-5 py-4 text-sm font-semibold">
               {error}
             </div>
           )}
 
-          <div className="mt-10">
+          <div className="mt-12 flex justify-center">
             <button
               type="submit"
               disabled={submitting}
-              className="w-full sm:w-auto px-8 py-4 bg-blue-600 text-white font-bold text-lg rounded-xl hover:bg-blue-700 active:bg-blue-800 shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 disabled:bg-slate-300 disabled:shadow-none"
+              className="group relative flex items-center justify-center gap-2 px-8 py-4 bg-transparent text-[#d4f000] border border-[#d4f000] hover:bg-[#d4f000] hover:text-[#080808] hover:shadow-[0_0_20px_rgba(212,240,0,0.4)] text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 w-full sm:w-auto overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[#d4f000] disabled:hover:shadow-none"
             >
+              <div className="absolute inset-0 w-0 bg-white/20 transition-all duration-[400ms] ease-out group-hover:w-full"></div>
               {submitting ? (
                 <>
-                  <Loader2 className="animate-spin" size={20} />
-                  Submitting...
+                  <Loader2 className="relative z-10 animate-spin" size={18} />
+                  <span className="relative z-10">Submitting...</span>
                 </>
               ) : (
                 <>
-                  Submit Response <ArrowRight size={20} />
+                  <span className="relative z-10">Submit Response</span>
+                  <ArrowRight size={18} className="relative z-10 transition-transform duration-500 group-hover:translate-x-1" />
                 </>
               )}
             </button>
@@ -162,8 +164,8 @@ export default function PublicForm() {
         </form>
       </div>
       
-      <div className="mt-12 text-slate-400 text-sm font-semibold">
-        Powered by <span className="text-slate-500">Flow.ai</span> Data Engine
+      <div className="mt-12 text-white/30 text-[10px] font-bold uppercase tracking-widest">
+        Powered by <span className="text-[#d4f000]">Flow.ai</span> Data Engine
       </div>
     </div>
   );

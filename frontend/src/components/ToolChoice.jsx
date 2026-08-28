@@ -8,8 +8,9 @@ const ACCENT = '#d4f000';
 
 export default function ToolChoice() {
   const navigate = useNavigate();
+  const [showSignOut, setShowSignOut] = React.useState(false);
 
-  const handleSignOut = async () => {
+  const confirmSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/');
   };
@@ -20,7 +21,7 @@ export default function ToolChoice() {
       <header className="w-full px-8 py-6 flex justify-between items-center border-b border-white/10 relative z-20 bg-[#080808]">
         <Link to="/" className="text-2xl font-normal text-white" style={{ fontFamily: "'Pacifico', cursive" }}>flow</Link>
         <button 
-          onClick={handleSignOut}
+          onClick={() => setShowSignOut(true)}
           className="text-white/50 hover:text-white text-sm font-semibold transition-colors uppercase tracking-wider"
         >
           Sign Out
@@ -108,6 +109,33 @@ export default function ToolChoice() {
           </div>
         </Link>
       </div>
+
+      {/* Sign Out Modal */}
+      {showSignOut && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 font-sans">
+          <div className="bg-[#111] border border-white/10 p-8 w-full max-w-sm flex flex-col items-center text-center shadow-2xl">
+            <div className="w-16 h-16 bg-red-500/10 text-red-500 border border-red-500/20 rounded-full flex items-center justify-center mb-6">
+              <span className="text-2xl font-bold">!</span>
+            </div>
+            <h3 className="text-xl font-bold text-white/90 mb-2">Sign Out</h3>
+            <p className="text-white/40 text-sm mb-8">Are you sure you want to sign out of your account?</p>
+            <div className="flex gap-4 w-full">
+              <button 
+                onClick={() => setShowSignOut(false)}
+                className="flex-1 py-3 border border-white/10 text-white/40 hover:text-white/90 hover:bg-white/5 text-[11px] uppercase tracking-widest font-bold transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmSignOut}
+                className="flex-1 py-3 bg-red-500 text-white hover:bg-red-600 text-[11px] uppercase tracking-widest font-bold transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
