@@ -184,96 +184,98 @@ export default function DataEditor({ initialCsvContent, onReanalyze, dashboardNa
   };
 
   if (isParsing) {
-    return <div className="h-full flex items-center justify-center text-slate-400">Loading data...</div>;
+    return <div className="h-full flex items-center justify-center text-white/40 text-[11px] uppercase tracking-widest font-bold">Loading data...</div>;
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col h-[85vh] overflow-hidden">
+    <div className="bg-[#0a0a0a] border border-white/10 flex flex-col h-full min-h-[500px] overflow-hidden">
       
       {/* Header Actions */}
-      <div className="p-4 border-b border-slate-100 flex flex-col gap-3 bg-slate-50">
-        <h3 className="font-bold text-slate-800 text-sm">Data Editor</h3>
-        <div className="flex gap-2">
+      <div className="p-5 border-b border-white/10 flex flex-col gap-4 bg-white/5">
+        <h3 className="text-[11px] font-bold text-white/40 uppercase tracking-widest">Data Editor</h3>
+        <div className="flex flex-wrap gap-2">
           <button 
             onClick={addRow}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2 bg-transparent border border-white/10 text-white/40 hover:text-white/80 hover:border-white/30 text-[11px] font-bold uppercase tracking-widest transition-colors"
           >
             <Plus size={14} /> Add Row
           </button>
           <button 
             onClick={addColumn}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2 bg-transparent border border-white/10 text-white/40 hover:text-white/80 hover:border-white/30 text-[11px] font-bold uppercase tracking-widest transition-colors"
           >
             <Plus size={14} /> Add Column
           </button>
           <button 
             onClick={handleShareForm}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-lg text-xs font-semibold hover:bg-indigo-100 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2 bg-transparent border border-[#d4f000]/30 text-[#d4f000] hover:bg-[#d4f000]/10 text-[11px] font-bold uppercase tracking-widest transition-colors"
           >
             <Share2 size={14} /> Share Form
           </button>
           <button 
             onClick={handleExport}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2 bg-transparent border border-white/10 text-white/40 hover:text-white/80 hover:border-white/30 text-[11px] font-bold uppercase tracking-widest transition-colors"
           >
             <Download size={14} /> Export
           </button>
           <button 
             onClick={handleReanalyze}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors shadow-sm shadow-blue-600/20"
+            className="group relative flex items-center gap-2 px-5 py-2 bg-transparent text-[#d4f000] border border-[#d4f000] hover:bg-[#d4f000] hover:text-[#080808] hover:shadow-[0_0_20px_rgba(212,240,0,0.4)] text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 ml-auto overflow-hidden"
           >
-            <RefreshCw size={14} /> Re-analyze
+            <div className="absolute inset-0 w-0 bg-white/20 transition-all duration-[400ms] ease-out group-hover:w-full"></div>
+            <RefreshCw size={14} className="relative z-10 transition-transform duration-500 group-hover:rotate-180" />
+            <span className="relative z-10">Re-analyze</span>
           </button>
         </div>
       </div>
 
       {/* Spreadsheet Grid */}
-      <div ref={tableContainerRef} className="flex-1 overflow-auto bg-white p-4 scroll-smooth">
-        <div className="min-w-max border border-slate-200 rounded-xl overflow-hidden">
+      <div ref={tableContainerRef} className="flex-1 overflow-auto bg-[#0a0a0a] p-4 scroll-smooth">
+        <div className="min-w-max border border-white/10 overflow-hidden">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="p-2 w-10 text-center border-r border-slate-200 text-slate-400 font-medium">#</th>
+              <tr className="bg-white/5 border-b border-white/10">
+                <th className="p-2 w-10 text-center border-r border-white/10 text-white/30 text-[10px] font-bold uppercase tracking-wider">#</th>
                 {headers.map((header, colIndex) => (
-                  <th key={colIndex} className="p-0 border-r border-slate-200 font-semibold text-slate-700 relative min-w-[120px] group/header">
+                  <th key={colIndex} className="p-0 border-r border-white/10 font-semibold text-white/80 relative min-w-[120px] group/header">
                     <input
                       type="text"
                       value={header}
                       onChange={(e) => handleHeaderChange(colIndex, e.target.value)}
-                      className="w-full bg-transparent px-3 py-2 outline-none focus:bg-blue-50 focus:ring-inset focus:ring-2 focus:ring-blue-500 font-semibold pr-8"
+                      className="w-full bg-transparent px-3 py-2 outline-none focus:bg-white/5 focus:ring-inset focus:ring-1 focus:ring-[#d4f000] font-semibold text-white/90 text-xs pr-8 transition-all"
                     />
                     <button 
                       onClick={() => deleteColumn(colIndex)}
-                      className="absolute right-1 top-1.5 p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors opacity-0 group-hover/header:opacity-100"
+                      className="absolute right-1 top-1.5 p-1 text-white/30 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors opacity-0 group-hover/header:opacity-100"
                       title="Delete Column"
                     >
                       <Trash2 size={12} />
                     </button>
                   </th>
                 ))}
-                <th className="p-2 w-10 text-center bg-slate-50"></th>
+                <th className="p-2 w-10 text-center bg-white/5"></th>
               </tr>
             </thead>
             <tbody>
               {data.map((row, rowIndex) => (
-                <tr key={rowIndex} className="border-b border-slate-100 hover:bg-slate-50/50 group transition-colors">
-                  <td className="p-2 text-center border-r border-slate-200 text-slate-400 text-xs">
+                <tr key={rowIndex} className="border-b border-white/5 hover:bg-white/5 group transition-colors">
+                  <td className="p-2 text-center border-r border-white/10 text-white/30 text-[10px] font-medium">
                     {rowIndex + 1}
                   </td>
                   {headers.map((_, colIndex) => (
-                    <td key={colIndex} className="p-0 border-r border-slate-200 relative">
+                    <td key={colIndex} className="p-0 border-r border-white/10 relative">
                       <input
                         type="text"
                         value={row[colIndex] !== undefined ? row[colIndex] : ''}
                         onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
-                        className="w-full bg-transparent px-3 py-2 outline-none focus:bg-blue-50 focus:ring-inset focus:ring-2 focus:ring-blue-500 text-slate-600"
+                        className="w-full bg-transparent px-3 py-2 outline-none focus:bg-white/5 focus:ring-inset focus:ring-1 focus:ring-[#d4f000] text-white/60 focus:text-white/90 text-sm transition-all"
                       />
                     </td>
                   ))}
                   <td className="p-1 text-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <button 
                       onClick={() => deleteRow(rowIndex)}
-                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                       title="Delete Row"
                     >
                       <Trash2 size={14} />
@@ -285,7 +287,7 @@ export default function DataEditor({ initialCsvContent, onReanalyze, dashboardNa
           </table>
           
           {data.length === 0 && (
-            <div className="p-8 text-center text-slate-500 text-sm">
+            <div className="p-12 text-center text-white/30 text-[11px] font-bold uppercase tracking-widest">
               No data available. Click "Add Row" to start building a dataset.
             </div>
           )}
@@ -294,12 +296,12 @@ export default function DataEditor({ initialCsvContent, onReanalyze, dashboardNa
 
       {/* Export Modal */}
       {showExportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl p-6 shadow-xl w-full max-w-sm border border-slate-100">
-            <h4 className="text-lg font-bold text-slate-800 mb-2">Export Data</h4>
-            <p className="text-sm text-slate-500 mb-5">Give your file a name before downloading.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#111] p-8 shadow-2xl w-full max-w-sm border border-white/10">
+            <h4 className="text-lg font-bold text-white/90 mb-2">Export Data</h4>
+            <p className="text-sm text-white/40 mb-6">Give your file a name before downloading.</p>
             
-            <div className="flex items-center mb-6 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 overflow-hidden bg-slate-50">
+            <div className="flex items-center mb-8 border border-white/10 focus-within:border-[#d4f000] overflow-hidden bg-black/50 transition-colors">
               <input 
                 type="text" 
                 value={exportFileName}
@@ -308,11 +310,11 @@ export default function DataEditor({ initialCsvContent, onReanalyze, dashboardNa
                   if (e.key === 'Enter') confirmExport();
                   if (e.key === 'Escape') setShowExportModal(false);
                 }}
-                className="flex-1 bg-transparent px-4 py-3 text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-400"
+                className="flex-1 bg-transparent px-4 py-3 text-sm font-semibold text-white/90 outline-none placeholder:text-white/30"
                 placeholder="File name"
                 autoFocus
               />
-              <div className="px-4 py-3 bg-slate-100 border-l border-slate-200 text-slate-500 text-sm font-semibold">
+              <div className="px-4 py-3 bg-white/5 border-l border-white/10 text-white/40 text-sm font-semibold">
                 .csv
               </div>
             </div>
@@ -320,13 +322,13 @@ export default function DataEditor({ initialCsvContent, onReanalyze, dashboardNa
             <div className="flex gap-3 justify-end">
               <button 
                 onClick={() => setShowExportModal(false)}
-                className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                className="px-5 py-3 text-[11px] font-bold uppercase tracking-widest text-white/40 hover:text-white/90 hover:bg-white/5 transition-colors"
               >
                 Cancel
               </button>
               <button 
                 onClick={confirmExport}
-                className="px-4 py-2 text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 rounded-xl shadow-sm transition-colors flex items-center gap-2"
+                className="px-5 py-3 text-[11px] font-bold uppercase tracking-widest bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] transition-colors flex items-center gap-2"
               >
                 <Download size={16} /> Download
               </button>
@@ -337,31 +339,31 @@ export default function DataEditor({ initialCsvContent, onReanalyze, dashboardNa
 
       {/* Share Modal */}
       {showShareModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-2xl w-full max-w-lg border border-slate-100 flex flex-col relative overflow-hidden">
-            <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#111] p-6 md:p-8 shadow-2xl w-full max-w-lg border border-white/10 flex flex-col relative overflow-hidden">
+            <div className="flex justify-between items-center mb-8">
               <div>
-                <h4 className="text-2xl font-black text-slate-900 tracking-tight">Share Data Form</h4>
-                <p className="text-sm text-slate-500 font-medium mt-1">Send this link to others to collect data directly into your editor.</p>
+                <h4 className="text-2xl font-black text-white/90 tracking-tight">Share Data Form</h4>
+                <p className="text-sm text-white/40 font-medium mt-2">Send this link to others to collect data directly into your editor.</p>
               </div>
-              <button onClick={() => setShowShareModal(false)} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2 rounded-full transition-colors self-start mt-1 shrink-0 ml-4">
+              <button onClick={() => setShowShareModal(false)} className="text-white/30 hover:text-white/90 bg-transparent hover:bg-white/5 p-2 rounded-full transition-colors self-start mt-1 shrink-0 ml-4">
                 <X size={20} />
               </button>
             </div>
             
             {isGeneratingLink ? (
-              <div className="py-8 flex flex-col items-center justify-center gap-3">
-                <RefreshCw className="animate-spin text-blue-500" size={24} />
-                <p className="text-sm font-semibold text-slate-500">Generating secure link...</p>
+              <div className="py-12 flex flex-col items-center justify-center gap-4">
+                <RefreshCw className="animate-spin text-[#d4f000]" size={28} />
+                <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">Generating secure link...</p>
               </div>
             ) : sharedFormId ? (
               <div className="space-y-4">
-                <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <div className="flex items-center gap-2 p-3 bg-black/50 border border-white/10">
                   <input
                     type="text"
                     readOnly
                     value={`${window.location.origin}/shared-form/${sharedFormId}`}
-                    className="flex-1 bg-transparent text-sm font-medium text-slate-700 outline-none"
+                    className="flex-1 bg-transparent text-sm font-medium text-white/90 outline-none px-2"
                   />
                   <button 
                     onClick={() => {
@@ -369,14 +371,14 @@ export default function DataEditor({ initialCsvContent, onReanalyze, dashboardNa
                       setCopied(true);
                       setTimeout(() => setCopied(false), 2000);
                     }}
-                    className="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-slate-600"
+                    className="p-2.5 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-white/60 hover:text-white/90"
                   >
-                    {copied ? <CheckCircle2 size={16} className="text-green-500" /> : <Copy size={16} />}
+                    {copied ? <CheckCircle2 size={18} className="text-[#d4f000]" /> : <Copy size={18} />}
                   </button>
                 </div>
               </div>
             ) : (
-              <p className="text-red-500 text-sm font-semibold text-center py-4">Failed to generate link. Make sure backend is running and connected.</p>
+               <p className="text-red-400 text-sm font-semibold text-center py-6">Failed to generate link. Make sure backend is running and connected.</p>
             )}
           </div>
         </div>
