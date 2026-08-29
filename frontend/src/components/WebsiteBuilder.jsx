@@ -2734,7 +2734,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                 updateText: (path, val) => handleContentChange(footerSection.id, path, val),
                 updateImage: (imgData) => handleContentChange(footerSection.id, 'image', imgData)
               }}>
-                <Footer content={footerSection.content || {}} feel={currentFeel || feel} />
+                <Footer content={footerSection.content || {}} feel={currentFeel || feel} sections={sections} />
               </EditableContext.Provider>
             </div>
           )}
