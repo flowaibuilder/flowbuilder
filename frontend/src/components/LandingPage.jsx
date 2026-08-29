@@ -55,7 +55,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-white/50 text-lg leading-relaxed mb-10">
-            Generate production-ready websites and beautiful data dashboards from a single sentence. No code. No complexity. Just results.
+            Generate production-ready websites with integrated spreadsheet data and live visual analytics from a single sentence. No code. No complexity.
           </p>
 
           <div className="flex flex-wrap gap-4">
@@ -70,10 +70,10 @@ export default function LandingPage() {
 
           {/* Feature pills */}
           <div className="flex flex-wrap gap-6 mt-12">
-            {['AI Website Builder', 'Data Agent', 'Real-time Preview'].map(f => (
+            {['AI Website Builder', 'Live Analytics & Data', 'Instant Publishing'].map(f => (
               <div key={f} className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full" style={{ background: ACCENT }} />
-                <span className="text-white/40 text-sm">{f}</span>
+                <span className="text-white/50 text-xs uppercase tracking-wider font-semibold">{f}</span>
               </div>
             ))}
           </div>

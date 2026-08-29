@@ -6,7 +6,7 @@ import heroImage from '../assets/hero-image.png';
 
 const ACCENT = '#d4f000';
 
-export default function ToolChoice() {
+export default function ToolChoice({ onEditSite, onBuildNewWebsite }) {
   const navigate = useNavigate();
   const [showSignOut, setShowSignOut] = useState(false);
   const [deleteModalSite, setDeleteModalSite] = useState(null);
@@ -57,6 +57,8 @@ export default function ToolChoice() {
             status: 'published',
             subdomain: p.subdomain,
             config: p.config,
+            spec: p.config?.sections || p.config?.spec || [],
+            theme: p.config?.theme || null,
             createdAt: p.published_at || new Date().toISOString(),
             table: 'published_sites'
           });
@@ -192,7 +194,10 @@ export default function ToolChoice() {
           {/* Large Action CTA Button */}
           <div className="relative z-10 mt-auto pt-6 border-t border-white/10">
             <button
-              onClick={() => navigate('/aibuilder')}
+              onClick={() => {
+                if (onBuildNewWebsite) onBuildNewWebsite();
+                else navigate('/aibuilder');
+              }}
               className="w-full py-4.5 px-6 rounded-xl flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] transition-all transform hover:-translate-y-0.5 shadow-lg shadow-[#d4f000]/10"
             >
               <Plus size={18} strokeWidth={3} /> Build New Website
@@ -265,7 +270,10 @@ export default function ToolChoice() {
                 {searchQuery ? `No website matching "${searchQuery}".` : 'You haven\'t created any websites yet. Click below to start building your first site with AI.'}
               </p>
               <button
-                onClick={() => navigate('/aibuilder')}
+                onClick={() => {
+                  if (onBuildNewWebsite) onBuildNewWebsite();
+                  else navigate('/aibuilder');
+                }}
                 className="px-6 py-3 border border-[#d4f000] rounded-xl text-[#d4f000] text-xs font-bold uppercase tracking-widest hover:bg-[#d4f000] hover:text-[#080808] transition-colors flex items-center gap-2"
               >
                 <Plus size={14} /> Start Building Now
@@ -314,7 +322,10 @@ export default function ToolChoice() {
                   {/* Card Actions */}
                   <div className="mt-8 pt-4 border-t border-white/5 flex items-center justify-between gap-2">
                     <button
-                      onClick={() => navigate('/aibuilder')}
+                      onClick={() => {
+                        if (onEditSite) onEditSite(site);
+                        else navigate('/aibuilder');
+                      }}
                       className="flex-1 py-2.5 px-3 bg-white/5 hover:bg-white/10 rounded-xl text-white text-[11px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
                     >
                       <Pencil size={12} /> Edit
@@ -322,11 +333,11 @@ export default function ToolChoice() {
 
                     {site.subdomain && (
                       <a
-                        href={`/shared-form/${site.subdomain}`}
+                        href={`https://${site.subdomain}.flow.devshahid.me`}
                         target="_blank"
                         rel="noreferrer"
                         className="p-2.5 border border-white/10 hover:border-[#d4f000] rounded-xl text-white/50 hover:text-[#d4f000] transition-colors"
-                        title="View Site"
+                        title="View Live Site"
                       >
                         <ExternalLink size={14} />
                       </a>

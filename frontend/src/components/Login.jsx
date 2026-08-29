@@ -16,7 +16,7 @@ export default function Login() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/tools';
+  const from = location.state?.from?.pathname || '/';
 
   const handleGoogleSignIn = async () => {
     try {
@@ -25,7 +25,7 @@ export default function Login() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/tools`
+          redirectTo: `${window.location.origin}/`
         }
       });
       if (error) throw error;
@@ -115,7 +115,7 @@ export default function Login() {
           </div>
         </div>
         <div className="relative z-10 flex gap-6">
-          {['AI Website Builder', 'Data Agent', 'Real-time Preview'].map(f => (
+          {['AI Website Builder', 'Project Analytics', 'Real-time Preview'].map(f => (
             <div key={f} className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full" style={{ background: ACCENT }} />
               <span className="text-white/40 text-xs uppercase tracking-wider font-semibold">{f}</span>
