@@ -271,23 +271,23 @@ export default function ProjectWorkspace({
 
   // Build per-day visitor chart data based on current filter
   const visitorChartData = useMemo(() => {
-    // Use LOCAL date string to match Supabase-stored date keys
-    const toLocal = (d) => {
-      const yr = d.getFullYear();
-      const mo = String(d.getMonth() + 1).padStart(2, '0');
-      const dy = String(d.getDate()).padStart(2, '0');
-      return `${yr}-${mo}-${dy}`;
-    };
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
+    // IST = UTC+5:30 — backend stores keys in IST as well
+    const IST_MS = 5.5 * 60 * 60 * 1000;
+    const toIST = (d) => new Date(d.getTime() + IST_MS).toISOString().split('T')[0];
+    const nowIST = new Date(Date.now() + IST_MS);
+    // Truncate to midnight IST (represented as a UTC Date object)
+    const nowDay = new Date(Date.UTC(
+      nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate()
+    ));
 
     if (visitorFilter.value === '1y') {
       const monthMap = {};
       for (let i = 11; i >= 0; i--) {
-        const d = new Date(now);
-        d.setMonth(d.getMonth() - i);
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        monthMap[key] = { label: d.toLocaleString('default', { month: 'short' }), value: 0 };
+        const d = new Date(nowDay);
+        d.setUTCMonth(d.getUTCMonth() - i);
+        const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+        const label = d.toLocaleString('default', { month: 'short', timeZone: 'UTC' });
+        monthMap[key] = { label, value: 0 };
       }
       Object.entries(rawVisitorStats).forEach(([dateStr, c]) => {
         const key = dateStr.slice(0, 7);
@@ -301,13 +301,13 @@ export default function ProjectWorkspace({
     const days = visitorFilter.value === '1d' ? 7 : 30;
     const result = [];
     for (let i = days - 1; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const dateStr = toLocal(d);
+      const d = new Date(nowDay);
+      d.setUTCDate(d.getUTCDate() - i);
+      const dateStr = toIST(d);
       // 7-day view: show weekday name; 30-day view: show MM/DD
       const label = days === 7
-        ? d.toLocaleString('default', { weekday: 'short' })
-        : `${d.getMonth() + 1}/${d.getDate()}`;
+        ? d.toLocaleString('default', { weekday: 'short', timeZone: 'UTC' })
+        : `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
       result.push({ label, value: rawVisitorStats[dateStr] || 0 });
     }
     return result;
@@ -315,23 +315,23 @@ export default function ProjectWorkspace({
 
   // Build leads chart data based on current filter
   const leadsChartData = useMemo(() => {
-    const toLocal = (d) => {
-      const yr = d.getFullYear();
-      const mo = String(d.getMonth() + 1).padStart(2, '0');
-      const dy = String(d.getDate()).padStart(2, '0');
-      return `${yr}-${mo}-${dy}`;
-    };
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
+    // IST = UTC+5:30 — match backend date keys stored in IST
+    const IST_MS = 5.5 * 60 * 60 * 1000;
+    const toIST = (d) => new Date(d.getTime() + IST_MS).toISOString().split('T')[0];
+    const nowIST = new Date(Date.now() + IST_MS);
+    const nowDay = new Date(Date.UTC(
+      nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate()
+    ));
     const dateColIdx = headers.findIndex(h => /date|time|created|submitted/i.test(h));
 
     if (visitorFilter.value === '1y') {
       const monthMap = {};
       for (let i = 11; i >= 0; i--) {
-        const d = new Date(now);
-        d.setMonth(d.getMonth() - i);
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        monthMap[key] = { label: d.toLocaleString('default', { month: 'short' }), value: 0 };
+        const d = new Date(nowDay);
+        d.setUTCMonth(d.getUTCMonth() - i);
+        const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+        const label = d.toLocaleString('default', { month: 'short', timeZone: 'UTC' });
+        monthMap[key] = { label, value: 0 };
       }
       if (dateColIdx >= 0) {
         data.forEach(row => {
@@ -339,11 +339,12 @@ export default function ProjectWorkspace({
           if (!raw) return;
           const d = new Date(raw);
           if (isNaN(d)) return;
-          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          // Convert lead date to IST for bucketing
+          const key = toIST(d).slice(0, 7);
           if (monthMap[key]) monthMap[key].value++;
         });
       } else {
-        const key = toLocal(now).slice(0, 7);
+        const key = toIST(nowDay).slice(0, 7);
         if (monthMap[key]) monthMap[key].value = data.length;
       }
       return Object.values(monthMap);
@@ -352,19 +353,19 @@ export default function ProjectWorkspace({
     const days = visitorFilter.value === '1d' ? 7 : 30;
     const result = [];
     for (let i = days - 1; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const dateStr = toLocal(d);
+      const d = new Date(nowDay);
+      d.setUTCDate(d.getUTCDate() - i);
+      const dateStr = toIST(d);
       const label = days === 7
-        ? d.toLocaleString('default', { weekday: 'short' })
-        : `${d.getMonth() + 1}/${d.getDate()}`;
+        ? d.toLocaleString('default', { weekday: 'short', timeZone: 'UTC' })
+        : `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
       let value = 0;
       if (dateColIdx >= 0) {
         value = data.filter(row => {
           const raw = row[dateColIdx];
           if (!raw) return false;
           const rd = new Date(raw);
-          return !isNaN(rd) && toLocal(rd) === dateStr;
+          return !isNaN(rd) && toIST(rd) === dateStr;
         }).length;
       } else if (i === 0) {
         // No date column — show total on today's bar only
@@ -1116,8 +1117,9 @@ export default function ProjectWorkspace({
                       contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
                       labelStyle={{ color: 'rgba(255,255,255,0.5)' }}
                       itemStyle={{ color: '#ffffff' }}
+                      cursor={false}
                     />
-                    <Bar dataKey="value" fill="url(#leadGrad)" radius={[4, 4, 0, 0]} maxBarSize={32} />
+                    <Bar dataKey="value" fill="url(#leadGrad)" radius={[4, 4, 0, 0]} maxBarSize={32} activeBar={false} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
