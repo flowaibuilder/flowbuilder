@@ -1018,7 +1018,14 @@ export default function ProjectWorkspace({
 
                 {/* Table Body */}
                 <tbody className="divide-y divide-white/5 font-sans">
-                  {displayedRows.map(({ row, originalIndex }, displayIdx) => (
+                  {displayedRows.length === 0 ? (
+                    <tr>
+                      <td colSpan={headers.length + 2} className="p-8 text-center text-white/40 text-sm">
+                        No submissions yet
+                      </td>
+                    </tr>
+                  ) : (
+                    displayedRows.map(({ row, originalIndex }, displayIdx) => (
                     <tr
                       key={originalIndex}
                       className={`hover:bg-white/[0.02] transition-colors group ${
@@ -1072,7 +1079,7 @@ export default function ProjectWorkspace({
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )))}
                 </tbody>
               </table>
 
