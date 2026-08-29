@@ -16,7 +16,6 @@ import {
 } from 'recharts';
 import { supabase } from '../lib/supabase';
 import ReactMarkdown from 'react-markdown';
-import { supabase } from '../lib/supabase';
 const ACCENT = '#d4f000';
 const CHART_COLORS = ['#d4f000', '#a3b800', '#ffffff', '#888888', '#555555', '#333333'];
 
