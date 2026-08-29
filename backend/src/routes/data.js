@@ -100,7 +100,9 @@ router.post('/track-visit/:subdomain', async (req, res) => {
       return res.status(404).json({ error: 'Site not found' });
     }
 
-    const today = new Date().toISOString().split('T')[0];
+    // Use IST (UTC+5:30) so midnight in India correctly starts a new day
+    const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+    const today = new Date(Date.now() + IST_OFFSET_MS).toISOString().split('T')[0];
     const config = site.config || {};
     if (!config.visitorStats) config.visitorStats = {};
     config.visitorStats[today] = (config.visitorStats[today] || 0) + 1;
