@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { ExternalLink, Layers, Upload, Trash2, Image, Copy } from 'lucide-react';
 import { getStyles } from '../../utils/themeHelper';
 import EditableText, { EditableContext } from '../EditableText';
+import { uploadImageFile } from '../../utils/uploadHelper';
 
 export default function Portfolio({ content = {}, feel }) {
   const s = getStyles(feel);
@@ -14,14 +15,11 @@ export default function Portfolio({ content = {}, feel }) {
     { title: 'Vanguard OS', category: 'Design System', description: 'Comprehensive design system and components for high-velocity teams.' }
   ];
 
-  const handleImageChange = (index, e) => {
+  const handleImageChange = async (index, e) => {
     const file = e.target.files?.[0];
     if (file && updateText) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        updateText(`items.${index}.imageUrl`, reader.result);
-      };
-      reader.readAsDataURL(file);
+      const fileUrl = await uploadImageFile(file);
+      updateText(`items.${index}.imageUrl`, fileUrl);
     }
   };
 

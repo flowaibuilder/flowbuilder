@@ -19,6 +19,121 @@ export default function EditableText({ path, value, className = '', isLink = fal
   const startDragPos = useRef({ x: 0, y: 0 });
   const startDimensions = useRef({ x: 0, y: 0, w: 0, h: 0 });
 
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [actionType, setActionType] = useState('');
+  const [phone, setPhone] = useState('');
+  const [message, setMessage] = useState('');
+  const [url, setUrl] = useState('');
+  const [newTab, setNewTab] = useState(false);
+  const [sectionId, setSectionId] = useState('');
+  const [availableSections, setAvailableSections] = useState([]);
+
+  const openActionConfig = () => {
+    const isObj = value && typeof value === 'object';
+    setActionType(isObj ? (value.actionType || '') : '');
+    setPhone(isObj ? (value.phone || '') : '');
+    setMessage(isObj ? (value.message || '') : '');
+    setUrl(isObj ? (value.url || '') : '');
+    setNewTab(isObj ? (value.newTab || false) : false);
+    setSectionId(isObj ? (value.sectionId || '') : '');
+    setShowActionModal(true);
+  };
+
+  useEffect(() => {
+    if (showActionModal) {
+      const sectionElements = Array.from(document.querySelectorAll('[id^="section-"]'));
+      const list = sectionElements.map(el => {
+        const id = el.id.replace('section-', '');
+        let label = 'Unknown Section';
+        
+        const heading = el.querySelector('h1, h2, h3, [class*="heading"]');
+        if (heading) {
+          label = heading.innerText.trim();
+        } else {
+          const typeMatch = el.innerHTML.toLowerCase();
+          if (typeMatch.includes('features')) label = 'Features Section';
+          else if (typeMatch.includes('testimonials')) label = 'Testimonials Section';
+          else if (typeMatch.includes('pricing')) label = 'Pricing Section';
+          else if (typeMatch.includes('contact')) label = 'Contact Section';
+          else if (typeMatch.includes('hero')) label = 'Hero Section';
+          else if (typeMatch.includes('about')) label = 'About Section';
+          else if (typeMatch.includes('portfolio')) label = 'Portfolio Section';
+          else if (typeMatch.includes('faq')) label = 'FAQ Section';
+        }
+        
+        if (label.length > 40) label = label.substring(0, 37) + '...';
+        return { id, label: `${label} (${id})` };
+      });
+      setAvailableSections(list);
+    }
+  }, [showActionModal]);
+
+  const handleTestAction = () => {
+    if (actionType === 'whatsapp') {
+      const cleanPhone = phone.replace(/[^0-9]/g, '');
+      const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message || '')}`;
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
+    } else if (actionType === 'scroll') {
+      const el = document.getElementById(`section-${sectionId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else if (actionType === 'link') {
+      let cleanUrl = url;
+      if (!/^https?:\/\//i.test(cleanUrl) && !cleanUrl.startsWith('/')) {
+        cleanUrl = 'https://' + cleanUrl;
+      }
+      window.open(cleanUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleSaveAction = () => {
+    const currentVal = typeof value === 'object' ? value : { text: value };
+    updateText(path, {
+      ...currentVal,
+      actionType,
+      phone: actionType === 'whatsapp' ? phone : undefined,
+      message: actionType === 'whatsapp' ? message : undefined,
+      url: actionType === 'link' ? url : undefined,
+      newTab: actionType === 'link' ? newTab : undefined,
+      sectionId: actionType === 'scroll' ? sectionId : undefined
+    });
+    setShowActionModal(false);
+  };
+
+  const handleButtonClick = (e) => {
+    if (value && typeof value === 'object' && value.actionType) {
+      e.preventDefault();
+      
+      const { actionType, phone, message, sectionId, url, newTab } = value;
+      
+      if (actionType === 'whatsapp' && phone) {
+        const cleanPhone = phone.replace(/[^0-9]/g, '');
+        const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message || '')}`;
+        window.open(waUrl, '_blank', 'noopener,noreferrer');
+      } else if (actionType === 'scroll' && sectionId) {
+        const el = document.getElementById(`section-${sectionId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          const fallbackEl = document.querySelector(`[id$="${sectionId}"]`);
+          if (fallbackEl) fallbackEl.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else if (actionType === 'link' && url) {
+        let cleanUrl = url;
+        if (!/^https?:\/\//i.test(cleanUrl) && !cleanUrl.startsWith('/')) {
+          cleanUrl = 'https://' + cleanUrl;
+        }
+        if (newTab) {
+          window.open(cleanUrl, '_blank', 'noopener,noreferrer');
+        } else {
+          window.location.href = cleanUrl;
+        }
+      }
+    }
+  };
+
+
   const textVal = (value && typeof value === 'object') ? (value.text || '') : (value || '');
   
   const customStyles = (value && typeof value === 'object') ? {
@@ -138,7 +253,29 @@ export default function EditableText({ path, value, className = '', isLink = fal
 
   if (!isEditingText) {
     if (isLink) {
-      return <a href={href} className={className} style={{ ...customStyles, ...positionStyles }}>{textVal}</a>;
+      let finalHref = href || '#';
+      let finalTarget = undefined;
+      
+      if (value && typeof value === 'object' && value.actionType === 'link' && value.url) {
+        finalHref = value.url;
+        if (!/^https?:\/\//i.test(finalHref) && !finalHref.startsWith('/')) {
+          finalHref = 'https://' + finalHref;
+        }
+        if (value.newTab) finalTarget = '_blank';
+      }
+      
+      return (
+        <a 
+          href={finalHref} 
+          target={finalTarget}
+          rel={finalTarget ? 'noopener noreferrer' : undefined}
+          onClick={handleButtonClick}
+          className={className} 
+          style={{ ...customStyles, ...positionStyles }}
+        >
+          {textVal}
+        </a>
+      );
     }
     return <span className={className} style={{ ...customStyles, ...positionStyles }}>{textVal}</span>;
   }
@@ -339,6 +476,19 @@ export default function EditableText({ path, value, className = '', isLink = fal
           >
             <AlignRight size={11} />
           </button>
+          {isLink && (
+            <>
+              <span className="w-[1px] h-3 bg-white/10 mx-0.5" />
+              <button
+                type="button"
+                onClick={openActionConfig}
+                className="p-1 hover:bg-white/10 rounded-none text-xs font-bold flex items-center gap-1 px-1.5 text-white/85 hover:text-[#d4f000] transition-colors"
+                title="Configure Button Action"
+              >
+                <span className="text-[8px] uppercase tracking-wider">Action</span>
+              </button>
+            </>
+          )}
         </div>
       )}
 
@@ -348,7 +498,7 @@ export default function EditableText({ path, value, className = '', isLink = fal
           {/* Drag Handle */}
           <div
             onMouseDown={handleMouseDownMove}
-            className="absolute -left-6 top-1/2 -translate-y-1/2 p-1.5 bg-[#09090b]/95 border border-white/20 text-white rounded cursor-grab active:cursor-grabbing transition-opacity z-[1001] flex items-center justify-center shadow-lg"
+            className="absolute -left-6 top-1/2 -translate-y-1/2 p-1.5 bg-[#09090b]/95 border border-white/20 text-white rounded-none cursor-grab active:cursor-grabbing transition-opacity z-[1001] flex items-center justify-center shadow-lg"
             title="Drag handle to reposition text"
           >
             <GripVertical size={13} className="text-[#d4f000]" />
@@ -357,29 +507,158 @@ export default function EditableText({ path, value, className = '', isLink = fal
           {/* Resizer Handles */}
           <div
             onMouseDown={(e) => handleMouseDownResize(e, 'se')}
-            className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-[#d4f000] border border-[#080808] rounded-full cursor-se-resize shadow-md z-[1001]"
+            className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-[#d4f000] border border-[#080808] rounded-none cursor-se-resize shadow-md z-[1001]"
           />
           <div
             onMouseDown={(e) => handleMouseDownResize(e, 'sw')}
-            className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-[#d4f000] border border-[#080808] rounded-full cursor-sw-resize shadow-md z-[1001]"
+            className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-[#d4f000] border border-[#080808] rounded-none cursor-sw-resize shadow-md z-[1001]"
           />
           <div
             onMouseDown={(e) => handleMouseDownResize(e, 'ne')}
-            className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-[#d4f000] border border-[#080808] rounded-full cursor-ne-resize shadow-md z-[1001]"
+            className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-[#d4f000] border border-[#080808] rounded-none cursor-ne-resize shadow-md z-[1001]"
           />
           <div
             onMouseDown={(e) => handleMouseDownResize(e, 'nw')}
-            className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-[#d4f000] border border-[#080808] rounded-full cursor-nw-resize shadow-md z-[1001]"
+            className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-[#d4f000] border border-[#080808] rounded-none cursor-nw-resize shadow-md z-[1001]"
           />
           <div
             onMouseDown={(e) => handleMouseDownResize(e, 'e')}
-            className="absolute top-1/2 -translate-y-1/2 -right-1.5 w-1.5 h-3 bg-[#d4f000] border border-[#080808] rounded cursor-e-resize shadow-sm z-[1001]"
+            className="absolute top-1/2 -translate-y-1/2 -right-1.5 w-1.5 h-3 bg-[#d4f000] border border-[#080808] rounded-none cursor-e-resize shadow-sm z-[1001]"
           />
           <div
             onMouseDown={(e) => handleMouseDownResize(e, 's')}
-            className="absolute bottom-1 left-1/2 -translate-x-1/2 w-3 h-1.5 bg-[#d4f000] border border-[#080808] rounded cursor-s-resize shadow-sm z-[1001]"
+            className="absolute bottom-1 left-1/2 -translate-x-1/2 w-3 h-1.5 bg-[#d4f000] border border-[#080808] rounded-none cursor-s-resize shadow-sm z-[1001]"
           />
         </>
+      )}
+      
+      {/* Action Configuration Modal */}
+      {showActionModal && (
+        <div 
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4 backdrop-blur-sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+          }}
+        >
+          <div className="bg-[#0f0f12] border border-white/10 w-full max-w-md rounded-none p-6 shadow-2xl text-left text-white" onClick={(ev) => ev.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
+              <div className="flex items-center gap-2">
+                <h3 className="font-black text-lg tracking-wide uppercase">Configure Action</h3>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setShowActionModal(false)}
+                className="text-white/40 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-white/60 mb-1.5">Action Type</label>
+                <select 
+                  value={actionType} 
+                  onChange={(e) => setActionType(e.target.value)}
+                  className="w-full bg-[#16161c] border border-white/10 text-white rounded-none p-2.5 outline-none focus:border-[#d4f000] text-sm"
+                >
+                  <option value="">None (Static Button)</option>
+                  <option value="link">Open Link</option>
+                  <option value="whatsapp">Open WhatsApp Chat</option>
+                  <option value="scroll">Navigate to Section</option>
+                </select>
+              </div>
+
+              {actionType === 'link' && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-white/60 mb-1.5">URL / Link Address</label>
+                    <input 
+                      type="text" 
+                      value={url} 
+                      onChange={(e) => setUrl(e.target.value)}
+                      placeholder="e.g. google.com or /about"
+                      className="w-full bg-[#16161c] border border-white/10 text-white rounded-none p-2.5 outline-none focus:border-[#d4f000] text-sm"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 pt-1">
+                    <input 
+                      type="checkbox" 
+                      id="newTab" 
+                      checked={newTab} 
+                      onChange={(e) => setNewTab(e.target.checked)}
+                      className="w-4 h-4 bg-[#16161c] border border-white/10 rounded-none accent-[#d4f000]"
+                    />
+                    <label htmlFor="newTab" className="text-sm font-semibold cursor-pointer select-none">Open link in a new tab</label>
+                  </div>
+                </div>
+              )}
+
+              {actionType === 'whatsapp' && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-white/60 mb-1.5">WhatsApp Phone Number</label>
+                    <input 
+                      type="tel" 
+                      value={phone} 
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="e.g. 15550001122 (Include country code, no spaces)"
+                      className="w-full bg-[#16161c] border border-white/10 text-white rounded-none p-2.5 outline-none focus:border-[#d4f000] text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-white/60 mb-1.5">Pre-filled Message</label>
+                    <textarea 
+                      rows={3}
+                      value={message} 
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="e.g. Hello, I am interested in your services!"
+                      className="w-full bg-[#16161c] border border-white/10 text-white rounded-none p-2.5 outline-none focus:border-[#d4f000] text-sm resize-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {actionType === 'scroll' && (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-white/60 mb-1.5">Select Page Section</label>
+                  {availableSections.length > 0 ? (
+                    <select 
+                      value={sectionId} 
+                      onChange={(e) => setSectionId(e.target.value)}
+                      className="w-full bg-[#16161c] border border-white/10 text-white rounded-none p-2.5 outline-none focus:border-[#d4f000] text-sm"
+                    >
+                      <option value="">-- Choose Section --</option>
+                      {availableSections.map(sec => (
+                        <option key={sec.id} value={sec.id}>{sec.label}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-xs text-white/40 italic">No section elements detected on the page. Add sections or view preview mode first.</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end border-t border-white/10 pt-4 mt-6 gap-2">
+              <button 
+                type="button" 
+                onClick={() => setShowActionModal(false)}
+                className="px-4 py-2 text-white/60 hover:text-white text-xs font-black uppercase tracking-wider transition-colors font-bold"
+              >
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                onClick={handleSaveAction}
+                className="px-5 py-2.5 bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] text-xs font-black uppercase tracking-wider rounded-none transition-colors font-bold"
+              >
+                Save Action
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </span>
   );

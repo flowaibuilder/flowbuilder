@@ -21,6 +21,16 @@ const ACCENT = '#d4f000';
 const CHART_COLORS = ['#d4f000', '#a3b800', '#ffffff', '#888888', '#555555', '#333333'];
 
 // Default starter dataset for a website project if none exists yet
+const DEFAULT_HEADERS = ['Category', 'Traffic', 'Conversions', 'Bounce Rate (%)'];
+const DEFAULT_DATA = [
+  ['Organic Search', '4200', '428', '45.2'],
+  ['Direct', '2800', '210', '40.1'],
+  ['Referral', '1500', '180', '35.5'],
+  ['Social Media', '2200', '110', '56.1'],
+  ['Paid Ads', '1800', '190', '48.9'],
+  ['Email Campaigns', '1200', '122', '32.4']
+];
+
 const DEFAULT_COUNTRY_COORDS = {
   US: [37.0902, -95.7129],
   IN: [20.5937, 78.9629],

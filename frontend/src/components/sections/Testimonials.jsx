@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { Star, Quote, Upload, Trash2, Camera, Copy } from 'lucide-react';
 import { getStyles } from '../../utils/themeHelper';
 import EditableText, { EditableContext } from '../EditableText';
+import { uploadImageFile } from '../../utils/uploadHelper';
 
 export default function Testimonials({ content = {}, feel }) {
   const s = getStyles(feel);
@@ -15,14 +16,11 @@ export default function Testimonials({ content = {}, feel }) {
     { quote: 'Exceptional attention to detail and performance. Our conversion rates increased by 40% immediately after launch.', author: 'Elena Rostova', role: 'Head of Growth', company: 'GlobalVentures' }
   ];
 
-  const handleAvatarChange = (index, e) => {
+  const handleAvatarChange = async (index, e) => {
     const file = e.target.files?.[0];
     if (file && updateText) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        updateText(`items.${index}.avatarUrl`, reader.result);
-      };
-      reader.readAsDataURL(file);
+      const fileUrl = await uploadImageFile(file);
+      updateText(`items.${index}.avatarUrl`, fileUrl);
     }
   };
 
