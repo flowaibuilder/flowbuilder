@@ -83,6 +83,7 @@ export default function ToolChoice() {
         });
       }
 
+      combined.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setWebsites(combined);
     } catch (err) {
       console.error('Error fetching websites:', err);
