@@ -16,7 +16,7 @@ import {
   useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Sparkles, Send, Loader2, Menu, X, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Image, Upload, Trash2, Bot, User, Terminal, CheckCircle2, Palette, Grid, Plus } from 'lucide-react';
+import { GripVertical, Sparkles, Send, Loader2, Menu, X, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Image, Upload, Trash2, Bot, User, Terminal, CheckCircle2, Palette, Grid, Plus, Laptop, Smartphone } from 'lucide-react';
 import FloatingImage from './FloatingImage';
 
 import { EditableContext } from './EditableText';
@@ -687,6 +687,7 @@ function SortableSidebarItem({ section, onRemove }) {
 
 export default function WebsiteBuilder({ initialSpec, theme, businessName, pages, logo, feel, fontStyle, websiteId, onSave, initialSiteImages = [], initialDataHeaders = null, initialDataRows = null }) {
   const navigate = useNavigate();
+  const [viewMode, setViewMode] = useState('desktop'); // 'desktop' | 'mobile'
   const [sections, setSections] = useState(
     (initialSpec || []).map((s, idx) => ({ ...s, id: s.id || `section-${idx}` }))
   );
@@ -2635,29 +2636,69 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         </div>
       </div>
 
-      {/* Main Preview Area */}
-      <div 
-        id="preview-scroll-container"
-        onDragOver={handlePreviewDragOver}
-        onDrop={handlePreviewDrop}
-        onMouseDown={handlePreviewClick}
-        className="flex-1 overflow-auto relative" 
-        style={{ 
-          backgroundColor: 'var(--color-bg-base, #ffffff)',
-          color: `var(--color-text-base, ${isLight(activeTheme?.background) ? '#000000' : '#ffffff'})`
-        }}
-      >
-        {/* Generated Site Navbar */}
-        <SiteNavbar businessName={businessName} sections={sections} theme={currentTheme || theme} logo={logo} feel={feel} />
+      {/* Main Preview Area Wrapper */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#0c0c0e] relative">
+        {/* Device Switcher Header */}
+        <div className="bg-[#121215] border-b border-white/10 px-4 py-2 flex items-center justify-between z-30 shrink-0 select-none">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">Preview Mode:</span>
+            <div className="flex items-center bg-black/40 border border-white/10 rounded p-0.5">
+              <button
+                type="button"
+                onClick={() => setViewMode('desktop')}
+                className={`px-3 py-1 text-xs font-bold rounded flex items-center gap-1.5 transition-all cursor-pointer ${
+                  viewMode === 'desktop' ? 'bg-[#d4f000] text-[#080808] shadow-sm' : 'text-white/60 hover:text-white'
+                }`}
+              >
+                <Laptop size={13} />
+                <span>Desktop</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('mobile')}
+                className={`px-3 py-1 text-xs font-bold rounded flex items-center gap-1.5 transition-all cursor-pointer ${
+                  viewMode === 'mobile' ? 'bg-[#d4f000] text-[#080808] shadow-sm' : 'text-white/60 hover:text-white'
+                }`}
+              >
+                <Smartphone size={13} />
+                <span>Mobile</span>
+              </button>
+            </div>
+          </div>
+          <div className="text-[10px] font-mono text-white/40 hidden sm:block">
+            {viewMode === 'mobile' ? '📱 Mobile Viewport (390px) — Drag/resize media for mobile placement' : '💻 Desktop Viewport (Full Width) — Drag/resize media for desktop placement'}
+          </div>
+        </div>
 
-        {/* Offset parent wrapper for sections and floating images, matching published side */}
-        <div className="relative">
-          {/* Floating Images Layer */}
-          {siteImages.map(img => (
-            <FloatingImage
-              key={img.id}
-              image={img}
-              isEditable={activeTab === 'media' || activeTab === 'components'}
+        {/* Scroll Container Outer Area */}
+        <div className={`flex-1 overflow-y-auto w-full transition-all duration-300 ${viewMode === 'mobile' ? 'py-8 px-4 flex justify-center bg-[#070708]' : ''}`}>
+          <div 
+            id="preview-scroll-container"
+            onDragOver={handlePreviewDragOver}
+            onDrop={handlePreviewDrop}
+            onMouseDown={handlePreviewClick}
+            className={`relative transition-all duration-300 ${
+              viewMode === 'mobile' 
+                ? 'is-mobile-view w-full max-w-[390px] min-h-[700px] border-[8px] border-[#222226] rounded-[36px] shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-x-hidden' 
+                : 'w-full min-h-full border-none rounded-none shadow-none'
+            }`}
+            style={{ 
+              backgroundColor: 'var(--color-bg-base, #ffffff)',
+              color: `var(--color-text-base, ${isLight(activeTheme?.background) ? '#000000' : '#ffffff'})`
+            }}
+          >
+            {/* Generated Site Navbar */}
+            <SiteNavbar businessName={businessName} sections={sections} theme={currentTheme || theme} logo={logo} feel={feel} />
+
+            {/* Offset parent wrapper for sections and floating images, matching published side */}
+            <div className="relative">
+              {/* Floating Images Layer */}
+              {siteImages.map(img => (
+                <FloatingImage
+                  key={img.id}
+                  image={img}
+                  viewMode={viewMode}
+                  isEditable={activeTab === 'media' || activeTab === 'components'}
               isSelected={selectedImageId === img.id}
               selectedText={selectedText}
               onSelect={() => {
@@ -2740,6 +2781,8 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           )}
         </div>
       </div>
+    </div>
+  </div>
 
       {/* Publish Modal */}
       {showPublishModal && (

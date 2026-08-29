@@ -47,6 +47,14 @@ export default function PublishedSiteViewer({ subdomain }) {
     fetchSite();
   }, [subdomain]);
 
+  const [isMobileScreen, setIsMobileScreen] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileScreen(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#080808] flex items-center justify-center">
@@ -135,14 +143,26 @@ export default function PublishedSiteViewer({ subdomain }) {
         >
           {(siteImages || []).map(img => {
             const aspect = (img.type !== 'text' && img.width && img.height) ? `${img.width} / ${img.height}` : 'auto';
+            const activeXPercent = isMobileScreen 
+              ? (img.mobileXPercent !== undefined ? img.mobileXPercent : (img.xPercent || 0))
+              : (img.xPercent || 0);
+
+            const activeY = isMobileScreen
+              ? (img.mobileY !== undefined ? img.mobileY : (img.y || 0))
+              : (img.y || 0);
+
+            const activeWidthPercent = isMobileScreen
+              ? (img.mobileWidthPercent !== undefined ? img.mobileWidthPercent : (img.widthPercent || 40))
+              : (img.widthPercent || 20);
+
             return (
               <div
                 key={img.id}
                 style={{
                   position: 'absolute',
-                  left: `${img.xPercent || 0}%`,
-                  top: `${img.y}px`,
-                  width: `${img.widthPercent || 20}%`,
+                  left: `${activeXPercent}%`,
+                  top: `${activeY}px`,
+                  width: `${activeWidthPercent}%`,
                   maxWidth: '100%',
                   aspectRatio: aspect,
                   zIndex: img.zIndex !== undefined ? img.zIndex : 10,
