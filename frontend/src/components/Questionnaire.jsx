@@ -47,16 +47,17 @@ const ALL_PAGES = [
   { id: 'blog', label: 'Blog' },
   { id: 'contact', label: 'Contact' },
   { id: 'faq', label: 'FAQ' },
+  { id: 'footer', label: 'Footer' },
 ];
 
 // AI page recommendations per goal
 const PAGES_FOR_GOAL = {
-  leads: ['home', 'services', 'about', 'testimonials', 'faq', 'contact'],
-  sell: ['home', 'products', 'pricing', 'testimonials', 'contact'],
-  services: ['home', 'services', 'about', 'testimonials', 'faq', 'contact'],
-  portfolio: ['home', 'portfolio', 'about', 'testimonials', 'contact'],
-  appointments: ['home', 'services', 'faq', 'contact'],
-  info: ['home', 'about', 'blog', 'faq', 'contact'],
+  leads: ['home', 'services', 'about', 'testimonials', 'faq', 'contact', 'footer'],
+  sell: ['home', 'products', 'pricing', 'testimonials', 'contact', 'footer'],
+  services: ['home', 'services', 'about', 'testimonials', 'faq', 'contact', 'footer'],
+  portfolio: ['home', 'portfolio', 'about', 'testimonials', 'contact', 'footer'],
+  appointments: ['home', 'services', 'faq', 'contact', 'footer'],
+  info: ['home', 'about', 'blog', 'faq', 'contact', 'footer'],
 };
 
 const FEELS = [
