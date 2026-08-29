@@ -483,6 +483,35 @@ export default function ProjectWorkspace({
         if (created?.id) setProjectId(created.id);
       }
 
+      // Sync changes to published_sites if it is a published project
+      if (project?.status === 'published' && project?.subdomain) {
+        const pubPayload = {
+          config: {
+            ...(project?.config || {}),
+            businessName: finalName,
+            pages,
+            logo,
+            feel,
+            fontStyle,
+            siteImages,
+            dataHeaders: headers,
+            dataRows: data,
+            aiInsights: insightsText,
+            aiMetrics: metricsList,
+            spec: websiteSpec,
+            theme
+          }
+        };
+        const { error: pubError } = await supabase
+          .from('published_sites')
+          .update(pubPayload)
+          .eq('subdomain', project.subdomain);
+          
+        if (pubError) {
+          console.error('Error updating published site:', pubError);
+        }
+      }
+
       setSaveStatus('saved');
       setLastSavedTime(new Date().toISOString());
       if (onUpdateProject) {
@@ -667,7 +696,7 @@ export default function ProjectWorkspace({
                     setIsEditingName(false);
                     handleSaveProject(e.target.value);
                   }}
-                  className="bg-white/10 border border-[#d4f000] text-white font-black text-sm px-2 py-1 outline-none uppercase tracking-wide rounded"
+                  className="bg-white/10 border border-[#d4f000] text-white font-black text-lg sm:text-xl px-2 py-1 outline-none tracking-wide rounded"
                 />
                 <button 
                   onClick={() => {
@@ -684,10 +713,10 @@ export default function ProjectWorkspace({
                 onClick={() => setIsEditingName(true)}
                 className="group flex items-center gap-2 cursor-pointer hover:opacity-80"
               >
-                <h1 className="text-sm sm:text-base font-black uppercase tracking-wide text-white">
+                <h1 className="text-lg sm:text-xl font-black tracking-wide text-white">
                   {projectName}
                 </h1>
-                <Edit2 size={12} className="text-white/30 group-hover:text-[#d4f000] transition-colors" />
+                <Edit2 size={16} className="text-white/30 group-hover:text-[#d4f000] transition-colors" />
               </div>
             )}
           </div>
