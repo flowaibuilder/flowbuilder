@@ -24,7 +24,7 @@ export default function PublishedSiteViewer({ subdomain }) {
         setSiteData(data.config);
 
         // Track visit (removed sessionStorage safeguard to count every page load)
-        fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/data/track-visit/${subdomain}`, {
+        fetch(`/api/data/track-visit/${subdomain}`, {
           method: 'POST'
         }).catch(err => console.error('Error tracking visit:', err));
         
