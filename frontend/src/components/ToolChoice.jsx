@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Layout, Plus, Globe, ExternalLink, Trash2, Search, AlertTriangle, Loader2 } from 'lucide-react';
+import { Layout, Plus, Globe, ExternalLink, Trash2, Search, AlertTriangle, Loader2, User } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import heroImage from '../assets/hero-image.png';
 
@@ -139,7 +139,14 @@ export default function ToolChoice() {
       {/* Navbar */}
       <header className="w-full px-8 py-6 flex justify-between items-center border-b border-white/10 relative z-20 bg-[#080808]">
         <Link to="/" className="text-2xl font-normal text-white" style={{ fontFamily: "'Pacifico', cursive" }}>flow</Link>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <Link
+            to="/profile"
+            className="px-3.5 py-1.5 border border-white/10 text-[11px] uppercase tracking-widest font-bold transition-all text-white/80 hover:text-white hover:bg-white/5 hover:border-white/20 flex items-center gap-1.5"
+          >
+            <User size={13} className="text-[#d4f000]" />
+            <span>Profile</span>
+          </Link>
           <button 
             onClick={() => setShowSignOut(true)}
             className="px-4 py-1.5 border border-red-500/30 text-[11px] uppercase tracking-widest font-bold transition-all text-red-500 hover:text-white hover:bg-red-500/20 hover:border-red-500/50"

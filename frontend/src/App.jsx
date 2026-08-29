@@ -22,6 +22,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 import ToolChoice from './components/ToolChoice';
 import PublicForm from './components/PublicForm';
+import Profile from './components/Profile';
 
 // ─── AI Builder Container ─────────────────────────────────────────────────────
 
@@ -305,12 +306,20 @@ function AuthenticatedLayout({ children }) {
         <Link to="/home" className="text-2xl font-normal text-white" style={{ fontFamily: "'Pacifico', cursive" }}>
           flow
         </Link>
-        <button
-          onClick={() => setShowSignOut(true)}
-          className="px-4 py-1.5 border border-red-500/30 text-[11px] uppercase tracking-widest font-bold transition-all text-red-500 hover:text-white hover:bg-red-500/20 hover:border-red-500/50"
-        >
-          Sign Out
-        </button>
+        <div className="flex items-center gap-4">
+          <Link
+            to="/profile"
+            className="px-4 py-1.5 border border-white/10 text-[11px] uppercase tracking-widest font-bold transition-all text-white/70 hover:text-white hover:bg-white/5"
+          >
+            Profile
+          </Link>
+          <button
+            onClick={() => setShowSignOut(true)}
+            className="px-4 py-1.5 border border-red-500/30 text-[11px] uppercase tracking-widest font-bold transition-all text-red-500 hover:text-white hover:bg-red-500/20 hover:border-red-500/50"
+          >
+            Sign Out
+          </button>
+        </div>
       </nav>
 
       <main className="flex-1 w-full flex flex-col">
@@ -422,6 +431,16 @@ function App() {
           element={
             <ProtectedRoute session={session}>
               <ProjectWorkspaceContainer />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ── Protected: /profile — User Profile & Settings ── */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute session={session}>
+              <Profile />
             </ProtectedRoute>
           }
         />
