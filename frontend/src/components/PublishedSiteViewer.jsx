@@ -118,7 +118,7 @@ export default function PublishedSiteViewer({ subdomain }) {
 
       {footerSection && (
         <div id={`section-${footerSection.id}`}>
-          <Footer content={footerSection.content || {}} feel={feel} />
+          <Footer content={footerSection.content || {}} feel={feel} sections={sections} />
         </div>
       )}
 
