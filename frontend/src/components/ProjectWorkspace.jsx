@@ -182,7 +182,8 @@ export default function ProjectWorkspace({
     project?.spec || [
       { id: '1', type: 'hero', content: { headline: 'Grow Your Business Faster', subheadline: 'AI-generated high-converting website built for performance and growth.', ctaText: 'Get Started' } },
       { id: '2', type: 'features', content: { title: 'Core Features', description: 'Everything you need to succeed', items: [{ title: 'Ultra Fast', description: 'Built on modern web tech' }, { title: 'Responsive', description: 'Looks perfect on all screens' }, { title: 'AI Driven', description: 'Updated seamlessly by prompts' }] } },
-      { id: '3', type: 'contact', content: { title: 'Get in Touch', email: 'contact@example.com', phone: '+1 (555) 000-0000' } }
+      { id: '3', type: 'contact', content: { title: 'Get in Touch', email: 'contact@example.com', phone: '+1 (555) 000-0000' } },
+      { id: '4', type: 'footer', content: { companyName: 'My Brand', tagline: 'Crafting world-class digital experiences powered by intelligent design and high performance.' } }
     ]
   );
   const [theme, setTheme] = useState(project?.theme || { primary: '#d4f000', secondary: '#222222', background: '#080808' });

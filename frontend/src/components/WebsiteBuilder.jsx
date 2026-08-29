@@ -111,7 +111,8 @@ const AVAILABLE_COMPONENTS = [
   { type: 'portfolio', label: 'Portfolio Showcase', description: 'Display image cards or projects in a clean grid layout.', icon: 'fa-solid fa-images' },
   { type: 'testimonials', label: 'Testimonials', description: 'Showcase customer reviews and client quotes with author tags.', icon: 'fa-solid fa-comments' },
   { type: 'faq', label: 'FAQ Accordion', description: 'Answer common questions with expandable accordion items.', icon: 'fa-solid fa-circle-question' },
-  { type: 'contact', label: 'Contact Info / Form', description: 'Display phone, email, address, and link to a contact form.', icon: 'fa-solid fa-phone' }
+  { type: 'contact', label: 'Contact Info / Form', description: 'Display phone, email, address, and link to a contact form.', icon: 'fa-solid fa-phone' },
+  { type: 'footer', label: 'Footer', description: 'Display copyright, company info, navigation, and social links.', icon: 'fa-solid fa-shoe-prints' }
 ];
 
 // ─── UTILS ─────────────────────────────────────────────────────────────────────
@@ -631,6 +632,57 @@ function SortableSection({
   );
 }
 
+// ─── SORTABLE SIDEBAR ITEM ───────────────────────────────────────────────────
+
+function SortableSidebarItem({ section, onRemove }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: section.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    position: 'relative',
+    zIndex: isDragging ? 50 : undefined
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center justify-between bg-white/5 border border-white/10 hover:border-white/20 rounded px-3 py-2 group/item transition-all"
+    >
+      <div className="flex items-center gap-2">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-white/30 hover:text-white/70 transition-colors p-1"
+        >
+          <GripVertical size={12} />
+        </div>
+        <div className="w-1.5 h-1.5 rounded-full bg-[#d4f000] shrink-0" />
+        <span className="text-xs font-bold uppercase text-white/80 tracking-wider capitalize">
+          {section.type}
+        </span>
+      </div>
+      <button
+        type="button"
+        title="Remove section"
+        onClick={onRemove}
+        className="p-1 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors opacity-0 group-hover/item:opacity-100 cursor-pointer"
+      >
+        <Trash2 size={12} />
+      </button>
+    </div>
+  );
+}
+
 // ─── WEBSITE BUILDER ──────────────────────────────────────────────────────────
 
 export default function WebsiteBuilder({ initialSpec, theme, businessName, pages, logo, feel, fontStyle, websiteId, onSave, initialSiteImages = [], initialDataHeaders = null, initialDataRows = null }) {
@@ -683,6 +735,8 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
       defaultContent = { title: 'Frequently Asked Questions', items: [{ question: 'How long does setup take?', answer: 'Setup takes less than 5 minutes.' }, { question: 'Can I cancel anytime?', answer: 'Yes, you can cancel your subscription at any time.' }] };
     } else if (type === 'contact') {
       defaultContent = { title: 'Get In Touch', email: 'hello@yourdomain.com', phone: '+1 (555) 012-3456', address: '123 Main St, New York, NY' };
+    } else if (type === 'footer') {
+      defaultContent = { companyName: businessName || 'Your Brand, Inc.', tagline: 'Crafting world-class digital experiences powered by intelligent design and high performance.' };
     }
 
     const newSec = {
@@ -1833,31 +1887,28 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                   Active Sections
                 </h3>
                 <div className="space-y-1.5">
-                  {sections.filter(s => s.type !== 'footer').map((section, idx) => (
-                    <div
-                      key={section.id}
-                      className="flex items-center justify-between bg-white/5 border border-white/10 hover:border-white/20 rounded px-3 py-2 group/item transition-all"
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={sections.filter(s => s.type !== 'footer').map(s => s.id)}
+                      strategy={verticalListSortingStrategy}
                     >
-                      <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#d4f000] shrink-0" />
-                        <span className="text-xs font-bold uppercase text-white/80 tracking-wider capitalize">
-                          {section.type}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        title="Remove section"
-                        onClick={() => {
-                          if (window.confirm(`Remove the ${section.type} section?`)) {
-                            handleRemoveSection(section.id);
-                          }
-                        }}
-                        className="p-1 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors opacity-0 group-hover/item:opacity-100 cursor-pointer"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  ))}
+                      {sections.filter(s => s.type !== 'footer').map((section) => (
+                        <SortableSidebarItem
+                          key={section.id}
+                          section={section}
+                          onRemove={() => {
+                            if (window.confirm(`Remove the ${section.type} section?`)) {
+                              handleRemoveSection(section.id);
+                            }
+                          }}
+                        />
+                      ))}
+                    </SortableContext>
+                  </DndContext>
                   {sections.find(s => s.type === 'footer') && (
                     <div className="flex items-center gap-2 bg-white/[0.02] border border-white/5 rounded px-3 py-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-white/20 shrink-0" />
@@ -1884,6 +1935,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                     { type: 'testimonials', label: 'Testimonials', icon: '💬', desc: 'Customer reviews' },
                     { type: 'faq', label: 'FAQ', icon: '❓', desc: 'Accordion questions' },
                     { type: 'contact', label: 'Contact', icon: '📞', desc: 'Contact form & info' },
+                    { type: 'footer', label: 'Footer', icon: '🦶', desc: 'Company info, links & copyright' },
                   ].map(comp => {
                     const alreadyAdded = sections.some(s => s.type === comp.type);
                     return (
