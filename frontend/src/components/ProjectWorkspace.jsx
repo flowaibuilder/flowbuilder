@@ -765,116 +765,7 @@ export default function ProjectWorkspace({
               ))}
             </div>
 
-            {/* Split Grid: Live Chart Preview + AI Insights */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              
-              {/* Chart Preview (7 cols) */}
-              <div className="lg:col-span-7 bg-[#0e0e0e] border border-white/10 p-6 rounded-xl space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xs uppercase tracking-widest font-bold text-white/80 flex items-center gap-2">
-                      <BarChart2 size={14} className="text-[#d4f000]" /> Live Traffic & Conversions
-                    </h3>
-                    <p className="text-[11px] text-white/40 mt-0.5">Auto-synced with project spreadsheet</p>
-                  </div>
-                  <button
-                    onClick={() => setActiveTab('analytics')}
-                    className="text-xs text-[#d4f000] hover:underline font-bold uppercase tracking-wider flex items-center gap-1"
-                  >
-                    View All <ExternalLink size={11} />
-                  </button>
-                </div>
 
-                <div className="h-64 w-full pt-4">
-                  {liveChartData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={liveChartData} margin={{ top: 10, right: 10, left: -20, bottom: 10 }}>
-                        <XAxis dataKey="name" fontSize={10} tickLine={false} axisLine={false} tick={{ fill: 'rgba(255,255,255,0.4)' }} />
-                        <YAxis fontSize={10} tickLine={false} axisLine={false} tick={{ fill: 'rgba(255,255,255,0.4)' }} />
-                        <Tooltip
-                          contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px' }}
-                          itemStyle={{ color: ACCENT }}
-                        />
-                        <Bar dataKey="value" fill={ACCENT} radius={[2, 2, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-white/30 text-xs">
-                      No data recorded yet.
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* AI Insights & Observations (5 cols) */}
-              <div className="lg:col-span-5 bg-[#0e0e0e] border border-white/10 p-6 rounded-xl space-y-4 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xs uppercase tracking-widest font-bold text-[#d4f000] flex items-center gap-2">
-                      <Sparkles size={14} /> AI Observations
-                    </h3>
-                    <button
-                      onClick={handleReanalyzeWithAI}
-                      disabled={isReanalyzing}
-                      className="text-[10px] text-white/40 hover:text-white font-bold uppercase flex items-center gap-1"
-                    >
-                      <RefreshCw size={10} className={isReanalyzing ? 'animate-spin' : ''} /> Refresh
-                    </button>
-                  </div>
-
-                  <div className="text-xs text-white/70 leading-relaxed max-h-56 overflow-y-auto space-y-2 pr-1">
-                    <ReactMarkdown
-                      components={{
-                        h1: ({ children }) => <h4 className="text-sm font-bold text-white mt-1 mb-1">{children}</h4>,
-                        h2: ({ children }) => <h5 className="text-xs font-bold text-white mt-1 mb-1">{children}</h5>,
-                        p: ({ children }) => <p className="mb-2">{children}</p>,
-                        ul: ({ children }) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
-                        strong: ({ children }) => <strong className="text-[#d4f000]">{children}</strong>
-                      }}
-                    >
-                      {insightsText}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setActiveTab('analytics')}
-                  className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs uppercase tracking-wider rounded transition-colors text-center"
-                >
-                  Explore Full Insights
-                </button>
-              </div>
-
-            </div>
-
-            {/* Quick Actions Footer */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div
-                onClick={() => setActiveTab('data')}
-                className="p-5 bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 hover:border-[#d4f000]/30 rounded-xl cursor-pointer transition-all flex items-center gap-4 group"
-              >
-                <div className="w-10 h-10 bg-white/5 group-hover:bg-[#d4f000] text-white group-hover:text-[#080808] rounded-lg flex items-center justify-center transition-colors">
-                  <Table2 size={18} />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold uppercase text-white group-hover:text-[#d4f000] transition-colors">Datasheet</h4>
-                  <p className="text-[11px] text-white/40">{data.length} rows, {headers.length} columns</p>
-                </div>
-              </div>
-
-              <div
-                onClick={() => setShowShareModal(true)}
-                className="p-5 bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 hover:border-[#d4f000]/30 rounded-xl cursor-pointer transition-all flex items-center gap-4 group"
-              >
-                <div className="w-10 h-10 bg-white/5 group-hover:bg-[#d4f000] text-white group-hover:text-[#080808] rounded-lg flex items-center justify-center transition-colors">
-                  <Share2 size={18} />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold uppercase text-white group-hover:text-[#d4f000] transition-colors">Collect Responses</h4>
-                  <p className="text-[11px] text-white/40">Shareable lead intake form</p>
-                </div>
-              </div>
-            </div>
 
           </div>
         )}
@@ -905,25 +796,7 @@ export default function ProjectWorkspace({
                   <Plus size={13} /> Add Column
                 </button>
 
-                <div className="h-4 w-px bg-white/10 mx-1 hidden sm:block" />
 
-                {/* Undo / Redo */}
-                <button
-                  onClick={handleUndo}
-                  disabled={history.length === 0}
-                  className="p-1.5 border border-white/10 text-white/50 hover:text-white disabled:opacity-20 rounded transition-colors"
-                  title="Undo (Ctrl+Z)"
-                >
-                  <RotateCcw size={13} />
-                </button>
-                <button
-                  onClick={handleRedo}
-                  disabled={future.length === 0}
-                  className="p-1.5 border border-white/10 text-white/50 hover:text-white disabled:opacity-20 rounded transition-colors"
-                  title="Redo (Ctrl+Y)"
-                >
-                  <RotateCw size={13} />
-                </button>
               </div>
 
               {/* Center / Right Search & Filter */}
@@ -944,12 +817,7 @@ export default function ProjectWorkspace({
                   )}
                 </div>
 
-                {/* Import File Button */}
-                <label className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 hover:border-white/30 text-white/70 hover:text-white text-xs font-bold uppercase tracking-wider rounded cursor-pointer transition-colors">
-                  <UploadCloud size={13} />
-                  <span className="hidden xl:inline">Import</span>
-                  <input ref={fileInputRef} type="file" accept=".csv,.xlsx,.xls" onChange={handleFileUpload} className="hidden" />
-                </label>
+
 
                 <button
                   onClick={() => setShowExportModal(true)}
@@ -1087,17 +955,7 @@ export default function ProjectWorkspace({
               )}
             </div>
 
-            {/* Table Footer Metrics */}
-            <div className="flex items-center justify-between text-[11px] text-white/40 px-2">
-              <div className="flex items-center gap-4">
-                <span>{data.length} total rows</span>
-                <span>{headers.length} columns</span>
-                <span>Data Completeness: <strong className="text-[#d4f000]">{summary.dataQuality}%</strong></span>
-              </div>
-              <div>
-                <span>Press Enter to edit next cell</span>
-              </div>
-            </div>
+
 
           </div>
         )}
