@@ -1053,13 +1053,39 @@ function Row({ label, value }) {
 
 // ─── MAIN QUESTIONNAIRE ───────────────────────────────────────────────────────
 
-export default function Questionnaire({ onWebsiteGenerated }) {
+export default function Questionnaire({ onWebsiteGenerated, initialData }) {
   const [step, setStep] = useState(0);
   const [data, setData] = useState({
-    name: '', industry: '', goal: '', audience: '', cta: '',
-    pages: null, themeId: 'bold-neon', feel: '', fontStyle: 'ai', differentiator: '',
-    logo: null, logoSource: 'none',
+    name: initialData?.name || '',
+    industry: initialData?.industry || '',
+    goal: initialData?.goal || '',
+    audience: initialData?.audience || '',
+    cta: initialData?.cta || '',
+    pages: initialData?.pages || null,
+    themeId: initialData?.themeId || 'bold-neon',
+    feel: initialData?.feel || '',
+    fontStyle: initialData?.fontStyle || 'ai',
+    differentiator: initialData?.differentiator || '',
+    logo: initialData?.logo || null,
+    logoSource: initialData?.logoSource || 'none',
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setData(d => ({
+        ...d,
+        name: initialData.name || d.name,
+        industry: initialData.industry || d.industry,
+        goal: initialData.goal || d.goal,
+        audience: initialData.audience || d.audience,
+        cta: initialData.cta || d.cta,
+        pages: initialData.pages || d.pages,
+        feel: initialData.feel || d.feel,
+        fontStyle: initialData.fontStyle || d.fontStyle,
+        logo: initialData.logo || d.logo,
+      }));
+    }
+  }, [initialData]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [suggesting, setSuggesting] = useState(false);

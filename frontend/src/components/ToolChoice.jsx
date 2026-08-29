@@ -142,7 +142,7 @@ export default function ToolChoice() {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => setShowSignOut(true)}
-            className="px-4 py-1.5 rounded-full border border-red-500/30 text-[11px] uppercase tracking-widest font-bold transition-all text-red-500 hover:text-white hover:bg-red-500/20 hover:border-red-500/50"
+            className="px-4 py-1.5 border border-red-500/30 text-[11px] uppercase tracking-widest font-bold transition-all text-red-500 hover:text-white hover:bg-red-500/20 hover:border-red-500/50"
           >
             Sign Out
           </button>
@@ -153,18 +153,14 @@ export default function ToolChoice() {
       <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden p-6 lg:p-8 gap-8">
         
         {/* LEFT COLUMN: Create / Build New Website Panel */}
-        <div className="w-full lg:w-[420px] xl:w-[450px] flex-shrink-0 bg-[#0c0c0c] border border-white/10 rounded-2xl p-8 lg:p-10 flex flex-col justify-between relative shadow-2xl overflow-hidden">
+        <div className="w-full lg:w-[420px] xl:w-[450px] flex-shrink-0 bg-[#0c0c0c] border border-white/10 p-8 lg:p-10 flex flex-col justify-between relative shadow-2xl overflow-hidden">
           {/* Background Ambient Glow */}
           <div className="absolute inset-0 pointer-events-none opacity-20">
-            <img src={heroImage} alt="" className="w-full h-full object-cover grayscale opacity-20 rounded-2xl" />
+            <img src={heroImage} alt="" className="w-full h-full object-cover grayscale opacity-20" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c]/90 to-transparent" />
           </div>
 
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#d4f000]/30 bg-[#d4f000]/10 text-[#d4f000] text-[10px] font-bold uppercase tracking-widest mb-6">
-              <Sparkles size={12} /> AI Web Engine
-            </div>
-
             <h1 className="text-4xl lg:text-5xl font-black uppercase text-white tracking-tight leading-none mb-4">
               Create <span style={{ color: ACCENT }}>Website</span>
             </h1>
@@ -182,7 +178,7 @@ export default function ToolChoice() {
                 'Real-Time Live Section Editing'
               ].map((feat, idx) => (
                 <div key={idx} className="flex items-center gap-3 text-xs text-white/70 font-semibold uppercase tracking-wider">
-                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: ACCENT }} />
+                  <div className="w-2 h-2 flex-shrink-0" style={{ background: ACCENT }} />
                   {feat}
                 </div>
               ))}
@@ -193,7 +189,7 @@ export default function ToolChoice() {
           <div className="relative z-10 mt-auto pt-6 border-t border-white/10">
             <button
               onClick={() => navigate('/aibuilder')}
-              className="w-full py-4.5 px-6 rounded-xl flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] transition-all transform hover:-translate-y-0.5 shadow-lg shadow-[#d4f000]/10"
+              className="w-full py-4.5 px-6 flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] transition-all shadow-lg shadow-[#d4f000]/10"
             >
               <Plus size={18} strokeWidth={3} /> Build New Website
             </button>
@@ -201,7 +197,7 @@ export default function ToolChoice() {
         </div>
 
         {/* RIGHT COLUMN: Web Builder Projects (Published & Drafts) */}
-        <div className="flex-1 bg-[#0c0c0c] border border-white/10 rounded-2xl p-8 lg:p-10 flex flex-col shadow-2xl overflow-y-auto">
+        <div className="flex-1 bg-[#0c0c0c] border border-white/10 p-8 lg:p-10 flex flex-col shadow-2xl overflow-y-auto">
           {/* Header & Controls */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pb-6 border-b border-white/10">
             <div>
@@ -222,23 +218,23 @@ export default function ToolChoice() {
                   placeholder="Search websites..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl text-white text-xs pl-9 pr-3.5 py-2.5 outline-none focus:border-[#d4f000] transition-colors"
+                  className="w-full bg-white/[0.03] border border-white/10 text-white text-xs pl-9 pr-3.5 py-2.5 outline-none focus:border-[#d4f000] transition-colors"
                 />
               </div>
 
               {/* Status Filter Pills */}
-              <div className="flex border border-white/10 bg-white/[0.02] rounded-xl p-1 gap-1">
+              <div className="flex border border-white/10 bg-white/[0.02] p-1 gap-1">
                 {[
-                  { id: 'all', label: 'All' },
-                  { id: 'published', label: 'Published' },
-                  { id: 'draft', label: 'Drafts' }
+                  { id: 'all', label: 'All', activeClass: 'bg-[#d4f000] text-[#080808]' },
+                  { id: 'published', label: 'Published', activeClass: 'bg-emerald-500 text-[#080808] shadow-md shadow-emerald-500/20' },
+                  { id: 'draft', label: 'Drafts', activeClass: 'bg-amber-400 text-[#080808] shadow-md shadow-amber-400/20' }
                 ].map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setFilter(t.id)}
-                    className={`px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                    className={`px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all ${
                       filter === t.id 
-                        ? 'bg-[#d4f000] text-[#080808]' 
+                        ? t.activeClass 
                         : 'text-white/40 hover:text-white'
                     }`}
                   >
@@ -249,15 +245,15 @@ export default function ToolChoice() {
             </div>
           </div>
 
-          {/* Projects Grid / List */}
+          {/* Projects List Card View */}
           {loading ? (
             <div className="flex-1 flex flex-col items-center justify-center p-16 text-white/30 gap-3">
               <Loader2 className="animate-spin text-[#d4f000]" size={28} />
               <span className="text-xs uppercase tracking-widest font-bold">Loading your websites...</span>
             </div>
           ) : filteredWebsites.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-12 border border-dashed border-white/10 rounded-2xl bg-white/[0.01] text-center my-4">
-              <div className="w-14 h-14 border border-white/10 rounded-2xl flex items-center justify-center text-white/20 mb-4 bg-black/40">
+            <div className="flex-1 flex flex-col items-center justify-center p-12 border border-dashed border-white/10 bg-white/[0.01] text-center my-4">
+              <div className="w-14 h-14 border border-white/10 flex items-center justify-center text-white/20 mb-4 bg-black/40">
                 <Layout size={24} />
               </div>
               <h3 className="text-base font-bold text-white/80 uppercase tracking-wider mb-2">No Websites Found</h3>
@@ -266,75 +262,79 @@ export default function ToolChoice() {
               </p>
               <button
                 onClick={() => navigate('/aibuilder')}
-                className="px-6 py-3 border border-[#d4f000] rounded-xl text-[#d4f000] text-xs font-bold uppercase tracking-widest hover:bg-[#d4f000] hover:text-[#080808] transition-colors flex items-center gap-2"
+                className="px-6 py-3 border border-[#d4f000] text-[#d4f000] text-xs font-bold uppercase tracking-widest hover:bg-[#d4f000] hover:text-[#080808] transition-colors flex items-center gap-2"
               >
                 <Plus size={14} /> Start Building Now
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="flex flex-col gap-4">
               {filteredWebsites.map((site) => (
                 <div 
                   key={site.id}
-                  className="group relative bg-[#121212] border border-white/10 hover:border-white/25 rounded-2xl transition-all flex flex-col justify-between p-6 shadow-lg overflow-hidden"
+                  onClick={() => navigate(`/aibuilder?id=${site.id}`, { state: { site } })}
+                  className="group relative bg-[#111111] hover:bg-[#151515] border border-white/10 hover:border-[#d4f000]/40 transition-all duration-300 p-5 shadow-xl hover:shadow-2xl hover:shadow-[#d4f000]/5 flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden cursor-pointer"
                 >
-                  {/* TOP-RIGHT FLOATING PILL TAG */}
-                  <div className="absolute top-3.5 right-3.5 z-10">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border shadow-lg backdrop-blur-md transition-all ${
-                      site.status === 'published'
-                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                        : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${site.status === 'published' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-                      {site.status === 'published' ? 'Published' : 'Draft'}
-                    </span>
-                  </div>
-
-                  {/* Card Content */}
-                  <div className="pt-2">
-                    <div className="w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center text-[#d4f000] bg-[#080808] mb-4 shadow-inner">
-                      <Layout size={18} />
+                  {/* Left Info Section */}
+                  <div className="flex items-center gap-4 min-w-0 flex-1">
+                    {/* Website Icon Avatar */}
+                    <div className="w-12 h-12 border border-white/10 flex items-center justify-center text-[#d4f000] bg-[#080808] flex-shrink-0 group-hover:border-[#d4f000]/30 transition-colors shadow-inner">
+                      <Layout size={20} />
                     </div>
 
-                    <h3 className="text-lg font-bold text-white group-hover:text-[#d4f000] transition-colors truncate mb-1 pr-16">
-                      {site.name}
-                    </h3>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-lg font-black text-white group-hover:text-[#d4f000] transition-colors truncate tracking-tight">
+                          {site.name}
+                        </h3>
+                        {/* Status Tag */}
+                        <span className={`inline-block px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest border flex-shrink-0 bg-transparent text-white ${
+                          site.status === 'published'
+                            ? 'border-emerald-500'
+                            : 'border-amber-400'
+                        }`}>
+                          {site.status === 'published' ? 'Published' : 'Draft'}
+                        </span>
+                      </div>
 
-                    {site.subdomain && (
-                      <p className="text-xs text-white/40 truncate mb-4 font-mono">
-                        {site.subdomain}.flowbuilder.app
-                      </p>
-                    )}
-
-                    <p className="text-[11px] text-white/30 uppercase tracking-wider font-semibold">
-                      {new Date(site.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </p>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                        {site.subdomain ? (
+                          <div className="inline-flex items-center gap-1.5 text-white/70 font-mono">
+                            <Globe size={12} className="text-[#d4f000] flex-shrink-0" />
+                            <span className="truncate">{site.subdomain}.flow.devshahid.me</span>
+                          </div>
+                        ) : (
+                          <span className="text-white/30 italic text-[11px]">Unpublished Draft</span>
+                        )}
+                        <span className="text-white/20">•</span>
+                        <span className="text-white/40 text-[11px]">
+                          Updated {new Date(site.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Card Actions */}
-                  <div className="mt-8 pt-4 border-t border-white/5 flex items-center justify-between gap-2">
-                    <button
-                      onClick={() => navigate('/aibuilder')}
-                      className="flex-1 py-2.5 px-3 bg-white/5 hover:bg-white/10 rounded-xl text-white text-[11px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      <Pencil size={12} /> Edit
-                    </button>
-
+                  {/* Right Action Controls */}
+                  <div className="flex items-center gap-2.5 self-end md:self-center flex-shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-white/5 w-full md:w-auto justify-end">
                     {site.subdomain && (
                       <a
-                        href={`/shared-form/${site.subdomain}`}
+                        href={`https://${site.subdomain}.flow.devshahid.me`}
                         target="_blank"
                         rel="noreferrer"
-                        className="p-2.5 border border-white/10 hover:border-[#d4f000] rounded-xl text-white/50 hover:text-[#d4f000] transition-colors"
-                        title="View Site"
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-2.5 border border-white/10 bg-white/5 hover:border-[#d4f000] hover:bg-[#d4f000]/10 text-white/60 hover:text-[#d4f000] transition-all"
+                        title="View Live Site"
                       >
                         <ExternalLink size={14} />
                       </a>
                     )}
 
                     <button
-                      onClick={() => setDeleteModalSite(site)}
-                      className="p-2.5 border border-white/10 hover:border-red-500/50 rounded-xl text-white/40 hover:text-red-500 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteModalSite(site);
+                      }}
+                      className="p-2.5 border border-white/10 bg-white/5 hover:border-red-500/50 hover:bg-red-500/10 text-white/40 hover:text-red-500 transition-all"
                       title="Delete Website"
                     >
                       <Trash2 size={14} />
@@ -354,7 +354,7 @@ export default function ToolChoice() {
           onClick={() => setDeleteModalSite(null)}
         >
           <div 
-            className="bg-[#111] border border-white/10 rounded-2xl p-6 w-full max-w-sm flex flex-col items-center text-center shadow-2xl"
+            className="bg-[#111] border border-white/10 p-6 w-full max-w-sm flex flex-col items-center text-center shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-12 h-12 bg-red-500/10 text-red-500 border border-red-500/20 rounded-full flex items-center justify-center mb-4">
@@ -367,13 +367,13 @@ export default function ToolChoice() {
             <div className="flex gap-3 w-full">
               <button 
                 onClick={() => setDeleteModalSite(null)}
-                className="flex-1 py-2.5 rounded-xl border border-white/10 text-white/60 hover:text-white hover:bg-white/5 text-[11px] uppercase tracking-widest font-bold transition-colors"
+                className="flex-1 py-2.5 border border-white/10 text-white/60 hover:text-white hover:bg-white/5 text-[11px] uppercase tracking-widest font-bold transition-colors"
               >
                 Cancel
               </button>
               <button 
                 onClick={() => handleDeleteWebsite(deleteModalSite)}
-                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white hover:bg-red-600 text-[11px] uppercase tracking-widest font-bold transition-colors"
+                className="flex-1 py-2.5 bg-red-500 text-white hover:bg-red-600 text-[11px] uppercase tracking-widest font-bold transition-colors"
               >
                 Delete
               </button>
@@ -385,7 +385,7 @@ export default function ToolChoice() {
       {/* Sign Out Modal */}
       {showSignOut && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[#111] border border-white/10 rounded-2xl p-8 w-full max-w-sm flex flex-col items-center text-center shadow-2xl">
+          <div className="bg-[#111] border border-white/10 p-8 w-full max-w-sm flex flex-col items-center text-center shadow-2xl">
             <div className="w-16 h-16 bg-red-500/10 text-red-500 border border-red-500/20 rounded-full flex items-center justify-center mb-6">
               <span className="text-2xl font-bold">!</span>
             </div>
@@ -394,13 +394,13 @@ export default function ToolChoice() {
             <div className="flex gap-4 w-full">
               <button 
                 onClick={() => setShowSignOut(false)}
-                className="flex-1 py-3 rounded-xl border border-white/10 text-white/40 hover:text-white/90 hover:bg-white/5 text-[11px] uppercase tracking-widest font-bold transition-colors"
+                className="flex-1 py-3 border border-white/10 text-white/40 hover:text-white/90 hover:bg-white/5 text-[11px] uppercase tracking-widest font-bold transition-colors"
               >
                 Cancel
               </button>
               <button 
                 onClick={confirmSignOut}
-                className="flex-1 py-3 rounded-xl bg-red-500 text-white hover:bg-red-600 text-[11px] uppercase tracking-widest font-bold transition-colors"
+                className="flex-1 py-3 bg-red-500 text-white hover:bg-red-600 text-[11px] uppercase tracking-widest font-bold transition-colors"
               >
                 Sign Out
               </button>
