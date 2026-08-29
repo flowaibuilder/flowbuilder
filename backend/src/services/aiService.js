@@ -1,12 +1,13 @@
-const { Groq } = require('groq-sdk');
+const OpenAI = require('openai');
 require('dotenv').config();
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY || 'missing-key',
+const groq = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || 'missing-key',
+  baseURL: process.env.OPENAI_BASE_URL || 'https://api.novita.ai/v3/openai',
 });
 
 // Using the model the user provided
-const MODEL_NAME = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
+const MODEL_NAME = process.env.MODEL_NAME || 'openai/gpt-oss-120b';
 
 async function generateWebsiteSpec(businessDetails) {
   const { name, industry, description, pages, feel, cta, fontStyle } = businessDetails;
