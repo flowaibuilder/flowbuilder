@@ -60,9 +60,11 @@ const FEELS = [
 
 const THEMES_BY_FEEL = {
   professional: [
-    { id: 'pro-corporate', name: 'Corporate', colors: { primary: '#1a56db', secondary: '#374151', background: '#ffffff' } },
-    { id: 'pro-slate', name: 'Slate', colors: { primary: '#0f172a', secondary: '#64748b', background: '#f8fafc' } },
-    { id: 'pro-navy', name: 'Navy', colors: { primary: '#ffffff', secondary: '#94a3b8', background: '#0f172a' } },
+    { id: 'pro-corporate', name: 'Corporate Blue', colors: { primary: '#1d4ed8', secondary: '#334155', background: '#ffffff' } },
+    { id: 'pro-slate', name: 'Executive Slate', colors: { primary: '#0f172a', secondary: '#2563eb', background: '#f8fafc' } },
+    { id: 'pro-emerald', name: 'Emerald Tech', colors: { primary: '#047857', secondary: '#1e293b', background: '#f0fdf4' } },
+    { id: 'pro-indigo', name: 'Indigo Premium', colors: { primary: '#4f46e5', secondary: '#0f172a', background: '#faf5ff' } },
+    { id: 'pro-charcoal', name: 'Modern Charcoal', colors: { primary: '#18181b', secondary: '#2563eb', background: '#fafafa' } },
   ],
   minimal: [
     { id: 'min-snow', name: 'Snow', colors: { primary: '#111111', secondary: '#999999', background: '#ffffff' } },
@@ -70,9 +72,11 @@ const THEMES_BY_FEEL = {
     { id: 'min-ink', name: 'Ink', colors: { primary: '#e0e0e0', secondary: '#555555', background: '#121212' } },
   ],
   luxury: [
-    { id: 'lux-gold', name: 'Gold & Black', colors: { primary: '#d4af37', secondary: '#1a1a1a', background: '#0a0a0a' } },
-    { id: 'lux-rose', name: 'Rose Gold', colors: { primary: '#b76e79', secondary: '#2d2d2d', background: '#fdf8f5' } },
-    { id: 'lux-royal', name: 'Royal', colors: { primary: '#c9a94e', secondary: '#1e1e3f', background: '#0d0d1a' } },
+    { id: 'lux-gold', name: 'Champagne & Obsidian', colors: { primary: '#d4af37', secondary: '#e5c158', background: '#0a0a0c' } },
+    { id: 'lux-emerald', name: 'Emerald Velvet & Gold', colors: { primary: '#d4af37', secondary: '#10b981', background: '#061510' } },
+    { id: 'lux-midnight', name: 'Midnight Velvet & Silver', colors: { primary: '#e2e8f0', secondary: '#94a3b8', background: '#090d16' } },
+    { id: 'lux-rose', name: 'Rose Gold & Charcoal', colors: { primary: '#e0a96d', secondary: '#f43f5e', background: '#121014' } },
+    { id: 'lux-royal', name: 'Royal Crown Gold', colors: { primary: '#c9a959', secondary: '#e2e8f0', background: '#0f0e13' } },
   ],
   friendly: [
     { id: 'fri-warm', name: 'Warm Sunset', colors: { primary: '#f97316', secondary: '#7c3aed', background: '#fffbf5' } },
@@ -122,8 +126,10 @@ export function isLight(hex) {
 
 // ─── SITE NAVBAR ─────────────────────────────────────────────────────────────
 
-export function SiteNavbar({ businessName, sections, theme, logo }) {
+export function SiteNavbar({ businessName, sections, theme, logo, feel }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState('');
 
   const navLinks = sections
     .filter(s => !['footer'].includes(s.type))
@@ -131,6 +137,7 @@ export function SiteNavbar({ businessName, sections, theme, logo }) {
       id: s.id,
       label: s.type.charAt(0).toUpperCase() + s.type.slice(1),
       href: `#section-${s.id}`,
+      type: s.type,
     }));
 
   const ctaLink = sections.find(s => ['contact', 'pricing', 'products'].includes(s.type));
@@ -138,83 +145,275 @@ export function SiteNavbar({ businessName, sections, theme, logo }) {
   const bg = theme?.background || '#ffffff';
   const primary = theme?.primary || '#000000';
   const textColor = isLight(bg) ? '#000000' : '#ffffff';
-  const borderColor = isLight(bg) ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
+  const isDark = !isLight(bg);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 15);
+      
+      // Determine active section
+      const sectionElements = sections.map(s => document.getElementById(`section-${s.id}`)).filter(Boolean);
+      let currentActive = '';
+      for (const el of sectionElements) {
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= 120 && rect.bottom >= 120) {
+          currentActive = el.id;
+          break;
+        }
+      }
+      setActiveSection(currentActive);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Trigger initially
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [sections]);
+
+  // Styling properties depending on scroll state
+  const navHeightClass = isScrolled ? 'py-3 sm:py-4 shadow-md bg-opacity-95' : 'py-5 bg-opacity-80';
+  const navBg = isDark 
+    ? (isScrolled ? 'rgba(10, 10, 12, 0.95)' : 'rgba(10, 10, 12, 0.7)')
+    : (isScrolled ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.7)');
+
+  const fontClass = (() => {
+    switch (feel) {
+      case 'luxury': return 'font-serif italic';
+      case 'futuristic': return 'font-mono uppercase tracking-wider';
+      case 'bold': return 'font-mono uppercase font-black';
+      default: return 'font-sans';
+    }
+  })();
+
+  const MAX_VISIBLE_LINKS = 4;
+  const showMoreDropdown = navLinks.length > MAX_VISIBLE_LINKS;
+  const visibleLinks = showMoreDropdown ? navLinks.slice(0, MAX_VISIBLE_LINKS) : navLinks;
+  const overflowLinks = showMoreDropdown ? navLinks.slice(MAX_VISIBLE_LINKS) : [];
 
   return (
     <nav
-      style={{ background: bg, borderBottom: `2px solid ${primary}`, color: textColor }}
-      className="sticky top-0 z-50 w-full"
+      style={{
+        backgroundColor: navBg,
+        borderBottom: isScrolled ? `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}` : '1px solid transparent',
+        color: textColor,
+      }}
+      className={`sticky top-0 z-50 w-full backdrop-blur-xl transition-all duration-300 ${fontClass} ${navHeightClass}`}
     >
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-6">
-        {/* Logo / Brand */}
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-between gap-6">
+        {/* Brand Logo / Title */}
         <a
           href="#section-1"
-          className="flex items-center gap-2 text-xl font-black uppercase tracking-wider shrink-0"
-          style={{ color: primary }}
+          className="flex items-center gap-3 text-lg font-bold tracking-tight shrink-0 transition-transform duration-300 hover:scale-[1.01]"
+          style={{ color: textColor }}
         >
           {logo ? (
-            <img src={logo} alt={businessName} className="h-8 w-auto object-contain max-h-8" />
+            <img src={logo} alt={businessName} className="h-9 w-auto object-contain max-h-9" />
           ) : (
-            businessName || 'Your Brand'
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-8.5 h-8.5 rounded-xl flex items-center justify-center font-black text-xs shadow-sm transition-all duration-300 hover:rotate-6"
+                style={{
+                  backgroundColor: primary,
+                  color: isLight(primary) ? '#000000' : '#ffffff',
+                }}
+              >
+                {(businessName || 'B').charAt(0).toUpperCase()}
+              </div>
+              <span className="font-extrabold tracking-tight text-base sm:text-lg uppercase">
+                {businessName || 'Your Brand'}
+              </span>
+            </div>
           )}
         </a>
 
-        {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-1 flex-1 justify-center flex-wrap">
-          {navLinks.map(link => (
-            <a
-              key={link.id}
-              href={link.href}
-              className="px-3 py-1 text-sm font-bold uppercase tracking-wider transition-all hover:opacity-70"
-              style={{ color: textColor }}
-            >
-              {link.label}
-            </a>
-          ))}
+        {/* Desktop Navigation Link Items */}
+        <div className="hidden md:flex items-center gap-1 flex-1 justify-center relative">
+          {visibleLinks.map(link => {
+            const hasDropdown = ['features', 'services', 'pricing', 'products'].includes(link.type);
+            const isActive = activeSection === `section-${link.id}`;
+
+            return (
+              <div key={link.id} className="relative group/nav py-2">
+                <a
+                  href={link.href}
+                  className={`px-4 py-2 text-sm font-semibold tracking-wide rounded-lg flex items-center gap-1 transition-all duration-200 relative ${
+                    isActive ? 'text-primary bg-primary/5' : 'opacity-85 hover:opacity-100 hover:bg-current/5'
+                  }`}
+                  style={{ color: isActive ? primary : textColor }}
+                >
+                  <span>{link.label}</span>
+                  {hasDropdown && (
+                    <ChevronDown className="w-3.5 h-3.5 opacity-70 transition-transform duration-200 group-hover/nav:rotate-180" />
+                  )}
+
+                  {/* Active bar visual indicator */}
+                  {isActive && (
+                    <span 
+                      className="absolute bottom-0 left-4 right-4 h-0.5 rounded-full animate-pulse" 
+                      style={{ backgroundColor: primary }} 
+                    />
+                  )}
+                </a>
+
+                {/* Dropdowns / Mega Menus */}
+                {hasDropdown && (
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 hidden group-hover/nav:block w-72 sm:w-80 transition-all duration-300 z-50">
+                    <div 
+                      className="rounded-2xl border p-4 shadow-2xl backdrop-blur-2xl"
+                      style={{
+                        backgroundColor: isDark ? '#121214' : '#ffffff',
+                        borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                        color: isDark ? '#ffffff' : '#000000',
+                      }}
+                    >
+                      {/* Pricing / Products Dropdown content */}
+                      {['pricing', 'products'].includes(link.type) && (
+                        <div className="space-y-3 font-sans">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-primary mb-2" style={{ color: primary }}>
+                            Plans & Pricing Tiers
+                          </div>
+                          <a href={link.href} className="block p-2 rounded-xl hover:bg-current/5 transition-colors">
+                            <div className="font-bold text-sm">Starter Plan</div>
+                            <div className="text-xs opacity-70">Core tools for small businesses.</div>
+                          </a>
+                          <a href={link.href} className="block p-2 rounded-xl hover:bg-current/5 transition-colors">
+                            <div className="font-bold text-sm">Professional Plan</div>
+                            <div className="text-xs opacity-70">Intelligent flows & integrations.</div>
+                          </a>
+                          <a href={link.href} className="block p-2 rounded-xl hover:bg-current/5 transition-colors">
+                            <div className="font-bold text-sm">Enterprise setup</div>
+                            <div className="text-xs opacity-70">Dedicated resources & SLA support.</div>
+                          </a>
+                        </div>
+                      )}
+
+                      {/* Services / Features Dropdown content */}
+                      {['features', 'services'].includes(link.type) && (
+                        <div className="space-y-3 font-sans">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-primary mb-2" style={{ color: primary }}>
+                            Intelligent Solutions
+                          </div>
+                          <a href={link.href} className="block p-2 rounded-xl hover:bg-current/5 transition-colors">
+                            <div className="font-bold text-sm">⚡ Lightning Execution</div>
+                            <div className="text-xs opacity-70">Zero delay high performance stack.</div>
+                          </a>
+                          <a href={link.href} className="block p-2 rounded-xl hover:bg-current/5 transition-colors">
+                            <div className="font-bold text-sm">🛡️ Bank-Grade Security</div>
+                            <div className="text-xs opacity-70">End-to-end asset protection.</div>
+                          </a>
+                          <a href={link.href} className="block p-2 rounded-xl hover:bg-current/5 transition-colors">
+                            <div className="font-bold text-sm">🧩 Modular Customization</div>
+                            <div className="text-xs opacity-70">Easy extensions & setups.</div>
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* More Dropdown for Overflow Links */}
+          {showMoreDropdown && (
+            <div className="relative group/more py-2">
+              <button
+                className="px-4 py-2 text-sm font-semibold tracking-wide rounded-lg flex items-center gap-1 opacity-85 hover:opacity-100 transition-all duration-200 hover:bg-current/5 cursor-pointer"
+                style={{ color: textColor }}
+              >
+                <span>More</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-70 transition-transform duration-200 group-hover/more:rotate-180" />
+              </button>
+
+              <div className="absolute top-full right-0 pt-3 hidden group-hover/more:block w-48 transition-all duration-300 z-50">
+                <div 
+                  className="rounded-2xl border p-2 shadow-2xl backdrop-blur-2xl"
+                  style={{
+                    backgroundColor: isDark ? '#121214' : '#ffffff',
+                    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                    color: isDark ? '#ffffff' : '#000000',
+                  }}
+                >
+                  {overflowLinks.map(link => {
+                    const isActive = activeSection === `section-${link.id}`;
+                    return (
+                      <a
+                        key={link.id}
+                        href={link.href}
+                        className={`block px-4 py-2 text-sm font-semibold rounded-xl hover:bg-current/5 transition-colors ${
+                          isActive ? 'text-primary' : 'opacity-85'
+                        }`}
+                        style={{ color: isActive ? primary : undefined }}
+                      >
+                        {link.label}
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* CTA button */}
+        {/* Dynamic CTA Link button */}
         {ctaLink && (
           <a
             href={`#section-${ctaLink.id}`}
-            className="hidden md:inline-block px-5 py-2 text-sm font-black uppercase tracking-wider border-2 transition-all hover:translate-x-[1px] hover:translate-y-[1px] shrink-0"
+            className="hidden md:inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold tracking-wide rounded-xl shadow-sm hover:shadow-lg hover:scale-102 active:scale-98 transition-all duration-300 shrink-0"
             style={{
-              background: primary,
+              backgroundColor: primary,
               color: isLight(primary) ? '#000000' : '#ffffff',
-              borderColor: textColor,
             }}
           >
             {ctaLink.type === 'contact' ? 'Contact Us' : 'Get Started'}
           </a>
         )}
 
-        {/* Mobile hamburger */}
+        {/* Mobile Hamburger Drawer Menu Toggle */}
         <button
-          className="md:hidden p-2"
+          className="md:hidden p-2.5 rounded-xl hover:bg-current/10 transition-colors"
           onClick={() => setMenuOpen(!menuOpen)}
           style={{ color: textColor }}
         >
-          {menuOpen ? <X size={22} /> : <Menu size={22} />}
+          {menuOpen ? <X size={22} className="transition-transform duration-200 rotate-90" /> : <Menu size={22} className="transition-transform duration-200" />}
         </button>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile Drawer menu with clean dropdown list */}
       {menuOpen && (
         <div
-          className="md:hidden border-t-2 px-6 py-4 flex flex-col gap-3"
-          style={{ borderColor: primary, background: bg }}
+          className="md:hidden border-t px-6 py-5 flex flex-col gap-3 shadow-2xl backdrop-blur-2xl transition-all duration-300"
+          style={{ 
+            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+            backgroundColor: isDark ? '#0d0d0f' : '#ffffff',
+          }}
         >
           {navLinks.map(link => (
             <a
               key={link.id}
               href={link.href}
               onClick={() => setMenuOpen(false)}
-              className="text-sm font-bold uppercase tracking-wider py-1"
+              className="text-sm font-semibold py-3 px-4 rounded-xl hover:bg-current/5 transition-colors flex items-center justify-between"
               style={{ color: textColor }}
             >
-              {link.label}
+              <span>{link.label}</span>
+              {['features', 'services', 'pricing', 'products'].includes(link.type) && (
+                <ChevronRight className="w-4 h-4 opacity-55" />
+              )}
             </a>
           ))}
+          {ctaLink && (
+            <a
+              href={`#section-${ctaLink.id}`}
+              onClick={() => setMenuOpen(false)}
+              className="mt-3 text-center py-3.5 text-sm font-bold rounded-xl transition-all shadow-md active:scale-98"
+              style={{
+                backgroundColor: primary,
+                color: isLight(primary) ? '#000000' : '#ffffff',
+              }}
+            >
+              {ctaLink.type === 'contact' ? 'Contact Us' : 'Get Started'}
+            </a>
+          )}
         </div>
       )}
     </nav>
@@ -235,6 +434,7 @@ function SortableSection({
   selectedText, 
   onSelectText,
   onMoveSection,
+  onDeleteSection,
   isFirst,
   isLast 
 }) {
@@ -317,7 +517,7 @@ function SortableSection({
       className={`relative group ${isEditingText ? 'cursor-pointer' : ''}`}
       onClick={isEditingText ? onClick : undefined}
     >
-      {!isEditingText && activeTab !== 'media' && (
+      {isEditingText && activeTab !== 'media' && (
         <div className="absolute top-4 left-4 z-50 flex items-center gap-1 bg-[#09090b]/90 backdrop-blur-md text-white p-1 rounded-lg border border-white/20 shadow-[0_10px_30px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transition-opacity">
           {/* Drag Handle */}
           <div
@@ -343,7 +543,7 @@ function SortableSection({
             }}
             disabled={isFirst}
             title="Move Section Up"
-            className="p-1 hover:bg-[#d4f000] hover:text-[#080808] text-white/80 rounded transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-white/80"
+            className="p-1 hover:bg-[#d4f000] hover:text-[#080808] text-white/80 rounded transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-white/80 cursor-pointer"
           >
             <ChevronUp size={15} />
           </button>
@@ -357,9 +557,26 @@ function SortableSection({
             }}
             disabled={isLast}
             title="Move Section Down"
-            className="p-1 hover:bg-[#d4f000] hover:text-[#080808] text-white/80 rounded transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-white/80"
+            className="p-1 hover:bg-[#d4f000] hover:text-[#080808] text-white/80 rounded transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-white/80 cursor-pointer"
           >
             <ChevronDown size={15} />
+          </button>
+
+          <div className="w-[1px] h-4 bg-white/20 my-auto" />
+
+          {/* Delete Section */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (window.confirm(`Are you sure you want to delete the ${section.type} section?`)) {
+                if (onDeleteSection) onDeleteSection();
+              }
+            }}
+            title="Delete Section"
+            className="p-1 hover:bg-red-500 hover:text-white text-red-400 rounded transition-colors cursor-pointer"
+          >
+            <Trash2 size={15} />
           </button>
         </div>
       )}
@@ -400,7 +617,7 @@ function SortableSection({
       </div>
 
       {/* Bottom height resizer handle */}
-      {!isEditingText && activeTab !== 'media' && (
+      {isEditingText && activeTab !== 'media' && (
         <div
           onMouseDown={handleMouseDownResize}
           className="absolute bottom-0 left-0 right-0 h-2 bg-[#d4f000]/10 hover:bg-[#d4f000] cursor-ns-resize z-40 transition-colors flex items-center justify-center group/resize"
@@ -433,6 +650,17 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
       const [moved] = updated.splice(mainIndex, 1);
       updated.splice(targetIndex, 0, moved);
       return updated;
+    });
+  };
+
+  const handleRemoveSection = (id) => {
+    setSections(prev => {
+      const isOnlyOne = prev.filter(s => s.type !== 'footer').length <= 1;
+      if (isOnlyOne) {
+        alert('You must keep at least one section besides the footer.');
+        return prev;
+      }
+      return prev.filter(s => s.id !== id);
     });
   };
 
@@ -479,7 +707,9 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
   const [currentTheme, setCurrentTheme] = useState(theme);
   const [currentFeel, setCurrentFeel] = useState(feel);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(true); // default to true since it starts synchronized
+  const [saveError, setSaveError] = useState(false);
+  const isInitialMount = useRef(true);
   const [previousHistoryState, setPreviousHistoryState] = useState(null);
   
   // Publish State
@@ -643,17 +873,41 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
 
   const handleSaveProject = async () => {
     setIsSaving(true);
-    setSaveSuccess(false);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('You must be logged in to save.');
 
+      // Strip large base64 data from sections (avatarUrl, imageUrl from portfolio/testimonials)
+      const stripBase64 = (obj) => {
+        if (!obj || typeof obj !== 'object') return obj;
+        if (Array.isArray(obj)) return obj.map(stripBase64);
+        const cleaned = {};
+        for (const [k, v] of Object.entries(obj)) {
+          if (typeof v === 'string' && v.startsWith('data:image/') && v.length > 5000) {
+            cleaned[k] = ''; // strip base64 to avoid 500 on large payload
+          } else {
+            cleaned[k] = stripBase64(v);
+          }
+        }
+        return cleaned;
+      };
+
+      const cleanedSections = sections.map(s => ({
+        ...s,
+        content: stripBase64(s.content)
+      }));
+
+      const cleanedSiteImages = siteImages.map(img => ({
+        ...img,
+        url: (typeof img.url === 'string' && img.url.startsWith('data:image/') && img.url.length > 5000) ? '' : img.url
+      }));
+
       const payload = {
         user_id: user.id,
         name: businessName || 'My Website',
-        spec: sections,
+        spec: cleanedSections,
         theme: currentTheme || theme,
-        config: { businessName, pages, logo, feel: currentFeel || feel, fontStyle, siteImages },
+        config: { businessName, pages, logo, feel: currentFeel || feel, fontStyle, siteImages: cleanedSiteImages },
         updated_at: new Date().toISOString()
       };
 
@@ -663,9 +917,8 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           .update(payload)
           .eq('id', websiteId);
         if (error) throw error;
-        
         setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 3000);
+        setSaveError(false);
         return websiteId;
       } else {
         const { data, error } = await supabase
@@ -677,19 +930,21 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         if (data && onSave) {
           onSave(data.id);
         }
-        
         setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 3000);
+        setSaveError(false);
         return data?.id;
       }
     } catch (err) {
-      console.error('Save failed:', err);
-      alert('Failed to save project: ' + err.message);
+      console.error('Auto-save failed:', err);
+      setSaveError(true);
+      setSaveSuccess(false);
       return null;
     } finally {
       setIsSaving(false);
     }
   };
+
+
   const [refineSummary, setRefineSummary] = useState(null);
 
   const [chatMessages, setChatMessages] = useState([
@@ -780,6 +1035,23 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
   const [uploadedLibrary, setUploadedLibrary] = useState([]);
   const [selectedImageId, setSelectedImageId] = useState(null);
   const [selectedText, setSelectedText] = useState(null);
+
+  // Debounced auto-save hook — only sections/theme/feel/siteImages trigger this
+  const handleSaveProjectRef = useRef(handleSaveProject);
+  useEffect(() => { handleSaveProjectRef.current = handleSaveProject; });
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      handleSaveProjectRef.current();
+    }, 800); // 800ms debounce — generous enough to batch rapid keystrokes
+
+    return () => clearTimeout(timer);
+  }, [sections, currentTheme, currentFeel, siteImages]);
 
   const handlePreviewClick = (e) => {
     if ((activeTab === 'media' || activeTab === 'components') && !e.target.closest('.floating-image-container') && !e.target.closest('button')) {
@@ -921,9 +1193,9 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           const rect = previewContainer.getBoundingClientRect();
           const x = rect.width / 2 + previewContainer.scrollLeft;
           const y = rect.height / 2 + previewContainer.scrollTop;
-          addNewFloatingImage(fileUrl, x, y);
+          addNewFloatingElement('image', x, y, fileUrl);
         } else {
-          addNewFloatingImage(fileUrl, 300, 200);
+          addNewFloatingElement('image', 300, 200, fileUrl);
         }
       };
       reader.readAsDataURL(file);
@@ -1350,6 +1622,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
     '--color-primary': activeTheme.primary,
     '--color-secondary': activeTheme.secondary,
     '--color-bg-base': activeTheme.background,
+    '--color-text-base': isLight(activeTheme.background) ? '#000000' : '#ffffff',
   } : {};
 
   // Non-footer sections for the preview area
@@ -1441,19 +1714,17 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
               <Image size={10} /> Media
             </button>
 
-            {/* 
             <button
               onClick={() => {
-                setActiveTab('components');
+                setActiveTab('sections');
                 setIsEditingText(false);
               }}
               className={`shrink-0 px-6 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 rounded h-[28px] ${
-                activeTab === 'components' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
+                activeTab === 'sections' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Grid size={10} /> Components
+              <Grid size={10} /> Sections
             </button>
-            */}
           </div>
 
           {showRightArrow && (
@@ -1556,6 +1827,98 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                   </button>
                 </div>
               </form>
+            </div>
+          )}
+
+          {activeTab === 'sections' && (
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              {/* Current Sections List */}
+              <div>
+                <h3 className="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-3">
+                  Active Sections
+                </h3>
+                <div className="space-y-1.5">
+                  {sections.filter(s => s.type !== 'footer').map((section, idx) => (
+                    <div
+                      key={section.id}
+                      className="flex items-center justify-between bg-white/5 border border-white/10 hover:border-white/20 rounded px-3 py-2 group/item transition-all"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#d4f000] shrink-0" />
+                        <span className="text-xs font-bold uppercase text-white/80 tracking-wider capitalize">
+                          {section.type}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        title="Remove section"
+                        onClick={() => {
+                          if (window.confirm(`Remove the ${section.type} section?`)) {
+                            handleRemoveSection(section.id);
+                          }
+                        }}
+                        className="p-1 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors opacity-0 group-hover/item:opacity-100 cursor-pointer"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                  {sections.find(s => s.type === 'footer') && (
+                    <div className="flex items-center gap-2 bg-white/[0.02] border border-white/5 rounded px-3 py-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-white/20 shrink-0" />
+                      <span className="text-xs font-bold uppercase text-white/30 tracking-wider">
+                        Footer (fixed)
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Add New Section */}
+              <div>
+                <h3 className="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-3">
+                  Add a Section
+                </h3>
+                <div className="space-y-2">
+                  {[
+                    { type: 'hero', label: 'Hero / Banner', icon: '⚡', desc: 'Large headline & CTA' },
+                    { type: 'about', label: 'About Us', icon: 'ℹ️', desc: 'Team, mission, story' },
+                    { type: 'features', label: 'Features Grid', icon: '⭐', desc: 'Key features & benefits' },
+                    { type: 'pricing', label: 'Pricing Plans', icon: '💰', desc: 'Subscription tiers' },
+                    { type: 'portfolio', label: 'Portfolio', icon: '🖼️', desc: 'Project showcase grid' },
+                    { type: 'testimonials', label: 'Testimonials', icon: '💬', desc: 'Customer reviews' },
+                    { type: 'faq', label: 'FAQ', icon: '❓', desc: 'Accordion questions' },
+                    { type: 'contact', label: 'Contact', icon: '📞', desc: 'Contact form & info' },
+                  ].map(comp => {
+                    const alreadyAdded = sections.some(s => s.type === comp.type);
+                    return (
+                      <button
+                        key={comp.type}
+                        type="button"
+                        onClick={() => handleAddSection(comp.type)}
+                        className={`w-full flex items-center justify-between gap-3 p-2.5 rounded border text-left transition-all ${
+                          alreadyAdded
+                            ? 'border-[#d4f000]/30 bg-[#d4f000]/5 cursor-pointer hover:bg-[#d4f000]/10'
+                            : 'border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-base leading-none">{comp.icon}</span>
+                          <div>
+                            <p className={`text-[11px] font-bold uppercase tracking-wider ${alreadyAdded ? 'text-[#d4f000]' : 'text-white/80'}`}>
+                              {comp.label}
+                            </p>
+                            <p className="text-[9px] text-white/30 mt-0.5">{comp.desc}</p>
+                          </div>
+                        </div>
+                        <div className={`shrink-0 w-5 h-5 rounded flex items-center justify-center ${alreadyAdded ? 'bg-[#d4f000]/20 text-[#d4f000]' : 'bg-white/10 text-white/50'}`}>
+                          <Plus size={11} />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
 
@@ -1725,27 +2088,6 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                 </div>
               </div>
 
-              {/* Quick Palette Utility Buttons */}
-              <div className="pt-2 border-t border-white/10 grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentTheme({ primary: '#d4f000', secondary: '#222222', background: '#080808' });
-                  }}
-                  className="py-2 text-[9px] font-bold uppercase rounded border bg-white/5 text-white/80 border-white/10 hover:bg-white/10 transition-colors text-center"
-                >
-                  🌙 Dark Mode
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentTheme({ primary: '#1a56db', secondary: '#374151', background: '#ffffff' });
-                  }}
-                  className="py-2 text-[9px] font-bold uppercase rounded border bg-white/5 text-white/80 border-white/10 hover:bg-white/10 transition-colors text-center"
-                >
-                  ☀️ Light Mode
-                </button>
-              </div>
             </div>
           )}
 
@@ -1901,7 +2243,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                           const previewContainer = document.getElementById('preview-scroll-container');
                           const x = previewContainer ? (previewContainer.clientWidth / 2 + previewContainer.scrollLeft) : 300;
                           const y = previewContainer ? (previewContainer.clientHeight / 2 + previewContainer.scrollTop) : 200;
-                          addNewFloatingImage(mediaUrl, x, y);
+                          addNewFloatingElement('image', x, y, mediaUrl);
                         }}
                         className="bg-[#d4f000] text-[#080808] font-bold text-xs px-3 hover:bg-[#b8d000] rounded transition-colors"
                       >
@@ -1929,7 +2271,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                           const previewContainer = document.getElementById('preview-scroll-container');
                           const x = previewContainer ? (previewContainer.clientWidth / 2 + previewContainer.scrollLeft) : 300;
                           const y = previewContainer ? (previewContainer.clientHeight / 2 + previewContainer.scrollTop) : 200;
-                          addNewFloatingImage(url, x, y);
+                          addNewFloatingElement('image', x, y, url);
                         }}
                         className="relative aspect-[3/2] rounded overflow-hidden border cursor-grab active:cursor-grabbing border-white/10 hover:border-[#d4f000]/50 transition-all group"
                       >
@@ -2227,18 +2569,21 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           )}
         </div>
 
-        <div className="p-4 border-t border-white/10 flex gap-2">
-          <button
-            onClick={handleSaveProject}
-            disabled={isSaving}
-            className={`flex-1 ${saveSuccess ? 'bg-emerald-500 text-white' : 'bg-white/10 hover:bg-white/20 text-white'} py-2.5 rounded font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2`}
-          >
-            {isSaving ? <Loader2 size={14} className="animate-spin" /> : saveSuccess ? 'Saved!' : 'Save'}
-          </button>
+        <div className="p-4 border-t border-white/10 flex flex-col gap-3">
+          <div className="flex items-center justify-between text-xs px-1">
+            <span className="text-white/40 font-semibold tracking-wider uppercase text-[10px]">Cloud Sync</span>
+            <div className="flex items-center gap-1.5">
+              <div className={`w-1.5 h-1.5 rounded-full ${isSaving ? 'bg-yellow-400 animate-pulse' : saveError ? 'bg-red-400 animate-bounce' : 'bg-emerald-400'}`} />
+              <span className={`font-bold transition-all text-[11px] ${isSaving ? 'text-yellow-400' : saveError ? 'text-red-400' : 'text-emerald-400'}`}>
+                {isSaving ? 'Saving...' : saveError ? 'Save Failed' : 'Saved'}
+              </span>
+            </div>
+          </div>
+          
           <button 
             onClick={openPublishModal}
-            className="flex-1 bg-[#d4f000] hover:bg-[#b8d000] text-[#080808] py-2.5 rounded font-bold text-xs uppercase tracking-wider transition-colors">
-            {currentPublishedSubdomain ? 'Republish' : 'Publish'}
+            className="w-full bg-[#d4f000] hover:bg-[#b8d000] text-[#080808] py-2.5 rounded font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-1.5 shadow-md">
+            {currentPublishedSubdomain ? 'Republish Web App' : 'Publish to Web'}
           </button>
         </div>
       </div>
@@ -2252,11 +2597,11 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         className="flex-1 overflow-auto relative" 
         style={{ 
           backgroundColor: 'var(--color-bg-base, #ffffff)',
-          color: 'var(--color-text-base, #000000)'
+          color: `var(--color-text-base, ${isLight(activeTheme?.background) ? '#000000' : '#ffffff'})`
         }}
       >
         {/* Generated Site Navbar */}
-        <SiteNavbar businessName={businessName} sections={sections} theme={currentTheme || theme} logo={logo} />
+        <SiteNavbar businessName={businessName} sections={sections} theme={currentTheme || theme} logo={logo} feel={feel} />
 
         {/* Offset parent wrapper for sections and floating images, matching published side */}
         <div className="relative">
@@ -2314,6 +2659,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                       setSelectedText({ sectionId: sectId, path });
                     }}
                     onMoveSection={(dir) => handleMoveSection(section.id, dir)}
+                    onDeleteSection={() => handleRemoveSection(section.id)}
                     isFirst={idx === 0}
                     isLast={idx === mainSections.length - 1}
                   />

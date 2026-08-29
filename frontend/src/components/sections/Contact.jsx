@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { getStyles } from '../../utils/themeHelper';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MapPin, Mail, Phone, Clock, Send, CheckCircle } from 'lucide-react';
 import EditableText from '../EditableText';
 
-export default function Contact({ content, feel }) {
+export default function Contact({ content = {}, feel }) {
   const s = getStyles(feel);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
   const [status, setStatus] = useState('idle'); // idle | loading | success | error
@@ -39,75 +39,137 @@ export default function Contact({ content, feel }) {
   return (
     <div className={s.container}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          <div className={s.card}>
-            <div className="mb-4">
-              <span className={s.badge}>
-                Contact
-              </span>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          {/* Contact Details Column */}
+          <div className={`${s.card} lg:col-span-5 space-y-6`}>
+            <div>
+              <div className="mb-4">
+                <span className={s.badge}>
+                  <EditableText path="tagline" value={content.tagline || 'Get In Touch'} />
+                </span>
+              </div>
+              <h2 className={s.heading}>
+                <EditableText path="title" value={content.title || "Let's Start a Conversation"} />
+              </h2>
+              <div className="mt-4 text-sm sm:text-base opacity-80 leading-relaxed">
+                <EditableText path="description" value={content.description || 'Have a project in mind or want to learn more about our solutions? Reach out anytime.'} />
+              </div>
             </div>
-            <h2 className={s.heading}>
-              <EditableText path="title" value={content.title || 'Get in touch'} />
-            </h2>
-            <div className="space-y-4 text-sm opacity-80 mt-6">
-              <p>📍 <EditableText path="address" value={content.address || '123 AI Street, Tech City'} /></p>
-              <p>✉️ <EditableText path="email" value={content.email || 'hello@yourdomain.com'} /></p>
-              <p>📞 <EditableText path="phone" value={content.phone || '+1 (555) 000-0000'} /></p>
+
+            <div className="space-y-4 pt-4 border-t border-current/10">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider opacity-60">Location</p>
+                  <p className="text-sm font-semibold text-current mt-0.5">
+                    <EditableText path="address" value={content.address || '123 Innovation Way, Suite 400, Tech City'} />
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider opacity-60">Email</p>
+                  <p className="text-sm font-semibold text-current mt-0.5">
+                    <EditableText path="email" value={content.email || 'hello@yourdomain.com'} />
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
+                  <Phone className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider opacity-60">Phone</p>
+                  <p className="text-sm font-semibold text-current mt-0.5">
+                    <EditableText path="phone" value={content.phone || '+1 (555) 234-5678'} />
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <form className={`${s.card} space-y-4`} onSubmit={handleSubmit}>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider mb-2">Name</label>
-              <input 
-                type="text" 
-                name="name"
-                required
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full border border-current/25 bg-transparent p-3 outline-none focus:border-current/50 transition-colors" 
-              />
+          {/* Form Column */}
+          <form className={`${s.card} lg:col-span-7 space-y-5`} onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider opacity-75 mb-2">Your Name *</label>
+                <input 
+                  type="text" 
+                  name="name"
+                  required
+                  placeholder="Jane Smith"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="w-full border border-current/20 bg-current/[0.02] p-3.5 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm" 
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider opacity-75 mb-2">Email Address *</label>
+                <input 
+                  type="email" 
+                  name="email"
+                  required
+                  placeholder="jane@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full border border-current/20 bg-current/[0.02] p-3.5 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm" 
+                />
+              </div>
             </div>
+
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider mb-2">Email</label>
-              <input 
-                type="email" 
-                name="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full border border-current/25 bg-transparent p-3 outline-none focus:border-current/50 transition-colors" 
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider mb-2">Phone</label>
+              <label className="block text-xs font-bold uppercase tracking-wider opacity-75 mb-2">Phone Number</label>
               <input 
                 type="tel" 
                 name="phone"
+                placeholder="+1 (555) 000-0000"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full border border-current/25 bg-transparent p-3 outline-none focus:border-current/50 transition-colors" 
+                className="w-full border border-current/20 bg-current/[0.02] p-3.5 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm" 
               />
             </div>
+
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider mb-2">Message</label>
+              <label className="block text-xs font-bold uppercase tracking-wider opacity-75 mb-2">Message *</label>
               <textarea 
                 rows={4} 
                 name="message"
                 required
+                placeholder="Tell us about your project or inquiry..."
                 value={formData.message}
                 onChange={handleChange}
-                className="w-full border border-current/25 bg-transparent p-3 outline-none focus:border-current/50 transition-colors resize-none" 
+                className="w-full border border-current/20 bg-current/[0.02] p-3.5 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm resize-none" 
               />
             </div>
-            <button type="submit" disabled={status === 'loading'} className={`w-full flex items-center justify-center ${s.button}`}>
-              {status === 'loading' ? <Loader2 className="animate-spin w-5 h-5" /> : 'Send Message'}
+
+            <button type="submit" disabled={status === 'loading'} className={`w-full flex items-center justify-center gap-2 ${s.button}`}>
+              {status === 'loading' ? (
+                <Loader2 className="animate-spin w-5 h-5" />
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  <span>Send Message</span>
+                </>
+              )}
             </button>
+
             {status === 'success' && (
-              <p className="text-sm text-green-500 mt-2 text-center font-bold">Message sent successfully!</p>
+              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center gap-2 text-emerald-500 text-sm font-bold">
+                <CheckCircle className="w-4 h-4" />
+                Message sent successfully! We'll get back to you soon.
+              </div>
             )}
             {status === 'error' && (
-              <p className="text-sm text-red-500 mt-2 text-center font-bold">Failed to send message. Try again.</p>
+              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-sm font-bold text-center">
+                Failed to send message. Please try again.
+              </div>
             )}
           </form>
         </div>

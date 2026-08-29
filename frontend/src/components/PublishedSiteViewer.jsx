@@ -79,10 +79,10 @@ export default function PublishedSiteViewer({ subdomain }) {
       style={{
         ...themeStyle,
         backgroundColor: 'var(--color-bg-base, #ffffff)',
-        color: 'var(--color-text-base, #000000)'
+        color: `var(--color-text-base, ${isLight(theme?.background) ? '#000000' : '#ffffff'})`
       }}
     >
-      <SiteNavbar businessName={businessName} sections={sections} theme={theme} logo={logo} />
+      <SiteNavbar businessName={businessName} sections={sections} theme={theme} logo={logo} feel={feel} />
       
       <main className="relative">
         {mainSections.map((section) => {
@@ -115,7 +115,7 @@ export default function PublishedSiteViewer({ subdomain }) {
       )}
 
       {/* Floating Layer — fixed overlay so it never causes page overflow/scrollbars */}
-      {false && (siteImages || []).length > 0 && (
+      {(siteImages || []).length > 0 && (
         <div
           style={{
             position: 'fixed',
