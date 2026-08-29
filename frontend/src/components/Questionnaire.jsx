@@ -1228,64 +1228,9 @@ export default function Questionnaire({ onWebsiteGenerated, onOpenProject, initi
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full max-w-7xl mx-auto">
-      {/* Left Column: Saved Projects */}
-      <div className="lg:col-span-4 bg-[#0e0e0e] border border-white/10 rounded-xl p-6">
-        <h3 className="text-lg font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-          <Globe size={18} className="text-[#d4f000]" /> Saved Projects
-        </h3>
-
-        {loadingWebsites ? (
-          <div className="flex items-center justify-center p-8">
-            <Loader2 size={24} className="animate-spin text-[#d4f000]" />
-          </div>
-        ) : savedWebsites.length > 0 ? (
-          <div className="space-y-3">
-            {savedWebsites.map(site => (
-              <button
-                key={site.id}
-                onClick={() => {
-                  if (onOpenProject) {
-                    onOpenProject(site);
-                  } else if (onWebsiteGenerated) {
-                    onWebsiteGenerated(
-                      site.spec,
-                      site.theme,
-                      site.config?.businessName || site.name,
-                      site.config?.pages,
-                      site.config?.logo,
-                      site.config?.feel,
-                      site.config?.fontStyle,
-                      site.id,
-                      site.config?.siteImages
-                    );
-                  }
-                }}
-                className="w-full text-left p-4 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-[#d4f000]/30 transition-all rounded-lg group"
-              >
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <h4 className="text-sm font-bold text-white group-hover:text-[#d4f000] transition-colors truncate">{site.name}</h4>
-                  <span className="text-[9px] uppercase font-black px-1.5 py-0.5 bg-white/5 text-white/50 group-hover:text-[#d4f000] rounded">
-                    Open Hub →
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-[10px] text-white/40 uppercase tracking-wider">
-                  <span>{(site.config?.pages || []).length || (site.spec || []).length || 3} pages</span>
-                  <span>•</span>
-                  <span>{new Date(site.updated_at).toLocaleDateString()}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-lg">
-            <p className="text-xs text-white/40">No saved projects yet.</p>
-          </div>
-        )}
-      </div>
-
-      {/* Right Column: Questionnaire */}
-      <div className="lg:col-span-8 p-8 sm:p-10 bg-[#0e0e0e] border border-white/10 rounded-xl relative overflow-hidden">
+    <div className="max-w-5xl mx-auto w-full">
+      {/* Questionnaire */}
+      <div className="p-8 sm:p-10 bg-[#0e0e0e] border border-white/10 rounded-xl relative overflow-hidden">
         {/* Accent glow */}
         <div
           className="absolute top-0 right-0 w-[360px] h-[360px] rounded-full blur-3xl opacity-[0.06] pointer-events-none"

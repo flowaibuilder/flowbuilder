@@ -16,7 +16,7 @@ export default function Login() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const targetPath = (location.state?.from?.pathname && location.state.from.pathname !== '/login' && location.state.from.pathname !== '/') ? location.state.from.pathname : '/tools';
+  const targetPath = (location.state?.from?.pathname && location.state.from.pathname !== '/login' && location.state.from.pathname !== '/') ? location.state.from.pathname : '/home';
 
   const handleGoogleSignIn = async () => {
     try {

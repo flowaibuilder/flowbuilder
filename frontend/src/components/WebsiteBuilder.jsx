@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   DndContext,
   closestCenter,
@@ -415,6 +416,7 @@ function SortableSection({
 // ─── WEBSITE BUILDER ──────────────────────────────────────────────────────────
 
 export default function WebsiteBuilder({ initialSpec, theme, businessName, pages, logo, feel, fontStyle, websiteId, onSave, initialSiteImages }) {
+  const navigate = useNavigate();
   const [sections, setSections] = useState(
     (initialSpec || []).map((s, idx) => ({ ...s, id: s.id || `section-${idx}` }))
   );
@@ -1364,7 +1366,13 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             <p className="text-[10px] text-white/40 tracking-wider">AI Editor & Host</p>
           </div>
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={() => {
+              if (currentPublishedSubdomain || websiteId) {
+                navigate(`/workspace?id=${websiteId || currentPublishedSubdomain}`);
+              } else {
+                navigate('/home');
+              }
+            }}
             className="px-2.5 py-1 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white rounded text-[10px] uppercase font-bold tracking-wider transition-all"
           >
             Exit
@@ -1433,6 +1441,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
               <Image size={10} /> Media
             </button>
 
+            {/* 
             <button
               onClick={() => {
                 setActiveTab('components');
@@ -1444,6 +1453,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             >
               <Grid size={10} /> Components
             </button>
+            */}
           </div>
 
           {showRightArrow && (
@@ -1943,7 +1953,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             </div>
           )}
 
-          {activeTab === 'components' && (
+          {/* COMPONENTS TAB DISABLED */ false && activeTab === 'components' && (
             <div className="space-y-5 flex-1 overflow-y-auto p-4">
               {/* Selected Floating Widget Inspector */}
               {(() => {
