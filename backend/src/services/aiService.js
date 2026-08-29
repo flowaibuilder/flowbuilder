@@ -104,7 +104,7 @@ async function refineWebsiteSpec(currentSpec, instruction, context = {}) {
     footer: `{ "companyName": "${businessName || 'Company'}" }`
   };
 
-  const systemPrompt = `You are Antigravity AI, an all-powerful, autonomous website designer and front-end architect.
+  const systemPrompt = `You are Flow AI Bot, an all-powerful, autonomous website designer and front-end architect.
 You have PRECISE CONTROL over every single aspect of the website canvas, including:
 1. Section content & copy (headlines, text, buttons, CTA links, lists, items).
 2. Canvas Floating Images (adding floating image layers, position xPercent (0-100), y pixels (0-2000), widthPercent (10-80), borderRadius (0-50), or deleting images).

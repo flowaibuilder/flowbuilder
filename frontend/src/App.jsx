@@ -67,22 +67,31 @@ function AIBuilderContainer() {
 
 function AuthenticatedLayout({ children }) {
   const location = useLocation();
+  const [showSignOut, setShowSignOut] = useState(false);
   const isWebBuilder = location.pathname.startsWith('/aibuilder');
   const isDataAgent = location.pathname.startsWith('/aidashboardbuilder');
 
+  const confirmSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/';
+  };
+
   return (
     <div className="min-h-screen flex flex-col font-sans" style={{ background: '#080808' }}>
+      <style>{`
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+      `}</style>
       <nav className="bg-[#080808] border-b border-white/10 px-8 py-6 flex justify-between items-center sticky top-0 z-50">
         <Link to="/tools" className="text-2xl font-normal text-white" style={{fontFamily: "'Pacifico', cursive"}}>
           flow
         </Link>
         <div className="flex space-x-4 items-center p-1">
           <button 
-            onClick={async () => {
-              await supabase.auth.signOut();
-              window.location.href = '/';
-            }}
-            className="px-4 py-1.5 rounded-md text-sm font-medium transition-colors text-red-500 hover:text-red-700 hover:bg-red-50"
+            onClick={() => setShowSignOut(true)}
+            className="px-4 py-1.5 rounded-sm border border-red-500/30 text-[11px] uppercase tracking-widest font-bold transition-all text-red-500 hover:text-white hover:bg-red-500/20 hover:border-red-500/50"
           >
             Sign Out
           </button>
@@ -91,6 +100,32 @@ function AuthenticatedLayout({ children }) {
       <main className="flex-1 w-full h-full">
         {children}
       </main>
+
+      {showSignOut && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-[#111] border border-white/10 p-8 w-full max-w-sm flex flex-col items-center text-center shadow-2xl">
+            <div className="w-16 h-16 bg-red-500/10 text-red-500 border border-red-500/20 rounded-full flex items-center justify-center mb-6">
+              <span className="text-2xl font-bold">!</span>
+            </div>
+            <h3 className="text-xl font-bold text-white/90 mb-2">Sign Out</h3>
+            <p className="text-white/40 text-sm mb-8">Are you sure you want to sign out of your account?</p>
+            <div className="flex gap-4 w-full">
+              <button 
+                onClick={() => setShowSignOut(false)}
+                className="flex-1 py-3 border border-white/10 text-white/40 hover:text-white/90 hover:bg-white/5 text-[11px] uppercase tracking-widest font-bold transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmSignOut}
+                className="flex-1 py-3 bg-red-500 text-white hover:bg-red-600 text-[11px] uppercase tracking-widest font-bold transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
