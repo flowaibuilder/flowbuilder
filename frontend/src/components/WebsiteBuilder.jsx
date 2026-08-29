@@ -32,6 +32,7 @@ import Portfolio from './sections/Portfolio';
 import Testimonials from './sections/Testimonials';
 import FAQ from './sections/FAQ';
 import Contact from './sections/Contact';
+import Gallery from './sections/Gallery';
 
 export const SectionComponents = {
   hero: Hero,
@@ -46,6 +47,7 @@ export const SectionComponents = {
   faq: FAQ,
   contact: Contact,
   footer: Footer,
+  gallery: Gallery,
   blog: Features, // fallback
 };
 
@@ -736,6 +738,17 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
       defaultContent = { title: 'Frequently Asked Questions', items: [{ question: 'How long does setup take?', answer: 'Setup takes less than 5 minutes.' }, { question: 'Can I cancel anytime?', answer: 'Yes, you can cancel your subscription at any time.' }] };
     } else if (type === 'contact') {
       defaultContent = { title: 'Get In Touch', email: 'hello@yourdomain.com', phone: '+1 (555) 012-3456', address: '123 Main St, New York, NY' };
+    } else if (type === 'gallery') {
+      defaultContent = {
+        tagline: 'GALLERY SHOWCASE',
+        title: 'Visual Gallery',
+        columns: 3,
+        items: [
+          { title: 'Modern Workspace', description: 'Clean minimal workspace designed for maximum productivity.', imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80' },
+          { title: 'Meeting Lounge', description: 'Cozy collaborative meeting environments.', imageUrl: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=800&q=80' },
+          { title: 'Executive Studio', description: 'Sophisticated private offices with modern setups.', imageUrl: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=800&q=80' }
+        ]
+      };
     } else if (type === 'footer') {
       defaultContent = { companyName: businessName || 'Your Brand, Inc.', tagline: 'Crafting world-class digital experiences powered by intelligent design and high performance.' };
     }
@@ -1752,17 +1765,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
               <Palette size={10} /> Theme
             </button>
 
-            <button
-              onClick={() => {
-                setActiveTab('media');
-                setIsEditingText(false);
-              }}
-              className={`shrink-0 px-6 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 rounded h-[28px] ${
-                activeTab === 'media' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Image size={10} /> Media
-            </button>
+
 
             <button
               onClick={() => {
@@ -1936,6 +1939,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                     { type: 'testimonials', label: 'Testimonials', icon: '💬', desc: 'Customer reviews' },
                     { type: 'faq', label: 'FAQ', icon: '❓', desc: 'Accordion questions' },
                     { type: 'contact', label: 'Contact', icon: '📞', desc: 'Contact form & info' },
+                    { type: 'gallery', label: 'Images Grid / Gallery', icon: '🖼️', desc: 'Custom columns grid gallery' },
                     { type: 'footer', label: 'Footer', icon: '🦶', desc: 'Company info, links & copyright' },
                   ].map(comp => {
                     const alreadyAdded = sections.some(s => s.type === comp.type);
@@ -2139,209 +2143,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             </div>
           )}
 
-          {activeTab === 'media' && (
-            <div className="space-y-5 flex-1 overflow-y-auto p-4">
-              {selectedImageId && (
-                <div className="border border-[#d4f000]/30 bg-[#d4f000]/5 p-3 rounded mb-4">
-                  <h4 className="text-[10px] font-black uppercase text-[#d4f000] tracking-wider mb-2 flex justify-between items-center">
-                    <span>Selected Image Inspector</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSiteImages(prev => prev.filter(item => item.id !== selectedImageId));
-                        setSelectedImageId(null);
-                      }}
-                      className="text-red-400 hover:text-red-500 font-bold uppercase text-[9px] hover:scale-105 transition-transform"
-                    >
-                      Delete
-                    </button>
-                  </h4>
-                  <div className="space-y-4">
-                    {/* Layering Controls */}
-                    <div>
-                      <label className="text-[8px] font-bold uppercase text-white/40 block mb-1.5">Layer Arrangement</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => changeElementLayer(selectedImageId, 'forward')}
-                          className="py-1.5 text-[9px] font-bold uppercase rounded border bg-white/5 text-white/80 border-white/10 hover:bg-white/10 transition-colors"
-                        >
-                          Bring Forward
-                        </button>
-                                                <button
-                          type="button"
-                          onClick={() => changeElementLayer(selectedImageId, 'backward')}
-                          className="py-1.5 text-[9px] font-bold uppercase rounded border bg-white/5 text-white/80 border-white/10 hover:bg-white/10 transition-colors"
-                        >
-                          Send Backward
-                        </button>
-                      </div>
-                    </div>
 
-                    {/* Corner Radius */}
-                    <div>
-                      <div className="flex justify-between text-[9px] font-bold text-white/55 uppercase mb-1">
-                        <span>Corner Radius</span>
-                        <span className="text-[#d4f000]">
-                          {siteImages.find(img => img.id === selectedImageId)?.borderRadius || 0}px
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="40"
-                        step="2"
-                        value={siteImages.find(img => img.id === selectedImageId)?.borderRadius || 0}
-                        onChange={(e) => {
-                          const rad = Number(e.target.value);
-                          setSiteImages(prev => prev.map(item => item.id === selectedImageId ? { ...item, borderRadius: rad } : item));
-                        }}
-                        className="w-full accent-[#d4f000]"
-                      />
-                    </div>
-
-                    {/* Opacity */}
-                    <div>
-                      <div className="flex justify-between text-[9px] font-bold text-white/55 uppercase mb-1">
-                        <span>Opacity</span>
-                        <span className="text-[#d4f000]">
-                          {Math.round((siteImages.find(img => img.id === selectedImageId)?.opacity ?? 1) * 100)}%
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0.1"
-                        max="1"
-                        step="0.05"
-                        value={siteImages.find(img => img.id === selectedImageId)?.opacity ?? 1}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          setSiteImages(prev => prev.map(item => item.id === selectedImageId ? { ...item, opacity: val } : item));
-                        }}
-                        className="w-full accent-[#d4f000]"
-                      />
-                    </div>
-
-                    {/* Blur */}
-                    <div>
-                      <div className="flex justify-between text-[9px] font-bold text-white/55 uppercase mb-1">
-                        <span>Blur Effects</span>
-                        <span className="text-[#d4f000]">
-                          {siteImages.find(img => img.id === selectedImageId)?.blur || 0}px
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="20"
-                        step="1"
-                        value={siteImages.find(img => img.id === selectedImageId)?.blur || 0}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          setSiteImages(prev => prev.map(item => item.id === selectedImageId ? { ...item, blur: val } : item));
-                        }}
-                        className="w-full accent-[#d4f000]"
-                      />
-                    </div>
-
-                    {/* Shadows */}
-                    <div>
-                      <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Shadow Preset</label>
-                      <select
-                        value={siteImages.find(img => img.id === selectedImageId)?.shadow || 'none'}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setSiteImages(prev => prev.map(item => item.id === selectedImageId ? { ...item, shadow: val } : item));
-                        }}
-                        className="w-full bg-[#121212] border border-white/10 text-white p-1.5 text-[10px] outline-none rounded"
-                      >
-                        <option value="none">None</option>
-                        <option value="soft">Soft Shadow</option>
-                        <option value="medium">Medium Shadow</option>
-                        <option value="hard">Hard / Dramatic Shadow</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Upload section */}
-              <div>
-                <h3 className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">Add New Image</h3>
-                <div className="flex flex-col gap-3">
-                  <label className="flex items-center justify-center gap-2 border border-dashed border-white/20 hover:border-[#d4f000] hover:bg-white/5 p-4 rounded cursor-pointer transition-colors text-xs font-bold text-white/70">
-                    <Upload size={14} />
-                    <span>Upload Local File</span>
-                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                  </label>
-
-                  <div className="text-[9px] font-bold text-white/20 text-center uppercase">Or Custom URL</div>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={mediaUrl}
-                      onChange={(e) => setMediaUrl(e.target.value)}
-                      placeholder="https://example.com/image.png"
-                      className="flex-1 bg-white/5 border border-white/10 focus:border-[#d4f000] text-white p-2 outline-none text-xs"
-                    />
-                    {mediaUrl && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const previewContainer = document.getElementById('preview-scroll-container');
-                          const x = previewContainer ? (previewContainer.clientWidth / 2 + previewContainer.scrollLeft) : 300;
-                          const y = previewContainer ? (previewContainer.clientHeight / 2 + previewContainer.scrollTop) : 200;
-                          addNewFloatingElement('image', x, y, mediaUrl);
-                        }}
-                        className="bg-[#d4f000] text-[#080808] font-bold text-xs px-3 hover:bg-[#b8d000] rounded transition-colors"
-                      >
-                        Add
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Uploaded Library */}
-              {uploadedLibrary.length > 0 && (
-                <div>
-                  <h3 className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">Uploaded Library</h3>
-                  <p className="text-[9px] text-white/40 mb-2">Drag and drop onto preview, or click to add</p>
-                  <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto pr-1">
-                    {uploadedLibrary.map((url, index) => (
-                      <div
-                        key={index}
-                        draggable
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData('text/plain', url);
-                        }}
-                        onClick={() => {
-                          const previewContainer = document.getElementById('preview-scroll-container');
-                          const x = previewContainer ? (previewContainer.clientWidth / 2 + previewContainer.scrollLeft) : 300;
-                          const y = previewContainer ? (previewContainer.clientHeight / 2 + previewContainer.scrollTop) : 200;
-                          addNewFloatingElement('image', x, y, url);
-                        }}
-                        className="relative aspect-[3/2] rounded overflow-hidden border cursor-grab active:cursor-grabbing border-white/10 hover:border-[#d4f000]/50 transition-all group"
-                      >
-                        <img src={url} alt={`Upload ${index}`} className="w-full h-full object-cover pointer-events-none" />
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setUploadedLibrary(prev => prev.filter(item => item !== url));
-                            if (mediaUrl === url) setMediaUrl('');
-                          }}
-                          className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 z-10 hover:scale-110 transition-transform"
-                        >
-                          <Trash2 size={8} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* COMPONENTS TAB DISABLED */ false && activeTab === 'components' && (
             <div className="space-y-5 flex-1 overflow-y-auto p-4">
@@ -2690,96 +2492,65 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             {/* Generated Site Navbar */}
             <SiteNavbar businessName={businessName} sections={sections} theme={currentTheme || theme} logo={logo} feel={feel} />
 
-            {/* Offset parent wrapper for sections and floating images, matching published side */}
-            <div className="relative">
-              {/* Floating Images Layer */}
-              {siteImages.map(img => (
-                <FloatingImage
-                  key={img.id}
-                  image={img}
-                  viewMode={viewMode}
-                  isEditable={activeTab === 'media' || activeTab === 'components'}
-              isSelected={selectedImageId === img.id}
-              selectedText={selectedText}
-              onSelect={() => {
-                setSelectedImageId(img.id);
-                if (img.type === 'button' || img.type === 'shape' || img.type === 'text') {
-                  setActiveTab('components');
-                } else if (activeTab !== 'components') {
-                  setActiveTab('media');
-                }
-                setIsEditingText(false);
-              }}
-              onUpdate={(updated) => {
-                setSiteImages(prev => prev.map(item => item.id === img.id ? updated : item));
-              }}
-              onDelete={() => {
-                setSiteImages(prev => prev.filter(item => item.id !== img.id));
-                if (selectedImageId === img.id) setSelectedImageId(null);
-              }}
-            />
-          ))}
-
-          {/* Sections */}
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={sections.map(s => s.id)}
-              strategy={verticalListSortingStrategy}
+            {/* Sections */}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
             >
-              <div className="min-h-full w-full">
-                {mainSections.map((section, idx) => (
-                  <SortableSection 
-                    key={section.id} 
-                    id={section.id} 
-                    section={section} 
-                    feel={currentFeel || feel} 
-                    isEditingText={true}
-                    isExpanded={expandedSectionId === section.id}
-                    onClick={() => setExpandedSectionId(section.id)}
-                    onUpdateText={handleContentChange}
-                    activeTab={activeTab}
-                    selectedText={selectedText}
-                    onSelectText={(sectId, path) => {
-                      setSelectedText({ sectionId: sectId, path });
-                    }}
-                    onMoveSection={(dir) => handleMoveSection(section.id, dir)}
-                    onDeleteSection={() => handleRemoveSection(section.id)}
-                    isFirst={idx === 0}
-                    isLast={idx === mainSections.length - 1}
-                  />
-                ))}
+              <SortableContext
+                items={sections.map(s => s.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="min-h-full w-full">
+                  {mainSections.map((section, idx) => (
+                    <SortableSection 
+                      key={section.id} 
+                      id={section.id} 
+                      section={section} 
+                      feel={currentFeel || feel} 
+                      isEditingText={true}
+                      isExpanded={expandedSectionId === section.id}
+                      onClick={() => setExpandedSectionId(section.id)}
+                      onUpdateText={handleContentChange}
+                      activeTab={activeTab}
+                      selectedText={selectedText}
+                      onSelectText={(sectId, path) => {
+                        setSelectedText({ sectionId: sectId, path });
+                      }}
+                      onMoveSection={(dir) => handleMoveSection(section.id, dir)}
+                      onDeleteSection={() => handleRemoveSection(section.id)}
+                      isFirst={idx === 0}
+                      isLast={idx === mainSections.length - 1}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+
+            {/* Footer always at bottom */}
+            {footerSection && (
+              <div 
+                id={`section-${footerSection.id}`}
+                onClick={() => setExpandedSectionId(footerSection.id)}
+                className={`transition-all duration-300 relative z-0 cursor-pointer ${
+                  expandedSectionId === footerSection.id 
+                    ? 'ring-4 ring-[#d4f000] ring-offset-4 ring-offset-black' 
+                    : 'hover:ring-2 hover:ring-primary hover:ring-inset'
+                }`}
+              >
+                <EditableContext.Provider value={{ 
+                  isEditingText: true, 
+                  isMediaMode: activeTab === 'media',
+                  selectedText,
+                  onSelectText: (path) => setSelectedText({ sectionId: footerSection.id, path }),
+                  updateText: (path, val) => handleContentChange(footerSection.id, path, val),
+                  updateImage: (imgData) => handleContentChange(footerSection.id, 'image', imgData)
+                }}>
+                  <Footer content={footerSection.content || {}} feel={currentFeel || feel} sections={sections} />
+                </EditableContext.Provider>
               </div>
-            </SortableContext>
-          </DndContext>
-
-          {/* Footer always at bottom */}
-          {footerSection && (
-            <div 
-              id={`section-${footerSection.id}`}
-              onClick={() => setExpandedSectionId(footerSection.id)}
-              className={`transition-all duration-300 relative z-0 cursor-pointer ${
-                expandedSectionId === footerSection.id 
-                  ? 'ring-4 ring-[#d4f000] ring-offset-4 ring-offset-black' 
-                  : 'hover:ring-2 hover:ring-primary hover:ring-inset'
-              }`}
-            >
-              <EditableContext.Provider value={{ 
-                isEditingText: true, 
-                isMediaMode: activeTab === 'media',
-                selectedText,
-                onSelectText: (path) => setSelectedText({ sectionId: footerSection.id, path }),
-                updateText: (path, val) => handleContentChange(footerSection.id, path, val),
-                updateImage: (imgData) => handleContentChange(footerSection.id, 'image', imgData)
-              }}>
-                <Footer content={footerSection.content || {}} feel={currentFeel || feel} sections={sections} />
-              </EditableContext.Provider>
-            </div>
-          )}
-        </div>
+            )}
       </div>
     </div>
   </div>
