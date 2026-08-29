@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { SiteNavbar, SectionComponents } from './WebsiteBuilder';
+import { SiteNavbar, SectionComponents, isLight } from './WebsiteBuilder';
 import Footer from './sections/Footer';
 
 export default function PublishedSiteViewer({ subdomain }) {
