@@ -172,16 +172,18 @@ export default function Portfolio({ content = {}, feel }) {
                       </div>
                     ) : (
                       /* Standard Preview Hover Overlay */
-                      <a
-                        href={item.linkUrl || '#'}
-                        target={item.linkUrl ? "_blank" : undefined}
-                        rel="noopener noreferrer"
-                        className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-2xs cursor-pointer"
-                      >
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white text-black shadow-lg">
-                          View Project <ExternalLink className="w-3.5 h-3.5" />
-                        </span>
-                      </a>
+                      item.linkUrl && item.linkUrl.trim() !== '' ? (
+                        <a
+                          href={item.linkUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-2xs cursor-pointer"
+                        >
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white text-black shadow-lg">
+                            View Project <ExternalLink className="w-3.5 h-3.5" />
+                          </span>
+                        </a>
+                      ) : null
                     )}
                   </div>
 
