@@ -245,7 +245,7 @@ function SortableSection({ id, section, feel, isEditingText, isExpanded, onClick
 
 // ─── WEBSITE BUILDER ──────────────────────────────────────────────────────────
 
-export default function WebsiteBuilder({ initialSpec, theme, businessName, pages, logo, feel, fontStyle, websiteId, onSave }) {
+export default function WebsiteBuilder({ initialSpec, theme, businessName, pages, logo, feel, fontStyle, websiteId, onSave, initialSiteImages }) {
   const [sections, setSections] = useState(
     (initialSpec || []).map((s, idx) => ({ ...s, id: s.id || `section-${idx}` }))
   );
@@ -254,6 +254,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
   const [currentFeel, setCurrentFeel] = useState(feel);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [previousHistoryState, setPreviousHistoryState] = useState(null);
   
   // Publish State
   const [showPublishModal, setShowPublishModal] = useState(false);
@@ -385,7 +386,8 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           theme: currentTheme || theme,
           logo,
           feel: currentFeel || feel,
-          fontStyle
+          fontStyle,
+          siteImages
         },
         published_at: new Date().toISOString()
       };
@@ -419,7 +421,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         name: businessName || 'My Website',
         spec: sections,
         theme: currentTheme || theme,
-        config: { businessName, pages, logo, feel: currentFeel || feel, fontStyle },
+        config: { businessName, pages, logo, feel: currentFeel || feel, fontStyle, siteImages },
         updated_at: new Date().toISOString()
       };
 
@@ -455,9 +457,8 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
     {
       id: 'msg-init',
       sender: 'assistant',
-      text: 'Hello! I am your Antigravity AI Assistant. Ask me to change background colors (e.g. black & white), add new buttons, update copy, or add new sections!',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      trajectory: ['Initialized website specification listener']
+      text: 'Hello! I am your AI Assistant. Ask me to change background colors (e.g. black & white), add new buttons, update copy, or add new sections!',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
   const chatEndRef = useRef(null);
@@ -536,7 +537,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
     setMediaUrl('');
   };
 
-  const [siteImages, setSiteImages] = useState([]);
+  const [siteImages, setSiteImages] = useState(initialSiteImages || []);
   const [uploadedLibrary, setUploadedLibrary] = useState([]);
   const [selectedImageId, setSelectedImageId] = useState(null);
   const [selectedText, setSelectedText] = useState(null);
@@ -912,29 +913,65 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to refine layout');
 
-      const trajectorySteps = ['Parsed user instruction & section context'];
+      // Save current state for undo/revert before applying data updates
+      setPreviousHistoryState({
+        sections: [...sections],
+        siteImages: [...siteImages],
+        theme: currentTheme ? { ...currentTheme } : null,
+        feel: currentFeel || null
+      });
 
       if (data.spec && Array.isArray(data.spec)) {
         const newSections = data.spec.map((s, idx) => {
           const existing = sections.find(old => old.id === s.id);
-          return { ...s, id: existing ? existing.id : `section-new-${Date.now()}-${idx}` };
+          
+          const content = { ...s.content };
+          if (existing && existing.content) {
+            // Restore main image URL if present
+            if (existing.content.image && content.image) {
+              content.image.url = existing.content.image.url;
+            }
+            // Restore list item image/url fields if present
+            if (Array.isArray(existing.content.items) && Array.isArray(content.items)) {
+              content.items = content.items.map((item, itemIdx) => {
+                const existingItem = existing.content.items[itemIdx];
+                if (existingItem && (existingItem.url || existingItem.image)) {
+                  return { 
+                    ...item, 
+                    url: existingItem.url || item.url,
+                    image: existingItem.image || item.image
+                  };
+                }
+                return item;
+              });
+            }
+          }
+
+          return { 
+            ...s, 
+            id: existing ? existing.id : `section-new-${Date.now()}-${idx}`,
+            content
+          };
         });
         setSections(newSections);
-        trajectorySteps.push(`Updated ${newSections.length} section objects`);
       }
 
       if (data.siteImages && Array.isArray(data.siteImages)) {
-        setSiteImages(data.siteImages);
-        trajectorySteps.push(`Controlled canvas floating images layer (${data.siteImages.length} images active)`);
+        const mergedImages = data.siteImages.map(newImg => {
+          const existing = siteImages.find(old => old.id === newImg.id);
+          return {
+            ...newImg,
+            url: existing ? existing.url : (newImg.url || '')
+          };
+        });
+        setSiteImages(mergedImages);
       }
 
       if (data.theme) {
         setCurrentTheme(data.theme);
-        trajectorySteps.push(`Applied theme colors: Primary ${data.theme.primary}, Background ${data.theme.background}`);
       }
       if (data.feel) {
         setCurrentFeel(data.feel);
-        trajectorySteps.push(`Adjusted layout style feel to: ${data.feel}`);
       }
 
       const assistantSummary = data.summary || 'Applied requested updates to your website.';
@@ -944,23 +981,62 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         id: `assistant-${Date.now()}`,
         sender: 'assistant',
         text: assistantSummary,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        trajectory: trajectorySteps
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setChatMessages(prev => [...prev, assistantMsg]);
     } catch (err) {
       console.error('Refinement failed:', err);
+      
+      let userFriendlyMessage = "I couldn't complete that update. Let's try another modification, or try rephrasing your request.";
+      const errMsg = String(err.message || '').toLowerCase();
+      
+      if (errMsg.includes('failed to fetch') || errMsg.includes('networkerror') || errMsg.includes('network')) {
+        userFriendlyMessage = "Connection lost. Please check your internet connection and try again.";
+      } else if (errMsg.includes('json') || errMsg.includes('unexpected token') || errMsg.includes('parsing')) {
+        userFriendlyMessage = "I ran into an issue reading the new design layout. Please try describing your request in a different way or clear the history and retry.";
+      } else if (errMsg.includes('limit') || errMsg.includes('too many') || errMsg.includes('429') || errMsg.includes('rate')) {
+        userFriendlyMessage = "The service is busy right now. Please wait a moment and try again.";
+      } else if (errMsg.includes('logged in') || errMsg.includes('auth') || errMsg.includes('login')) {
+        userFriendlyMessage = "Please make sure you are logged in to save and refine your site.";
+      }
+      
       const errorMsg = {
         id: `error-${Date.now()}`,
         sender: 'assistant',
-        text: '⚠️ Failed to refine: ' + err.message,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        trajectory: ['Error encountered during execution']
+        text: userFriendlyMessage,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setChatMessages(prev => [...prev, errorMsg]);
     } finally {
       setIsRefining(false);
     }
+  };
+
+  const handleRevert = () => {
+    if (!previousHistoryState) return;
+
+    // Apply previous states
+    setSections(previousHistoryState.sections);
+    setSiteImages(previousHistoryState.siteImages);
+    if (previousHistoryState.theme) setCurrentTheme(previousHistoryState.theme);
+    if (previousHistoryState.feel) setCurrentFeel(previousHistoryState.feel);
+
+    // Clear history state so they can only undo once
+    setPreviousHistoryState(null);
+
+    // Remove the last user prompt and assistant response, then append revert confirmation
+    setChatMessages(prev => {
+      const cleared = prev.length >= 2 ? prev.slice(0, -2) : prev;
+      return [
+        ...cleared,
+        {
+          id: `revert-${Date.now()}`,
+          sender: 'assistant',
+          text: "Design reverted back to your previous layout.",
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ];
+    });
   };
 
   if (sections.length === 0) {
@@ -987,9 +1063,17 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
     <div className="fixed inset-0 z-[100] flex bg-[#080808]" style={themeStyle}>
       {/* Left Sidebar */}
       <div className="w-80 bg-[#121212] border-r border-white/10 flex flex-col shadow-2xl relative z-10 shrink-0">
-        <div className="p-6 border-b border-white/10">
-          <h1 className="text-xl font-bold text-white tracking-wide uppercase mb-1">Live Preview</h1>
-          <p className="text-xs text-white/50 tracking-wider">Drag sections · AI refine · Publish</p>
+        <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-base font-bold text-white tracking-wide uppercase">Live Preview</h1>
+            <p className="text-[10px] text-white/40 tracking-wider">AI Editor & Host</p>
+          </div>
+          <button
+            onClick={() => window.location.href = '/tools'}
+            className="px-2.5 py-1 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white rounded text-[10px] uppercase font-bold tracking-wider transition-all"
+          >
+            Exit
+          </button>
         </div>
 
         {/* Sidebar Segmented Control Tabs */}
@@ -1030,9 +1114,9 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         </div>
 
         {/* Sidebar Panel Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 flex flex-col min-h-0">
           {activeTab === 'text' && (
-            <div className="space-y-4">
+            <div className="space-y-4 flex-1 overflow-y-auto p-4">
               {selectedText && (
                 <div className="border border-[#d4f000]/30 bg-[#d4f000]/5 p-3 rounded mb-4">
                   <h4 className="text-[10px] font-black uppercase text-[#d4f000] tracking-wider mb-2">
@@ -1175,129 +1259,55 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           )}
 
           {activeTab === 'refine' && (
-            <div className="flex flex-col h-full -mx-4 -my-4">
-              {/* Antigravity AI Chat Header */}
-              <div className="p-3 bg-white/[0.03] border-b border-white/10 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <div className="w-7 h-7 rounded-full bg-[#d4f000]/20 flex items-center justify-center text-[#d4f000] border border-[#d4f000]/40 shadow-[0_0_10px_rgba(212,240,0,0.2)]">
-                      <Bot size={14} />
-                    </div>
-                    <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-black animate-pulse" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-black text-white tracking-wide uppercase flex items-center gap-1.5">
-                      Antigravity AI
-                      <span className="text-[8px] bg-[#d4f000]/10 text-[#d4f000] border border-[#d4f000]/30 px-1.5 py-0.5 rounded font-bold tracking-widest">
-                        AGENT
-                      </span>
-                    </h3>
-                    <p className="text-[9px] text-white/40 font-mono">Live Preview Integration Active</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setChatMessages([
-                    {
-                      id: 'msg-init',
-                      sender: 'assistant',
-                      text: 'Chat history cleared. How can I transform your website today?',
-                      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                      trajectory: ['State reset']
-                    }
-                  ])}
-                  className="p-1.5 text-white/40 hover:text-white hover:bg-white/10 rounded transition-colors"
-                  title="Clear Chat History"
-                >
-                  <Trash2 size={13} />
-                </button>
-              </div>
+            <div className="flex-1 flex flex-col min-h-0">
 
               {/* Chat Messages Feed */}
-              <div className="flex-1 overflow-y-auto p-3 space-y-3.5 bg-black/40 min-h-[320px] max-h-[500px]">
+              <div className="flex-1 overflow-y-auto p-3 space-y-3.5 bg-black/40">
                 {chatMessages.map((msg) => (
                   <div
                     key={msg.id}
                     className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
                   >
-                    <div className="flex items-center gap-1.5 mb-1 px-1">
-                      {msg.sender === 'assistant' ? (
-                        <>
-                          <Bot size={11} className="text-[#d4f000]" />
-                          <span className="text-[9px] font-bold text-[#d4f000] uppercase tracking-wider">Antigravity</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-[9px] font-bold text-white/50 uppercase tracking-wider">You</span>
-                          <User size={11} className="text-white/50" />
-                        </>
-                      )}
-                      <span className="text-[8px] text-white/30 font-mono">{msg.timestamp}</span>
-                    </div>
-
                     <div
-                      className={`max-w-[92%] p-3 rounded-lg text-xs leading-relaxed ${
+                      className={`max-w-[85%] p-3 pb-4 rounded-lg text-xs leading-relaxed relative shadow-md ${
                         msg.sender === 'user'
-                          ? 'bg-[#d4f000] text-[#080808] font-semibold rounded-tr-none shadow-lg'
-                          : 'bg-white/5 border border-white/10 text-white/90 rounded-tl-none shadow-xl'
+                          ? 'bg-[#d4f000] text-[#080808] font-semibold rounded-tr-none'
+                          : 'bg-[#1a1a1a] border border-white/5 text-white/90 rounded-tl-none'
                       }`}
                     >
                       <p className="whitespace-pre-wrap">{msg.text}</p>
-
-                      {/* Trajectory / Execution Steps */}
-                      {msg.trajectory && msg.trajectory.length > 0 && (
-                        <div className="mt-2.5 pt-2 border-t border-white/10 text-[9px] font-mono space-y-1">
-                          <div className="flex items-center gap-1 text-[#d4f000] font-bold text-[8px] uppercase tracking-widest">
-                            <Terminal size={10} /> Execution Trajectory
-                          </div>
-                          {msg.trajectory.map((step, sIdx) => (
-                            <div key={sIdx} className="flex items-center gap-1.5 text-white/70">
-                              <CheckCircle2 size={10} className="text-emerald-400 shrink-0" />
-                              <span>{step}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      <span className={`absolute bottom-1 right-2 text-[8px] font-mono select-none ${
+                        msg.sender === 'user' ? 'text-[#080808]/50' : 'text-white/30'
+                      }`}>
+                        {msg.timestamp}
+                      </span>
                     </div>
                   </div>
                 ))}
                 {isRefining && (
-                  <div className="flex flex-col items-start">
-                    <div className="flex items-center gap-1.5 mb-1 px-1">
-                      <Bot size={11} className="text-[#d4f000]" />
-                      <span className="text-[9px] font-bold text-[#d4f000] uppercase tracking-wider">Antigravity AI</span>
-                    </div>
-                    <div className="bg-white/5 border border-white/10 text-white/70 p-3 rounded-lg rounded-tl-none text-xs flex items-center gap-2 animate-pulse">
-                      <Loader2 size={14} className="animate-spin text-[#d4f000]" />
-                      <span>Processing website transformation...</span>
+                  <div className="flex flex-col items-start gap-1">
+                    <div className="bg-[#1a1a1a] border border-white/5 text-white/60 p-3 rounded-lg rounded-tl-none text-xs flex items-center gap-2 animate-pulse">
+                      <Loader2 size={12} className="animate-spin text-[#d4f000]" />
+                      <span>AI is updating your website...</span>
                     </div>
                   </div>
                 )}
                 <div ref={chatEndRef} />
               </div>
 
-              {/* Quick Suggestion Chips */}
-              <div className="p-2 bg-[#121212] border-t border-white/5 flex gap-1.5 overflow-x-auto">
-                {[
-                  '⚫ Black & White Theme',
-                  '🔘 Add Secondary Button',
-                  '🏷️ Add 3-Tier Pricing',
-                  '💬 Add Testimonials',
-                  '🎨 Cyberpunk Theme',
-                  '📍 Update Contact Details'
-                ].map((chip, idx) => (
+
+              {previousHistoryState && (
+                <div className="p-2.5 bg-[#d4f000]/10 border-t border-[#d4f000]/25 flex items-center justify-between text-xs text-white px-3 gap-2">
+                  <span className="text-[10px] text-white/70">Undo last AI update?</span>
                   <button
-                    key={idx}
                     type="button"
-                    onClick={() => {
-                      setInstruction(chip.substring(2).trim());
-                    }}
-                    className="text-[9px] whitespace-nowrap bg-white/5 hover:bg-[#d4f000]/10 hover:border-[#d4f000]/40 hover:text-[#d4f000] text-white/60 px-2 py-1 rounded border border-white/10 transition-colors"
+                    onClick={handleRevert}
+                    className="px-2.5 py-1 bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] font-black uppercase rounded text-[9px] tracking-wide shrink-0 transition-colors"
                   >
-                    {chip}
+                    Revert
                   </button>
-                ))}
-              </div>
+                </div>
+              )}
 
               {/* Chat Input Form */}
               <form onSubmit={handleRefine} className="p-3 bg-[#121212] border-t border-white/10 flex flex-col gap-2">
@@ -1314,7 +1324,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                   }}
                   disabled={isRefining}
                   rows={2}
-                  placeholder="Ask Antigravity AI (e.g. 'Change background to black & white and add a secondary button')..."
+                  placeholder="Ask AI (e.g. 'Change background to black & white and add a secondary button')..."
                   className="w-full bg-white/5 border border-white/10 focus:border-[#d4f000] text-white placeholder-white/20 p-2.5 outline-none text-xs resize-none transition-colors rounded"
                 />
                 <div className="flex items-center justify-between">
@@ -1333,7 +1343,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           )}
 
           {activeTab === 'media' && (
-            <div className="space-y-5">
+            <div className="space-y-5 flex-1 overflow-y-auto p-4">
               {selectedImageId && (
                 <div className="border border-[#d4f000]/30 bg-[#d4f000]/5 p-3 rounded mb-4">
                   <h4 className="text-[10px] font-black uppercase text-[#d4f000] tracking-wider mb-2 flex justify-between items-center">
@@ -1349,9 +1359,43 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                       Delete
                     </button>
                   </h4>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
+                    {/* Layering Controls */}
                     <div>
-                      <div className="flex justify-between text-[9px] font-bold text-white/50 uppercase mb-1">
+                      <label className="text-[8px] font-bold uppercase text-white/40 block mb-1.5">Layer Arrangement</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSiteImages(prev => prev.map(item => {
+                              if (item.id !== selectedImageId) return item;
+                              const currentZ = item.zIndex || 10;
+                              return { ...item, zIndex: currentZ + 1 };
+                            }));
+                          }}
+                          className="py-1.5 text-[9px] font-bold uppercase rounded border bg-white/5 text-white/80 border-white/10 hover:bg-white/10 transition-colors"
+                        >
+                          Bring Forward
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSiteImages(prev => prev.map(item => {
+                              if (item.id !== selectedImageId) return item;
+                              const currentZ = item.zIndex || 10;
+                              return { ...item, zIndex: Math.max(1, currentZ - 1) };
+                            }));
+                          }}
+                          className="py-1.5 text-[9px] font-bold uppercase rounded border bg-white/5 text-white/80 border-white/10 hover:bg-white/10 transition-colors"
+                        >
+                          Send Backward
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Corner Radius */}
+                    <div>
+                      <div className="flex justify-between text-[9px] font-bold text-white/55 uppercase mb-1">
                         <span>Corner Radius</span>
                         <span className="text-[#d4f000]">
                           {siteImages.find(img => img.id === selectedImageId)?.borderRadius || 0}px
@@ -1369,6 +1413,68 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                         }}
                         className="w-full accent-[#d4f000]"
                       />
+                    </div>
+
+                    {/* Opacity */}
+                    <div>
+                      <div className="flex justify-between text-[9px] font-bold text-white/55 uppercase mb-1">
+                        <span>Opacity</span>
+                        <span className="text-[#d4f000]">
+                          {Math.round((siteImages.find(img => img.id === selectedImageId)?.opacity ?? 1) * 100)}%
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0.1"
+                        max="1"
+                        step="0.05"
+                        value={siteImages.find(img => img.id === selectedImageId)?.opacity ?? 1}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setSiteImages(prev => prev.map(item => item.id === selectedImageId ? { ...item, opacity: val } : item));
+                        }}
+                        className="w-full accent-[#d4f000]"
+                      />
+                    </div>
+
+                    {/* Blur */}
+                    <div>
+                      <div className="flex justify-between text-[9px] font-bold text-white/55 uppercase mb-1">
+                        <span>Blur Effects</span>
+                        <span className="text-[#d4f000]">
+                          {siteImages.find(img => img.id === selectedImageId)?.blur || 0}px
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value={siteImages.find(img => img.id === selectedImageId)?.blur || 0}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setSiteImages(prev => prev.map(item => item.id === selectedImageId ? { ...item, blur: val } : item));
+                        }}
+                        className="w-full accent-[#d4f000]"
+                      />
+                    </div>
+
+                    {/* Shadows */}
+                    <div>
+                      <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Shadow Preset</label>
+                      <select
+                        value={siteImages.find(img => img.id === selectedImageId)?.shadow || 'none'}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSiteImages(prev => prev.map(item => item.id === selectedImageId ? { ...item, shadow: val } : item));
+                        }}
+                        className="w-full bg-[#121212] border border-white/10 text-white p-1.5 text-[10px] outline-none rounded"
+                      >
+                        <option value="none">None</option>
+                        <option value="soft">Soft Shadow</option>
+                        <option value="medium">Medium Shadow</option>
+                        <option value="hard">Hard / Dramatic Shadow</option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -1483,26 +1589,18 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           )}
         </div>
 
-        <div className="p-4 border-t border-white/10 flex flex-col gap-2">
-          <div className="flex gap-2">
-            <button
-              onClick={handleSaveProject}
-              disabled={isSaving}
-              className={`flex-1 ${saveSuccess ? 'bg-emerald-500 text-white' : 'bg-white/10 hover:bg-white/20 text-white'} px-4 py-2.5 font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2`}
-            >
-              {isSaving ? <Loader2 size={14} className="animate-spin" /> : saveSuccess ? 'Saved!' : 'Save'}
-            </button>
-            <button 
-              onClick={openPublishModal}
-              className="flex-1 bg-[#d4f000] hover:bg-[#b8d000] text-[#080808] px-4 py-2.5 font-bold text-xs uppercase tracking-wider transition-colors">
-              {currentPublishedSubdomain ? 'Republish' : 'Publish'}
-            </button>
-          </div>
+        <div className="p-4 border-t border-white/10 flex gap-2">
           <button
-            onClick={() => window.location.href = '/tools'}
-            className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white px-6 py-2.5 font-bold text-xs uppercase tracking-wider transition-colors"
+            onClick={handleSaveProject}
+            disabled={isSaving}
+            className={`flex-1 ${saveSuccess ? 'bg-emerald-500 text-white' : 'bg-white/10 hover:bg-white/20 text-white'} py-2.5 rounded font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2`}
           >
-            Exit Editor
+            {isSaving ? <Loader2 size={14} className="animate-spin" /> : saveSuccess ? 'Saved!' : 'Save'}
+          </button>
+          <button 
+            onClick={openPublishModal}
+            className="flex-1 bg-[#d4f000] hover:bg-[#b8d000] text-[#080808] py-2.5 rounded font-bold text-xs uppercase tracking-wider transition-colors">
+            {currentPublishedSubdomain ? 'Republish' : 'Publish'}
           </button>
         </div>
       </div>
@@ -1514,7 +1612,10 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         onDrop={handlePreviewDrop}
         onMouseDown={handlePreviewClick}
         className="flex-1 overflow-auto relative" 
-        style={{ backgroundColor: 'var(--color-bg-base, #ffffff)' }}
+        style={{ 
+          backgroundColor: 'var(--color-bg-base, #ffffff)',
+          color: 'var(--color-text-base, #000000)'
+        }}
       >
         {/* Generated Site Navbar */}
         <SiteNavbar businessName={businessName} sections={sections} theme={theme} logo={logo} />

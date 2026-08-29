@@ -104,7 +104,7 @@ async function refineWebsiteSpec(currentSpec, instruction, context = {}) {
     footer: `{ "companyName": "${businessName || 'Company'}" }`
   };
 
-  const systemPrompt = `You are Antigravity AI, an all-powerful, autonomous website designer and front-end architect.
+  const systemPrompt = `You are Flow AI Bot, an all-powerful, autonomous website designer and front-end architect.
 You have PRECISE CONTROL over every single aspect of the website canvas, including:
 1. Section content & copy (headlines, text, buttons, CTA links, lists, items).
 2. Canvas Floating Images (adding floating image layers, position xPercent (0-100), y pixels (0-2000), widthPercent (10-80), borderRadius (0-50), or deleting images).
@@ -153,22 +153,23 @@ Return ONLY a valid JSON object matching this exact structure (no markdown fence
 
   // Format conversational history for Novita AI
   const historyMessages = (chatHistory || [])
-    .filter(m => m.text && m.sender)
     .slice(-10)
-    .map(m => ({
-      role: m.sender === 'user' ? 'user' : 'assistant',
-      content: m.sender === 'assistant'
-        ? (typeof m.text === 'string' ? m.text : 'Applied updates.')
-        : String(m.text)
-    }));
+    .map(m => {
+      const role = m.role || (m.sender === 'user' ? 'user' : 'assistant');
+      const content = m.content || m.text || 'Applied updates.';
+      return { role, content: String(content) };
+    });
+
+  const cleanSpec = removeImageUrls(currentSpec);
+  const cleanImages = removeImageUrls(siteImages);
 
   const userTurnContent = `User Instruction: "${instruction}"
 
 Current Layout Specification:
-${JSON.stringify(currentSpec, null, 2)}
+${JSON.stringify(cleanSpec, null, 2)}
 
 Current Floating Canvas Images:
-${JSON.stringify(siteImages || [], null, 2)}
+${JSON.stringify(cleanImages, null, 2)}
 
 Current Theme Colors: ${JSON.stringify(currentTheme || { primary: '#d4f000', secondary: '#ffffff', background: '#080808' })}
 Current Layout Personality/Feel: "${currentFeel || 'professional'}"`;
@@ -253,6 +254,28 @@ Rules:
     console.error('Error suggesting business profile:', error);
     throw error;
   }
+}
+
+function removeImageUrls(obj) {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj === 'string') {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(removeImageUrls);
+  }
+  if (typeof obj === 'object') {
+    const cleaned = {};
+    for (const key in obj) {
+      if (key === 'url') {
+        cleaned[key] = '';
+      } else {
+        cleaned[key] = removeImageUrls(obj[key]);
+      }
+    }
+    return cleaned;
+  }
+  return obj;
 }
 
 module.exports = { generateWebsiteSpec, refineWebsiteSpec, suggestBusinessProfile };
