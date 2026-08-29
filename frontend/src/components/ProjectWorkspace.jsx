@@ -789,13 +789,6 @@ export default function ProjectWorkspace({
                 >
                   <Plus size={13} /> Add Row
                 </button>
-                <button
-                  onClick={handleAddColumn}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/15 text-white text-xs font-bold uppercase tracking-wider rounded transition-colors"
-                >
-                  <Plus size={13} /> Add Column
-                </button>
-
 
               </div>
 
@@ -850,32 +843,8 @@ export default function ProjectWorkspace({
                     {headers.map((head, colIdx) => (
                       <th key={colIdx} className="p-2 border-r border-white/10 min-w-[160px] relative group">
                         <div className="flex items-center justify-between gap-2">
-                          <input
-                            type="text"
-                            value={head}
-                            onChange={(e) => handleHeaderChange(colIdx, e.target.value)}
-                            className="bg-transparent font-bold text-white uppercase tracking-wider outline-none text-xs w-full focus:bg-white/5 px-1 py-0.5 rounded"
-                          />
-                          <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                              onClick={() => {
-                                setSortConfig(prev => ({
-                                  colIndex: colIdx,
-                                  direction: prev.colIndex === colIdx && prev.direction === 'asc' ? 'desc' : 'asc'
-                                }));
-                              }}
-                              className="p-1 text-white/40 hover:text-white"
-                              title="Sort column"
-                            >
-                              <ArrowUpDown size={11} />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteColumn(colIdx)}
-                              className="p-1 text-white/40 hover:text-red-400"
-                              title="Delete column"
-                            >
-                              <Trash2 size={11} />
-                            </button>
+                          <div className="bg-transparent font-bold text-white uppercase tracking-wider text-xs w-full px-1 py-0.5">
+                            {head}
                           </div>
                         </div>
                       </th>
@@ -928,15 +897,8 @@ export default function ProjectWorkspace({
                       })}
 
                       {/* Row Action Controls */}
-                      <td className="p-1 text-center border-l border-white/5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <td className="p-1 text-center border-l border-white/5 transition-opacity">
                         <div className="flex items-center justify-center gap-1">
-                          <button
-                            onClick={() => handleDuplicateRow(originalIndex)}
-                            className="p-1 text-white/30 hover:text-white transition-colors"
-                            title="Duplicate Row"
-                          >
-                            <Copy size={12} />
-                          </button>
                           <button
                             onClick={() => handleDeleteRow(originalIndex)}
                             className="p-1 text-white/30 hover:text-red-400 transition-colors"
