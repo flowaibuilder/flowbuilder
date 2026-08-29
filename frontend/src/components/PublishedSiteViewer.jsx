@@ -68,7 +68,14 @@ export default function PublishedSiteViewer({ subdomain }) {
   const footerSection = sections.find(s => s.type === 'footer');
 
   return (
-    <div className="w-full min-h-screen font-sans relative overflow-x-hidden" style={themeStyle}>
+    <div 
+      className="w-full min-h-screen font-sans relative overflow-x-hidden" 
+      style={{
+        ...themeStyle,
+        backgroundColor: 'var(--color-bg-base, #ffffff)',
+        color: 'var(--color-text-base, #000000)'
+      }}
+    >
       <SiteNavbar businessName={businessName} sections={sections} theme={theme} logo={logo} />
       
       <main className="relative">
@@ -77,7 +84,17 @@ export default function PublishedSiteViewer({ subdomain }) {
           if (!Component) return null;
           
           return (
-            <div key={section.id} id={`section-${section.id}`}>
+            <div key={section.id} id={`section-${section.id}`} className="relative">
+              {section.content?.customPadding !== undefined && (
+                <style>{`
+                  #section-${section.id} .py-24,
+                  #section-${section.id} .py-20,
+                  #section-${section.id} [class*="py-"] {
+                    padding-top: ${section.content.customPadding}px !important;
+                    padding-bottom: ${section.content.customPadding}px !important;
+                  }
+                `}</style>
+              )}
               <Component content={section.content || {}} feel={feel} />
             </div>
           );
@@ -85,7 +102,7 @@ export default function PublishedSiteViewer({ subdomain }) {
 
         {/* Floating Images Layer */}
         {(siteImages || []).map(img => {
-          const aspect = img.width && img.height ? `${img.width} / ${img.height}` : 'auto';
+          const aspect = (img.type !== 'text' && img.width && img.height) ? `${img.width} / ${img.height}` : 'auto';
           return (
             <div
               key={img.id}
@@ -94,8 +111,9 @@ export default function PublishedSiteViewer({ subdomain }) {
                 left: `${img.xPercent || 0}%`,
                 top: `${img.y}px`,
                 width: `${img.widthPercent || 20}%`,
+                maxWidth: '100%',
                 aspectRatio: aspect,
-                zIndex: img.zIndex || 10,
+                zIndex: img.zIndex !== undefined ? img.zIndex : 10,
                 opacity: img.opacity !== undefined ? img.opacity : 1,
                 filter: img.blur ? `blur(${img.blur}px)` : 'none',
                 pointerEvents: 'none',
@@ -107,14 +125,62 @@ export default function PublishedSiteViewer({ subdomain }) {
                 'shadow-none'
               }`}
             >
-              <img
-                src={img.url}
-                alt=""
-                className="w-full h-full object-cover"
-                style={{
-                  borderRadius: `${img.borderRadius || 0}px`
-                }}
-              />
+              {(!img.type || img.type === 'image') && (
+                <img
+                  src={img.url}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  style={{
+                    borderRadius: `${img.borderRadius || 0}px`
+                  }}
+                />
+              )}
+
+              {img.type === 'button' && (
+                <a
+                  href={img.link || '#'}
+                  className="w-full h-full flex items-center justify-center font-bold px-4 text-center select-none"
+                  style={{
+                    backgroundColor: img.color || '#d4f000',
+                    color: img.textColor || '#000000',
+                    borderRadius: `${img.borderRadius || 4}px`,
+                    fontSize: 'inherit',
+                    textDecoration: 'none',
+                    pointerEvents: 'auto'
+                  }}
+                >
+                  {img.text || 'Click Me'}
+                </a>
+              )}
+
+              {img.type === 'text' && (
+                <div
+                  className="w-full h-full p-2 select-none overflow-visible"
+                  style={{
+                    color: img.textColor || '#ffffff',
+                    fontSize: `${img.fontSize || 16}px`,
+                    fontFamily: img.fontFamily || 'Inter, sans-serif',
+                    fontWeight: img.fontWeight || '400',
+                    textAlign: img.textAlign || 'left',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word',
+                    pointerEvents: 'auto'
+                  }}
+                >
+                  {img.text || ''}
+                </div>
+              )}
+
+              {img.type === 'shape' && (
+                <div
+                  className="w-full h-full"
+                  style={{
+                    backgroundColor: img.color || '#333333',
+                    borderRadius: `${img.borderRadius || 0}px`,
+                    border: img.borderWidth ? `${img.borderWidth}px solid ${img.borderColor || '#ffffff'}` : 'none'
+                  }}
+                />
+              )}
             </div>
           );
         })}

@@ -340,7 +340,7 @@ export default function ToolChoice() {
                         e.stopPropagation();
                         setDeleteModalSite(site);
                       }}
-                      className="p-2.5 border border-white/10 bg-white/5 hover:border-red-500/50 hover:bg-red-500/10 text-white/40 hover:text-red-500 transition-all"
+                      className="p-2.5 border border-white/10 bg-white/5 hover:border-red-500/50 hover:bg-red-500/10 rounded-xl text-white/40 hover:text-red-500 transition-all"
                       title="Delete Website"
                     >
                       <Trash2 size={14} />
