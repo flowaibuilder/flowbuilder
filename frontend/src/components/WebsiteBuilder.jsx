@@ -455,7 +455,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
     {
       id: 'msg-init',
       sender: 'assistant',
-      text: 'Hello! I am your Antigravity AI Assistant. Ask me to change background colors (e.g. black & white), add new buttons, update copy, or add new sections!',
+      text: 'Hello! I am your Flow AI Bot. Ask me to change background colors (e.g. black & white), add new buttons, update copy, or add new sections!',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       trajectory: ['Initialized website specification listener']
     }
@@ -1187,10 +1187,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                   </div>
                   <div>
                     <h3 className="text-xs font-black text-white tracking-wide uppercase flex items-center gap-1.5">
-                      Antigravity AI
-                      <span className="text-[8px] bg-[#d4f000]/10 text-[#d4f000] border border-[#d4f000]/30 px-1.5 py-0.5 rounded font-bold tracking-widest">
-                        AGENT
-                      </span>
+                      Flow AI Bot
                     </h3>
                     <p className="text-[9px] text-white/40 font-mono">Live Preview Integration Active</p>
                   </div>
@@ -1224,7 +1221,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                       {msg.sender === 'assistant' ? (
                         <>
                           <Bot size={11} className="text-[#d4f000]" />
-                          <span className="text-[9px] font-bold text-[#d4f000] uppercase tracking-wider">Antigravity</span>
+                          <span className="text-[9px] font-bold text-[#d4f000] uppercase tracking-wider">Flow AI Bot</span>
                         </>
                       ) : (
                         <>
@@ -1243,21 +1240,6 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                       }`}
                     >
                       <p className="whitespace-pre-wrap">{msg.text}</p>
-
-                      {/* Trajectory / Execution Steps */}
-                      {msg.trajectory && msg.trajectory.length > 0 && (
-                        <div className="mt-2.5 pt-2 border-t border-white/10 text-[9px] font-mono space-y-1">
-                          <div className="flex items-center gap-1 text-[#d4f000] font-bold text-[8px] uppercase tracking-widest">
-                            <Terminal size={10} /> Execution Trajectory
-                          </div>
-                          {msg.trajectory.map((step, sIdx) => (
-                            <div key={sIdx} className="flex items-center gap-1.5 text-white/70">
-                              <CheckCircle2 size={10} className="text-emerald-400 shrink-0" />
-                              <span>{step}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   </div>
                 ))}
@@ -1265,7 +1247,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                   <div className="flex flex-col items-start">
                     <div className="flex items-center gap-1.5 mb-1 px-1">
                       <Bot size={11} className="text-[#d4f000]" />
-                      <span className="text-[9px] font-bold text-[#d4f000] uppercase tracking-wider">Antigravity AI</span>
+                      <span className="text-[9px] font-bold text-[#d4f000] uppercase tracking-wider">Flow AI Bot</span>
                     </div>
                     <div className="bg-white/5 border border-white/10 text-white/70 p-3 rounded-lg rounded-tl-none text-xs flex items-center gap-2 animate-pulse">
                       <Loader2 size={14} className="animate-spin text-[#d4f000]" />
@@ -1314,7 +1296,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                   }}
                   disabled={isRefining}
                   rows={2}
-                  placeholder="Ask Antigravity AI (e.g. 'Change background to black & white and add a secondary button')..."
+                  placeholder="Ask Flow AI Bot (e.g. 'Change background to black & white and add a secondary button')..."
                   className="w-full bg-white/5 border border-white/10 focus:border-[#d4f000] text-white placeholder-white/20 p-2.5 outline-none text-xs resize-none transition-colors rounded"
                 />
                 <div className="flex items-center justify-between">
