@@ -15,7 +15,7 @@ import {
   useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Sparkles, Send, Loader2, Menu, X, ChevronDown, ChevronUp, Image, Upload, Trash2, Bot, User, Terminal, CheckCircle2 } from 'lucide-react';
+import { GripVertical, Sparkles, Send, Loader2, Menu, X, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Image, Upload, Trash2, Bot, User, Terminal, CheckCircle2, Palette, Grid, Plus } from 'lucide-react';
 import FloatingImage from './FloatingImage';
 
 import { EditableContext } from './EditableText';
@@ -46,6 +46,67 @@ export const SectionComponents = {
   footer: Footer,
   blog: Features, // fallback
 };
+
+const FEELS = [
+  { id: 'professional', label: 'Professional', icon: '💼' },
+  { id: 'minimal', label: 'Minimal', icon: '◻️' },
+  { id: 'luxury', label: 'Luxury', icon: '✨' },
+  { id: 'friendly', label: 'Friendly', icon: '😊' },
+  { id: 'bold', label: 'Bold', icon: '💥' },
+  { id: 'futuristic', label: 'Futuristic', icon: '🚀' },
+  { id: 'playful', label: 'Playful', icon: '🎨' },
+];
+
+const THEMES_BY_FEEL = {
+  professional: [
+    { id: 'pro-corporate', name: 'Corporate', colors: { primary: '#1a56db', secondary: '#374151', background: '#ffffff' } },
+    { id: 'pro-slate', name: 'Slate', colors: { primary: '#0f172a', secondary: '#64748b', background: '#f8fafc' } },
+    { id: 'pro-navy', name: 'Navy', colors: { primary: '#ffffff', secondary: '#94a3b8', background: '#0f172a' } },
+  ],
+  minimal: [
+    { id: 'min-snow', name: 'Snow', colors: { primary: '#111111', secondary: '#999999', background: '#ffffff' } },
+    { id: 'min-cloud', name: 'Cloud', colors: { primary: '#1a1a2e', secondary: '#a0a0b0', background: '#f5f5f7' } },
+    { id: 'min-ink', name: 'Ink', colors: { primary: '#e0e0e0', secondary: '#555555', background: '#121212' } },
+  ],
+  luxury: [
+    { id: 'lux-gold', name: 'Gold & Black', colors: { primary: '#d4af37', secondary: '#1a1a1a', background: '#0a0a0a' } },
+    { id: 'lux-rose', name: 'Rose Gold', colors: { primary: '#b76e79', secondary: '#2d2d2d', background: '#fdf8f5' } },
+    { id: 'lux-royal', name: 'Royal', colors: { primary: '#c9a94e', secondary: '#1e1e3f', background: '#0d0d1a' } },
+  ],
+  friendly: [
+    { id: 'fri-warm', name: 'Warm Sunset', colors: { primary: '#f97316', secondary: '#7c3aed', background: '#fffbf5' } },
+    { id: 'fri-fresh', name: 'Fresh Green', colors: { primary: '#16a34a', secondary: '#475569', background: '#f0fdf4' } },
+    { id: 'fri-sky', name: 'Sky Blue', colors: { primary: '#0ea5e9', secondary: '#f59e0b', background: '#f0f9ff' } },
+  ],
+  bold: [
+    { id: 'bold-neon', name: 'Dark Bold', colors: { primary: '#d4f000', secondary: '#222222', background: '#080808' } },
+    { id: 'bold-brutal', name: 'Neo Brutalism', colors: { primary: '#ff3366', secondary: '#00ccee', background: '#ffcc00' } },
+    { id: 'bold-fire', name: 'Fire', colors: { primary: '#ef4444', secondary: '#f97316', background: '#18181b' } },
+  ],
+  futuristic: [
+    { id: 'fut-cyber', name: 'Cyberpunk', colors: { primary: '#00ff00', secondary: '#ff00ff', background: '#0a0a2a' } },
+    { id: 'fut-neon', name: 'Neon Glow', colors: { primary: '#06b6d4', secondary: '#8b5cf6', background: '#030712' } },
+    { id: 'fut-matrix', name: 'Matrix', colors: { primary: '#22d3ee', secondary: '#10b981', background: '#0c0a09' } },
+  ],
+  playful: [
+    { id: 'play-candy', name: 'Candy Pop', colors: { primary: '#ec4899', secondary: '#8b5cf6', background: '#fdf2f8' } },
+    { id: 'play-retro', name: 'Retro', colors: { primary: '#e11d48', secondary: '#0d9488', background: '#fefce8' } },
+    { id: 'play-neon', name: 'Party Neon', colors: { primary: '#a855f7', secondary: '#eab308', background: '#1e1b4b' } },
+  ],
+};
+
+const ALL_THEMES = Object.values(THEMES_BY_FEEL).flat();
+
+const AVAILABLE_COMPONENTS = [
+  { type: 'hero', label: 'Hero / Banner', description: 'Introduce your site with a large headline, background gradient, and call to action buttons.', icon: 'fa-solid fa-bolt' },
+  { type: 'about', label: 'About Us', description: 'Share your company mission, timeline, team, or description text.', icon: 'fa-solid fa-circle-info' },
+  { type: 'features', label: 'Features Grid', description: 'Display a clean grid of features, cards, or key benefits of your business.', icon: 'fa-solid fa-star' },
+  { type: 'pricing', label: 'Pricing / Plans', description: 'Show comparison tables, subscription cards, and pricing details.', icon: 'fa-solid fa-tag' },
+  { type: 'portfolio', label: 'Portfolio Showcase', description: 'Display image cards or projects in a clean grid layout.', icon: 'fa-solid fa-images' },
+  { type: 'testimonials', label: 'Testimonials', description: 'Showcase customer reviews and client quotes with author tags.', icon: 'fa-solid fa-comments' },
+  { type: 'faq', label: 'FAQ Accordion', description: 'Answer common questions with expandable accordion items.', icon: 'fa-solid fa-circle-question' },
+  { type: 'contact', label: 'Contact Info / Form', description: 'Display phone, email, address, and link to a contact form.', icon: 'fa-solid fa-phone' }
+];
 
 // ─── UTILS ─────────────────────────────────────────────────────────────────────
 
@@ -161,7 +222,21 @@ export function SiteNavbar({ businessName, sections, theme, logo }) {
 
 // ─── SORTABLE SECTION ─────────────────────────────────────────────────────────
 
-function SortableSection({ id, section, feel, isEditingText, isExpanded, onClick, onUpdateText, activeTab, selectedText, onSelectText }) {
+function SortableSection({ 
+  id, 
+  section, 
+  feel, 
+  isEditingText, 
+  isExpanded, 
+  onClick, 
+  onUpdateText, 
+  activeTab, 
+  selectedText, 
+  onSelectText,
+  onMoveSection,
+  isFirst,
+  isLast 
+}) {
   const {
     attributes,
     listeners,
@@ -169,6 +244,40 @@ function SortableSection({ id, section, feel, isEditingText, isExpanded, onClick
     transform,
     transition,
   } = useSortable({ id });
+
+  const [isResizingHeight, setIsResizingHeight] = useState(false);
+  const startY = useRef(0);
+  const startPadding = useRef(96);
+
+  const handleMouseDownResize = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIsResizingHeight(true);
+    startY.current = e.clientY;
+    startPadding.current = section.content?.customPadding !== undefined ? section.content.customPadding : 96;
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizingHeight) return;
+      const dy = e.clientY - startY.current;
+      const newPadding = Math.max(10, Math.min(300, startPadding.current + Math.round(dy)));
+      onUpdateText(id, 'customPadding', newPadding);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizingHeight(false);
+    };
+
+    if (isResizingHeight) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizingHeight, onUpdateText, id]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -208,13 +317,62 @@ function SortableSection({ id, section, feel, isEditingText, isExpanded, onClick
       onClick={isEditingText ? onClick : undefined}
     >
       {!isEditingText && activeTab !== 'media' && (
-        <div
-          {...attributes}
-          {...listeners}
-          className="absolute top-4 left-4 z-50 p-2 bg-white rounded-md shadow-md opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity border border-gray-200"
-        >
-          <GripVertical size={20} className="text-gray-500" />
+        <div className="absolute top-4 left-4 z-50 flex items-center gap-1 bg-[#09090b]/90 backdrop-blur-md text-white p-1 rounded-lg border border-white/20 shadow-[0_10px_30px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Drag Handle */}
+          <div
+            {...attributes}
+            {...listeners}
+            className="flex items-center gap-1.5 px-2 py-1 cursor-grab active:cursor-grabbing hover:bg-white/10 rounded transition-colors"
+            title="Drag to reorder section"
+          >
+            <GripVertical size={16} className="text-[#d4f000]" />
+            <span className="text-[9px] font-black uppercase tracking-wider text-white/90 select-none">
+              {section.type}
+            </span>
+          </div>
+
+          <div className="w-[1px] h-4 bg-white/20 my-auto" />
+
+          {/* Move Section Up */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onMoveSection) onMoveSection('up');
+            }}
+            disabled={isFirst}
+            title="Move Section Up"
+            className="p-1 hover:bg-[#d4f000] hover:text-[#080808] text-white/80 rounded transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-white/80"
+          >
+            <ChevronUp size={15} />
+          </button>
+
+          {/* Move Section Down */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onMoveSection) onMoveSection('down');
+            }}
+            disabled={isLast}
+            title="Move Section Down"
+            className="p-1 hover:bg-[#d4f000] hover:text-[#080808] text-white/80 rounded transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-white/80"
+          >
+            <ChevronDown size={15} />
+          </button>
         </div>
+      )}
+
+      {/* Scoped override style block for custom section padding */}
+      {section.content?.customPadding !== undefined && (
+        <style>{`
+          #section-${id} .py-24,
+          #section-${id} .py-20,
+          #section-${id} [class*="py-"] {
+            padding-top: ${section.content.customPadding}px !important;
+            padding-bottom: ${section.content.customPadding}px !important;
+          }
+        `}</style>
       )}
 
       <div 
@@ -239,6 +397,17 @@ function SortableSection({ id, section, feel, isEditingText, isExpanded, onClick
           <Component content={section.content || {}} feel={feel} />
         </EditableContext.Provider>
       </div>
+
+      {/* Bottom height resizer handle */}
+      {!isEditingText && activeTab !== 'media' && (
+        <div
+          onMouseDown={handleMouseDownResize}
+          className="absolute bottom-0 left-0 right-0 h-2 bg-[#d4f000]/10 hover:bg-[#d4f000] cursor-ns-resize z-40 transition-colors flex items-center justify-center group/resize"
+          title="Drag up or down to adjust section padding/height"
+        >
+          <div className="w-16 h-1 bg-[#d4f000] rounded opacity-0 group-hover/resize:opacity-100 transition-opacity" />
+        </div>
+      )}
     </div>
   );
 }
@@ -249,6 +418,61 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
   const [sections, setSections] = useState(
     (initialSpec || []).map((s, idx) => ({ ...s, id: s.id || `section-${idx}` }))
   );
+
+  const handleMoveSection = (id, direction) => {
+    setSections(prevSections => {
+      const mainIndex = prevSections.findIndex(s => s.id === id);
+      if (mainIndex === -1) return prevSections;
+      const targetIndex = direction === 'up' ? mainIndex - 1 : mainIndex + 1;
+      if (targetIndex < 0 || targetIndex >= prevSections.length || prevSections[targetIndex].type === 'footer') {
+        return prevSections;
+      }
+      const updated = [...prevSections];
+      const [moved] = updated.splice(mainIndex, 1);
+      updated.splice(targetIndex, 0, moved);
+      return updated;
+    });
+  };
+
+  const handleAddSection = (type) => {
+    let defaultContent = {};
+    if (type === 'hero' || type === 'home') {
+      defaultContent = { headline: 'New Hero Section', subheadline: 'This is a new banner section. Double click here to edit text.', ctaText: 'Get Started' };
+    } else if (type === 'about') {
+      defaultContent = { tagline: 'WHO WE ARE', title: 'Our Story & Background', description: 'We are a dedicated team of professionals providing top-tier services to our clients.' };
+    } else if (type === 'features' || type === 'services') {
+      defaultContent = { tagline: 'WHAT WE OFFER', title: 'Our Features', items: [{ title: 'Speedy Delivery', description: 'Get results quickly.' }, { title: 'Premium Quality', description: 'Crafted with passion.' }, { title: 'Full Support', description: 'We are here for you 24/7.' }] };
+    } else if (type === 'pricing' || type === 'products') {
+      defaultContent = { title: 'Simple Pricing Plans', description: 'Select a plan that works for you.', plans: [{ name: 'Starter', price: '$29', description: 'Best for individuals.', popular: false, ctaText: 'Buy Now' }, { name: 'Pro', price: '$79', description: 'Best for growth.', popular: true, ctaText: 'Buy Now' }] };
+    } else if (type === 'portfolio') {
+      defaultContent = { title: 'Our Work', items: [{ title: 'Project One', description: 'E-commerce platform' }, { title: 'Project Two', description: 'Mobile application' }, { title: 'Project Three', description: 'Branding design' }] };
+    } else if (type === 'testimonials') {
+      defaultContent = { title: 'Client Testimonials', items: [{ quote: 'This team exceeded all expectations.', author: 'Sarah Connor', role: 'CTO' }, { quote: 'Excellent design and perfect execution.', author: 'John Doe', role: 'Founder' }] };
+    } else if (type === 'faq') {
+      defaultContent = { title: 'Frequently Asked Questions', items: [{ question: 'How long does setup take?', answer: 'Setup takes less than 5 minutes.' }, { question: 'Can I cancel anytime?', answer: 'Yes, you can cancel your subscription at any time.' }] };
+    } else if (type === 'contact') {
+      defaultContent = { title: 'Get In Touch', email: 'hello@yourdomain.com', phone: '+1 (555) 012-3456', address: '123 Main St, New York, NY' };
+    }
+
+    const newSec = {
+      id: `section-added-${Date.now()}`,
+      type,
+      content: defaultContent
+    };
+
+    setSections(prev => {
+      const footerIdx = prev.findIndex(s => s.type === 'footer');
+      if (footerIdx !== -1) {
+        const updated = [...prev];
+        updated.splice(footerIdx, 0, newSec);
+        return updated;
+      }
+      return [...prev, newSec];
+    });
+  };
+
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(true);
 
   const [currentTheme, setCurrentTheme] = useState(theme);
   const [currentFeel, setCurrentFeel] = useState(feel);
@@ -556,27 +780,34 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
   const [selectedText, setSelectedText] = useState(null);
 
   const handlePreviewClick = (e) => {
-    if (activeTab === 'media' && !e.target.closest('.floating-image-container') && !e.target.closest('button')) {
+    if ((activeTab === 'media' || activeTab === 'components') && !e.target.closest('.floating-image-container') && !e.target.closest('button')) {
       setSelectedImageId(null);
     }
-    if (activeTab === 'text' && !e.target.closest('[contenteditable]') && !e.target.closest('input') && !e.target.closest('select') && !e.target.closest('textarea')) {
+    if (!e.target.closest('[contenteditable]') && !e.target.closest('input') && !e.target.closest('select') && !e.target.closest('textarea') && !e.target.closest('button')) {
       setSelectedText(null);
     }
   };
 
   const handlePreviewDragOver = (e) => {
-    if (activeTab === 'media') {
+    if (activeTab === 'media' || activeTab === 'components') {
       e.preventDefault();
     }
   };
 
   const handlePreviewDrop = (e) => {
-    if (activeTab !== 'media') return;
+    if (activeTab !== 'media' && activeTab !== 'components') return;
     e.preventDefault();
 
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left + e.currentTarget.scrollLeft;
     const y = e.clientY - rect.top + e.currentTarget.scrollTop;
+
+    // Check if dragging a floating component template from Components tab
+    const componentType = e.dataTransfer.getData('component-type');
+    if (componentType) {
+      addNewFloatingElement(componentType, x, y);
+      return;
+    }
 
     // File drop
     const file = e.dataTransfer.files?.[0];
@@ -588,7 +819,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           if (prev.includes(fileUrl)) return prev;
           return [...prev, fileUrl];
         });
-        addNewFloatingImage(fileUrl, x, y);
+        addNewFloatingElement('image', x, y, fileUrl);
       };
       reader.readAsDataURL(file);
       return;
@@ -597,28 +828,79 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
     // Presets URL drop
     const url = e.dataTransfer.getData('text/plain');
     if (url) {
-      addNewFloatingImage(url, x, y);
+      addNewFloatingElement('image', x, y, url);
     }
   };
 
-  const addNewFloatingImage = (url, x, y) => {
+  const changeElementLayer = (id, direction) => {
+    setSiteImages(prev => {
+      // 1. Sort all elements stably by their current zIndex
+      const sorted = [...prev].sort((a, b) => {
+        const zA = a.zIndex !== undefined ? a.zIndex : 10;
+        const zB = b.zIndex !== undefined ? b.zIndex : 10;
+        if (zA !== zB) return zA - zB;
+        return prev.indexOf(a) - prev.indexOf(b);
+      });
+
+      // 2. Normalize z-indexes to be sequentially 10, 11, 12...
+      const normalized = sorted.map((item, index) => ({
+        ...item,
+        zIndex: 10 + index
+      }));
+
+      // 3. Find the selected item index
+      const idx = normalized.findIndex(item => item.id === id);
+      if (idx === -1) return prev;
+
+      // 4. Perform swap if within bounds
+      if (direction === 'forward' && idx < normalized.length - 1) {
+        const tempZ = normalized[idx].zIndex;
+        normalized[idx].zIndex = normalized[idx + 1].zIndex;
+        normalized[idx + 1].zIndex = tempZ;
+      } else if (direction === 'backward' && idx > 0) {
+        const tempZ = normalized[idx].zIndex;
+        normalized[idx].zIndex = normalized[idx - 1].zIndex;
+        normalized[idx - 1].zIndex = tempZ;
+      }
+
+      return normalized;
+    });
+  };
+
+  const addNewFloatingElement = (type, x, y, customUrl = null) => {
     const previewContainer = document.getElementById('preview-scroll-container');
     const containerWidth = previewContainer ? previewContainer.clientWidth : 800;
 
-    const widthPercent = (200 / containerWidth) * 100;
-    const xPercent = ((x - 100) / containerWidth) * 100;
+    const navbar = document.querySelector('nav.sticky');
+    const navHeight = navbar ? navbar.offsetHeight : 70;
+    const adjustedY = y - navHeight;
 
-    const newImg = {
-      id: `float-img-${Date.now()}`,
-      url,
+    const widthPercent = ((type === 'text' ? 240 : 200) / containerWidth) * 100;
+    const xPercent = ((x - (type === 'text' ? 120 : 100)) / containerWidth) * 100;
+
+    const defaultUrl = customUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop';
+
+    const newElement = {
+      id: `float-${type}-${Date.now()}`,
+      type,
       xPercent: Math.max(0, Math.min(100 - widthPercent, xPercent)),
-      y: Math.max(0, y - 75),
+      y: Math.max(0, adjustedY - 50),
       widthPercent,
-      width: 200,
-      height: 150,
-      borderRadius: 0
+      width: type === 'text' ? 240 : 200,
+      height: type === 'text' ? 80 : type === 'button' ? 45 : 150,
+      borderRadius: type === 'button' ? 8 : 0,
+      text: type === 'button' ? 'Click Me' : type === 'text' ? 'Floating text content' : '',
+      fontFamily: 'Inter',
+      fontSize: 16,
+      fontWeight: '400',
+      textAlign: 'left',
+      link: type === 'button' ? '#' : '',
+      color: type === 'button' ? '#d4f000' : type === 'shape' ? '#222222' : '',
+      textColor: type === 'button' ? '#080808' : type === 'text' ? '#ffffff' : '',
+      url: type === 'image' ? defaultUrl : ''
     };
-    setSiteImages(prev => [...prev, newImg]);
+    setSiteImages(prev => [...prev, newElement]);
+    setSelectedImageId(newElement.id);
   };
 
   const handleImageUpload = (e) => {
@@ -1090,186 +1372,98 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         </div>
 
         {/* Sidebar Segmented Control Tabs */}
-        <div className="flex border-b border-white/10 bg-white/[0.02] p-1 gap-1">
-          <button
-            onClick={() => {
-              setActiveTab('refine');
-              setIsEditingText(false);
+        <div className="relative border-b border-white/10 bg-white/[0.02] flex items-center group/tabs h-10 overflow-hidden">
+          {showLeftArrow && (
+            <button 
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('sidebar-tabs-scroll');
+                if (el) el.scrollLeft -= 80;
+              }}
+              className="absolute left-0 top-0 bottom-0 px-1 bg-[#121212]/90 hover:bg-[#121212] hover:text-white text-white/50 flex items-center justify-center transition-all z-20 shadow-[2px_0_8px_rgba(0,0,0,0.5)] h-full"
+              title="Previous tab"
+            >
+              <ChevronLeft size={11} />
+            </button>
+          )}
+
+          <div 
+            id="sidebar-tabs-scroll"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              setShowLeftArrow(el.scrollLeft > 5);
+              setShowRightArrow(el.scrollLeft < el.scrollWidth - el.clientWidth - 5);
             }}
-            className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 rounded ${
-              activeTab === 'refine' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
-            }`}
+            className="flex-1 flex overflow-x-auto scrollbar-none p-1 gap-1 scroll-smooth h-full items-center"
+            style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
           >
-            <Sparkles size={11} /> AI Refine
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('text');
-              setIsEditingText(true);
-            }}
-            className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 rounded ${
-              activeTab === 'text' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            Text Edit
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('media');
-              setIsEditingText(false);
-            }}
-            className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 rounded ${
-              activeTab === 'media' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Image size={11} /> Media
-          </button>
+            <button
+              onClick={() => {
+                setActiveTab('refine');
+                setIsEditingText(false);
+              }}
+              className={`shrink-0 px-6 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 rounded h-[28px] ${
+                activeTab === 'refine' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Sparkles size={10} /> AI Refine
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('theme');
+                setIsEditingText(false);
+              }}
+              className={`shrink-0 px-6 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 rounded h-[28px] ${
+                activeTab === 'theme' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Palette size={10} /> Theme
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('media');
+                setIsEditingText(false);
+              }}
+              className={`shrink-0 px-6 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 rounded h-[28px] ${
+                activeTab === 'media' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Image size={10} /> Media
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('components');
+                setIsEditingText(false);
+              }}
+              className={`shrink-0 px-6 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 rounded h-[28px] ${
+                activeTab === 'components' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Grid size={10} /> Components
+            </button>
+          </div>
+
+          {showRightArrow && (
+            <button 
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('sidebar-tabs-scroll');
+                if (el) el.scrollLeft += 80;
+              }}
+              className="absolute right-0 top-0 bottom-0 px-1.5 bg-[#121212]/90 hover:bg-[#121212] hover:text-white text-white/50 flex items-center justify-center transition-all z-20 shadow-[-2px_0_8px_rgba(0,0,0,0.5)] h-full"
+              title="Next tab"
+            >
+              <ChevronRight size={11} />
+            </button>
+          )}
         </div>
 
         {/* Sidebar Panel Content */}
         <div className="flex-1 flex flex-col min-h-0">
-          {activeTab === 'text' && (
-            <div className="space-y-4 flex-1 overflow-y-auto p-4">
-              {selectedText && (
-                <div className="border border-[#d4f000]/30 bg-[#d4f000]/5 p-3 rounded mb-4">
-                  <h4 className="text-[10px] font-black uppercase text-[#d4f000] tracking-wider mb-2">
-                    Selected Text Inspector
-                  </h4>
-                  {(() => {
-                    const { sectionId, path } = selectedText;
-                    const section = sections.find(s => s.id === sectionId);
-                    if (!section) return null;
 
-                    const parts = path.split('.');
-                    let val = section.content;
-                    for (const p of parts) {
-                      val = val?.[p];
-                    }
-
-                    const isStyledText = val && typeof val === 'object' && ('text' in val);
-                    const textValue = isStyledText ? (val.text || '') : String(val || '');
-
-                    const updateStyle = (styleKey, styleVal) => {
-                      const currentValObj = isStyledText ? val : { text: String(val || '') };
-                      handleContentChange(sectionId, path, {
-                        ...currentValObj,
-                        [styleKey]: styleVal
-                      });
-                    };
-
-                    return (
-                      <div className="space-y-3">
-                        <div>
-                          <label className="text-[9px] font-bold text-white/50 uppercase block mb-1">Content</label>
-                          <textarea
-                            value={textValue}
-                            onChange={(e) => {
-                              if (isStyledText) {
-                                updateStyle('text', e.target.value);
-                              } else {
-                                handleContentChange(sectionId, path, e.target.value);
-                              }
-                            }}
-                            rows={2}
-                            className="w-full bg-white/5 border border-white/10 focus:border-[#d4f000] text-white p-2 outline-none text-xs resize-none"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2 pt-1">
-                          <div>
-                            <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Font Family</label>
-                            <select
-                              value={isStyledText && val.fontFamily ? val.fontFamily : 'Inter'}
-                              onChange={(e) => updateStyle('fontFamily', e.target.value)}
-                              className="w-full bg-white/5 border border-white/10 text-white p-1 text-[10px] outline-none rounded"
-                            >
-                              <option value="Inter" className="bg-[#121212] text-white">Sans: Inter</option>
-                              <option value="Outfit" className="bg-[#121212] text-white">Sans: Outfit</option>
-                              <option value="'Playfair Display'" className="bg-[#121212] text-white">Serif: Playfair</option>
-                              <option value="'Courier Prime'" className="bg-[#121212] text-white">Mono: Courier</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Weight</label>
-                            <select
-                              value={isStyledText && val.fontWeight ? val.fontWeight : '400'}
-                              onChange={(e) => updateStyle('fontWeight', e.target.value)}
-                              className="w-full bg-white/5 border border-white/10 text-white p-1 text-[10px] outline-none rounded"
-                            >
-                              <option value="400" className="bg-[#121212] text-white">Regular</option>
-                              <option value="600" className="bg-[#121212] text-white">Semibold</option>
-                              <option value="800" className="bg-[#121212] text-white">Bold / Black</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div>
-                          <div className="flex justify-between text-[9px] font-bold text-white/50 uppercase">
-                            <span>Font Size</span>
-                            <span className="text-[#d4f000]">{isStyledText && val.fontSize ? val.fontSize : 16}px</span>
-                          </div>
-                          <input
-                            type="range"
-                            min="12"
-                            max="72"
-                            step="1"
-                            value={isStyledText && val.fontSize ? val.fontSize : 16}
-                            onChange={(e) => updateStyle('fontSize', Number(e.target.value))}
-                            className="w-full accent-[#d4f000]"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Align</label>
-                          <div className="grid grid-cols-3 gap-1">
-                            {['left', 'center', 'right'].map((align) => (
-                              <button
-                                key={align}
-                                type="button"
-                                onClick={() => updateStyle('textAlign', align)}
-                                className={`py-1 text-[9px] font-bold uppercase rounded border transition-all ${
-                                  isStyledText && val.textAlign === align
-                                    ? 'bg-[#d4f000] text-[#080808] border-[#d4f000]'
-                                    : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10'
-                                }`}
-                              >
-                                {align}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-              
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1">Edit All Text</p>
-              {sections.map(s => {
-                const isExpanded = expandedSectionId === s.id;
-                return (
-                  <div key={s.id} className="border border-white/10 bg-white/[0.02] rounded overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setExpandedSectionId(isExpanded ? null : s.id)}
-                      className="w-full flex items-center justify-between p-3 text-left hover:bg-white/5 transition-all"
-                    >
-                      <span className="text-xs font-bold uppercase tracking-wider text-white">
-                        {s.type}
-                      </span>
-                      {isExpanded ? <ChevronUp size={14} className="text-white/60" /> : <ChevronDown size={14} className="text-white/60" />}
-                    </button>
-                    {isExpanded && (
-                      <div className="p-3 border-t border-white/10 bg-black/20">
-                        {renderEditableFields(s.id, s.content)}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
 
           {activeTab === 'refine' && (
             <div className="flex-1 flex flex-col min-h-0">
@@ -1355,6 +1549,196 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             </div>
           )}
 
+          {activeTab === 'theme' && (
+            <div className="space-y-5 flex-1 overflow-y-auto p-4">
+              {/* Feel Selector */}
+              <div>
+                <h3 className="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-2.5">
+                  Website Feel & Style
+                </h3>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {FEELS.map((f) => {
+                    const active = (currentFeel || feel) === f.id;
+                    return (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => {
+                          setCurrentFeel(f.id);
+                          const presets = THEMES_BY_FEEL[f.id];
+                          if (presets && presets.length > 0) {
+                            setCurrentTheme(presets[0].colors);
+                          }
+                        }}
+                        className={`p-2 rounded border text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all text-left ${
+                          active
+                            ? 'bg-[#d4f000] text-[#080808] border-[#d4f000]'
+                            : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10'
+                        }`}
+                      >
+                        <span>{f.icon}</span>
+                        <span className="truncate">{f.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Theme Color Palettes */}
+              <div>
+                <h3 className="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-2.5 flex justify-between items-center">
+                  <span>Color Theme Presets</span>
+                  <span className="text-[#d4f000] font-mono text-[9px]">
+                    {(currentFeel || feel || 'all').toUpperCase()}
+                  </span>
+                </h3>
+                <div className="grid grid-cols-1 gap-2">
+                  {(THEMES_BY_FEEL[currentFeel || feel] || ALL_THEMES).map((preset) => {
+                    const isSelected =
+                      currentTheme?.primary === preset.colors.primary &&
+                      currentTheme?.background === preset.colors.background;
+
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => setCurrentTheme(preset.colors)}
+                        className={`p-2.5 rounded border text-left flex items-center justify-between transition-all ${
+                          isSelected
+                            ? 'border-[#d4f000] bg-[#d4f000]/10'
+                            : 'border-white/10 bg-white/5 hover:bg-white/10'
+                        }`}
+                      >
+                        <span className={`text-[10px] font-bold uppercase tracking-wider ${isSelected ? 'text-[#d4f000]' : 'text-white/80'}`}>
+                          {preset.name}
+                        </span>
+                        <div className="flex gap-1 items-center">
+                          {[preset.colors.primary, preset.colors.secondary, preset.colors.background].map((c, i) => (
+                            <div
+                              key={i}
+                              style={{ backgroundColor: c }}
+                              className="w-3.5 h-6 rounded-sm border border-white/20 shadow-sm"
+                            />
+                          ))}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Custom Color Palette */}
+              <div className="border border-white/10 bg-white/[0.02] p-3 rounded space-y-3">
+                <h3 className="text-[10px] font-bold text-[#d4f000] uppercase tracking-widest">
+                  Custom Color Palette
+                </h3>
+
+                {/* Primary Color */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <div
+                      style={{ backgroundColor: currentTheme?.primary || '#d4f000' }}
+                      className="w-5 h-5 rounded border border-white/20 shrink-0"
+                    />
+                    <span className="text-xs text-white/70 font-medium">Primary / Accent</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-white/40 font-mono">
+                      {currentTheme?.primary || '#d4f000'}
+                    </span>
+                    <input
+                      type="color"
+                      value={currentTheme?.primary || '#d4f000'}
+                      onChange={(e) =>
+                        setCurrentTheme((prev) => ({
+                          ...(prev || {}),
+                          primary: e.target.value,
+                        }))
+                      }
+                      className="w-7 h-6 rounded border border-white/20 bg-transparent cursor-pointer p-0.5"
+                    />
+                  </div>
+                </div>
+
+                {/* Secondary Color */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <div
+                      style={{ backgroundColor: currentTheme?.secondary || '#222222' }}
+                      className="w-5 h-5 rounded border border-white/20 shrink-0"
+                    />
+                    <span className="text-xs text-white/70 font-medium">Secondary</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-white/40 font-mono">
+                      {currentTheme?.secondary || '#222222'}
+                    </span>
+                    <input
+                      type="color"
+                      value={currentTheme?.secondary || '#222222'}
+                      onChange={(e) =>
+                        setCurrentTheme((prev) => ({
+                          ...(prev || {}),
+                          secondary: e.target.value,
+                        }))
+                      }
+                      className="w-7 h-6 rounded border border-white/20 bg-transparent cursor-pointer p-0.5"
+                    />
+                  </div>
+                </div>
+
+                {/* Background Color */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <div
+                      style={{ backgroundColor: currentTheme?.background || '#080808' }}
+                      className="w-5 h-5 rounded border border-white/20 shrink-0"
+                    />
+                    <span className="text-xs text-white/70 font-medium">Canvas Background</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-white/40 font-mono">
+                      {currentTheme?.background || '#080808'}
+                    </span>
+                    <input
+                      type="color"
+                      value={currentTheme?.background || '#080808'}
+                      onChange={(e) =>
+                        setCurrentTheme((prev) => ({
+                          ...(prev || {}),
+                          background: e.target.value,
+                        }))
+                      }
+                      className="w-7 h-6 rounded border border-white/20 bg-transparent cursor-pointer p-0.5"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Palette Utility Buttons */}
+              <div className="pt-2 border-t border-white/10 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentTheme({ primary: '#d4f000', secondary: '#222222', background: '#080808' });
+                  }}
+                  className="py-2 text-[9px] font-bold uppercase rounded border bg-white/5 text-white/80 border-white/10 hover:bg-white/10 transition-colors text-center"
+                >
+                  🌙 Dark Mode
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentTheme({ primary: '#1a56db', secondary: '#374151', background: '#ffffff' });
+                  }}
+                  className="py-2 text-[9px] font-bold uppercase rounded border bg-white/5 text-white/80 border-white/10 hover:bg-white/10 transition-colors text-center"
+                >
+                  ☀️ Light Mode
+                </button>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'media' && (
             <div className="space-y-5 flex-1 overflow-y-auto p-4">
               {selectedImageId && (
@@ -1379,26 +1763,14 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           type="button"
-                          onClick={() => {
-                            setSiteImages(prev => prev.map(item => {
-                              if (item.id !== selectedImageId) return item;
-                              const currentZ = item.zIndex || 10;
-                              return { ...item, zIndex: currentZ + 1 };
-                            }));
-                          }}
+                          onClick={() => changeElementLayer(selectedImageId, 'forward')}
                           className="py-1.5 text-[9px] font-bold uppercase rounded border bg-white/5 text-white/80 border-white/10 hover:bg-white/10 transition-colors"
                         >
                           Bring Forward
                         </button>
-                        <button
+                                                <button
                           type="button"
-                          onClick={() => {
-                            setSiteImages(prev => prev.map(item => {
-                              if (item.id !== selectedImageId) return item;
-                              const currentZ = item.zIndex || 10;
-                              return { ...item, zIndex: Math.max(1, currentZ - 1) };
-                            }));
-                          }}
+                          onClick={() => changeElementLayer(selectedImageId, 'backward')}
                           className="py-1.5 text-[9px] font-bold uppercase rounded border bg-white/5 text-white/80 border-white/10 hover:bg-white/10 transition-colors"
                         >
                           Send Backward
@@ -1568,33 +1940,276 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                   </div>
                 </div>
               )}
+            </div>
+          )}
 
-              {/* Stock Presets */}
+          {activeTab === 'components' && (
+            <div className="space-y-5 flex-1 overflow-y-auto p-4">
+              {/* Selected Floating Widget Inspector */}
+              {(() => {
+                const selectedElement = siteImages.find(img => img.id === selectedImageId);
+                if (!selectedElement) return null;
+
+                const updateElement = (key, val) => {
+                  setSiteImages(prev => prev.map(item => item.id === selectedImageId ? { ...item, [key]: val } : item));
+                };
+
+                return (
+                  <div className="border border-[#d4f000]/30 bg-[#d4f000]/5 p-3 rounded mb-4">
+                    <h4 className="text-[10px] font-black uppercase text-[#d4f000] tracking-wider mb-2.5 flex justify-between items-center">
+                      <span>Selected Widget: {selectedElement.type === 'text' ? 'Floating Text' : selectedElement.type}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSiteImages(prev => prev.filter(item => item.id !== selectedImageId));
+                          setSelectedImageId(null);
+                        }}
+                        className="text-red-400 hover:text-red-500 font-bold uppercase text-[9px] hover:scale-105 transition-transform"
+                      >
+                        Delete
+                      </button>
+                    </h4>
+                    <div className="space-y-3.5">
+                      {/* Button Text (if button) */}
+                      {selectedElement.type === 'button' && (
+                        <div>
+                          <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Button Text</label>
+                          <input
+                            type="text"
+                            value={selectedElement.text || ''}
+                            onChange={(e) => updateElement('text', e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 focus:border-[#d4f000] text-white p-2 outline-none text-xs rounded"
+                          />
+                        </div>
+                      )}
+
+                      {/* Link URL (if button) */}
+                      {selectedElement.type === 'button' && (
+                        <div>
+                          <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Link URL</label>
+                          <input
+                            type="text"
+                            value={selectedElement.link || ''}
+                            onChange={(e) => updateElement('link', e.target.value)}
+                            placeholder="https://example.com"
+                            className="w-full bg-white/5 border border-white/10 focus:border-[#d4f000] text-white p-2 outline-none text-xs rounded"
+                          />
+                        </div>
+                      )}
+
+                      {/* Text Content (if text block) */}
+                      {selectedElement.type === 'text' && (
+                        <div>
+                          <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Text Content</label>
+                          <textarea
+                            value={selectedElement.text || ''}
+                            onChange={(e) => updateElement('text', e.target.value)}
+                            rows={3}
+                            className="w-full bg-white/5 border border-white/10 focus:border-[#d4f000] text-white p-2 outline-none text-xs rounded resize-none"
+                          />
+                        </div>
+                      )}
+
+                      {/* Image URL (if image) */}
+                      {selectedElement.type === 'image' && (
+                        <div>
+                          <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Image URL</label>
+                          <input
+                            type="text"
+                            value={selectedElement.url || ''}
+                            onChange={(e) => updateElement('url', e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 focus:border-[#d4f000] text-white p-2 outline-none text-xs rounded"
+                          />
+                        </div>
+                      )}
+
+                      {/* Background Color (if button or shape) */}
+                      {(selectedElement.type === 'button' || selectedElement.type === 'shape') && (
+                        <div>
+                          <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Color / Fill</label>
+                          <div className="flex gap-2 items-center">
+                            <input
+                              type="color"
+                              value={selectedElement.color || '#d4f000'}
+                              onChange={(e) => updateElement('color', e.target.value)}
+                              className="w-8 h-7 rounded border border-white/20 bg-transparent cursor-pointer p-0.5"
+                            />
+                            <span className="text-xs text-white/70 font-mono">{selectedElement.color || '#d4f000'}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Text Color (if button or text) */}
+                      {(selectedElement.type === 'button' || selectedElement.type === 'text') && (
+                        <div>
+                          <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Text Color</label>
+                          <div className="flex gap-2 items-center">
+                            <input
+                              type="color"
+                              value={selectedElement.textColor || '#ffffff'}
+                              onChange={(e) => updateElement('textColor', e.target.value)}
+                              className="w-8 h-7 rounded border border-white/20 bg-transparent cursor-pointer p-0.5"
+                            />
+                            <span className="text-xs text-white/70 font-mono">{selectedElement.textColor || '#ffffff'}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Font Size (if text box) */}
+                      {selectedElement.type === 'text' && (
+                        <div>
+                          <div className="flex justify-between text-[9px] font-bold text-white/40 uppercase mb-1">
+                            <span>Font Size</span>
+                            <span className="text-[#d4f000]">{selectedElement.fontSize || 16}px</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="10"
+                            max="72"
+                            value={selectedElement.fontSize || 16}
+                            onChange={(e) => updateElement('fontSize', Number(e.target.value))}
+                            className="w-full accent-[#d4f000]"
+                          />
+                        </div>
+                      )}
+
+                      {/* Font Family (if text box) */}
+                      {selectedElement.type === 'text' && (
+                        <div>
+                          <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Font Family</label>
+                          <select
+                            value={selectedElement.fontFamily || 'Inter'}
+                            onChange={(e) => updateElement('fontFamily', e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 focus:border-[#d4f000] text-white p-2 outline-none text-xs rounded"
+                          >
+                            <option value="Inter" className="bg-[#121212] text-white">Inter (Sans-serif)</option>
+                            <option value="Outfit" className="bg-[#121212] text-white">Outfit (Modern)</option>
+                            <option value="'Playfair Display'" className="bg-[#121212] text-white">Playfair Display (Serif)</option>
+                            <option value="'Courier Prime'" className="bg-[#121212] text-white">Courier Prime (Monospace)</option>
+                          </select>
+                        </div>
+                      )}
+
+                      {/* Text Alignment (if text box) */}
+                      {selectedElement.type === 'text' && (
+                        <div>
+                          <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Text Alignment</label>
+                          <div className="flex bg-white/5 border border-white/10 rounded overflow-hidden">
+                            {['left', 'center', 'right'].map((align) => (
+                              <button
+                                key={align}
+                                type="button"
+                                onClick={() => updateElement('textAlign', align)}
+                                className={`flex-1 py-1.5 text-[9px] font-bold uppercase transition-colors ${
+                                  (selectedElement.textAlign || 'left') === align
+                                    ? 'bg-[#d4f000] text-[#080808]'
+                                    : 'text-white/60 hover:bg-white/5 hover:text-white'
+                                }`}
+                              >
+                                {align}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Border Radius */}
+                      {selectedElement.type !== 'text' && (
+                        <div>
+                          <div className="flex justify-between text-[9px] font-bold text-white/40 uppercase mb-1">
+                            <span>Corner Radius</span>
+                            <span className="text-[#d4f000]">{selectedElement.borderRadius || 0}px</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="50"
+                            value={selectedElement.borderRadius || 0}
+                            onChange={(e) => updateElement('borderRadius', Number(e.target.value))}
+                            className="w-full accent-[#d4f000]"
+                          />
+                        </div>
+                      )}
+
+                      {/* Layering Z-Index */}
+                                            <div>
+                        <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Z-Index Layering</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => changeElementLayer(selectedImageId, 'forward')}
+                            className="py-1.5 text-[9px] font-bold uppercase rounded border bg-white/5 text-white/80 border-white/10 hover:bg-white/10 transition-colors"
+                          >
+                            Bring Forward
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => changeElementLayer(selectedImageId, 'backward')}
+                            className="py-1.5 text-[9px] font-bold uppercase rounded border bg-white/5 text-white/80 border-white/10 hover:bg-white/10 transition-colors"
+                          >
+                            Send Backward
+                          </button>
+                        </div>
+                      </div>
+                      {/* Opacity */}
+                      <div>
+                        <div className="flex justify-between text-[9px] font-bold text-white/40 uppercase mb-1">
+                          <span>Opacity</span>
+                          <span className="text-[#d4f000]">{Math.round((selectedElement.opacity ?? 1) * 100)}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0.1"
+                          max="1"
+                          step="0.05"
+                          value={selectedElement.opacity ?? 1}
+                          onChange={(e) => updateElement('opacity', Number(e.target.value))}
+                          className="w-full accent-[#d4f000]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div>
-                <h3 className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">Stock Images</h3>
-                <p className="text-[9px] text-white/40 mb-2">Drag and drop onto preview, or click to add</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {stockImages.map((img) => (
-                    <button
-                      key={img.label}
-                      type="button"
+                <h3 className="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-3">
+                  Drag & Drop Components
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    { type: 'text', label: 'Floating Text Box', icon: 'fa-solid fa-font' },
+                    { type: 'button', label: 'Interactive Button', icon: 'fa-solid fa-mouse-pointer' },
+                    { type: 'shape', label: 'Colored Card / Shape', icon: 'fa-solid fa-shapes' }
+                  ].map((comp) => (
+                    <div
+                      key={comp.type}
                       draggable
                       onDragStart={(e) => {
-                        e.dataTransfer.setData('text/plain', img.url);
+                        e.dataTransfer.setData('component-type', comp.type);
                       }}
                       onClick={() => {
                         const previewContainer = document.getElementById('preview-scroll-container');
-                        const x = previewContainer ? (previewContainer.clientWidth / 2 + previewContainer.scrollLeft) : 300;
-                        const y = previewContainer ? (previewContainer.clientHeight / 2 + previewContainer.scrollTop) : 200;
-                        addNewFloatingImage(img.url, x, y);
+                        const x = previewContainer ? (previewContainer.clientWidth / 2) : 300;
+                        const y = previewContainer ? (previewContainer.clientHeight / 2) : 200;
+                        addNewFloatingElement(comp.type, x, y);
                       }}
-                      className="relative aspect-[3/2] rounded overflow-hidden border cursor-grab active:cursor-grabbing border-white/10 hover:border-[#d4f000]/50 transition-all"
+                      className="w-full border border-white/10 hover:border-[#d4f000]/50 hover:bg-white/[0.04] bg-white/[0.01] rounded-lg p-3 text-left transition-all flex items-start gap-3 cursor-grab active:cursor-grabbing group"
                     >
-                      <img src={img.url} alt={img.label} className="w-full h-full object-cover pointer-events-none" />
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-[9px] font-black uppercase text-white tracking-widest pointer-events-none">
-                        {img.label}
+                      <div className="w-8 h-8 rounded bg-white/5 group-hover:bg-[#d4f000]/10 flex items-center justify-center text-xs shrink-0 transition-colors text-white/70 group-hover:text-[#d4f000]">
+                        <i className={comp.icon}></i>
                       </div>
-                    </button>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-black uppercase text-white tracking-wide group-hover:text-[#d4f000] transition-colors">
+                            {comp.label}
+                          </span>
+                          <span className="text-[8px] font-bold text-white/35 uppercase tracking-widest flex items-center gap-0.5 border border-white/5 px-1 rounded bg-black/10">
+                            DRAG
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -1631,87 +2246,96 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         }}
       >
         {/* Generated Site Navbar */}
-        <SiteNavbar businessName={businessName} sections={sections} theme={theme} logo={logo} />
+        <SiteNavbar businessName={businessName} sections={sections} theme={currentTheme || theme} logo={logo} />
 
-        {/* Floating Images Layer */}
-        {siteImages.map(img => (
-          <FloatingImage
-            key={img.id}
-            image={img}
-            isEditable={activeTab === 'media'}
-            isSelected={selectedImageId === img.id}
-            onSelect={() => {
-              setSelectedImageId(img.id);
-              setActiveTab('media');
-              setIsEditingText(false);
-            }}
-            onUpdate={(updated) => {
-              setSiteImages(prev => prev.map(item => item.id === img.id ? updated : item));
-            }}
-            onDelete={() => {
-              setSiteImages(prev => prev.filter(item => item.id !== img.id));
-              if (selectedImageId === img.id) setSelectedImageId(null);
-            }}
-          />
-        ))}
+        {/* Offset parent wrapper for sections and floating images, matching published side */}
+        <div className="relative">
+          {/* Floating Images Layer */}
+          {siteImages.map(img => (
+            <FloatingImage
+              key={img.id}
+              image={img}
+              isEditable={activeTab === 'media' || activeTab === 'components'}
+              isSelected={selectedImageId === img.id}
+              selectedText={selectedText}
+              onSelect={() => {
+                setSelectedImageId(img.id);
+                if (img.type === 'button' || img.type === 'shape' || img.type === 'text') {
+                  setActiveTab('components');
+                } else if (activeTab !== 'components') {
+                  setActiveTab('media');
+                }
+                setIsEditingText(false);
+              }}
+              onUpdate={(updated) => {
+                setSiteImages(prev => prev.map(item => item.id === img.id ? updated : item));
+              }}
+              onDelete={() => {
+                setSiteImages(prev => prev.filter(item => item.id !== img.id));
+                if (selectedImageId === img.id) setSelectedImageId(null);
+              }}
+            />
+          ))}
 
-        {/* Sections */}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={sections.map(s => s.id)}
-            strategy={verticalListSortingStrategy}
+          {/* Sections */}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
           >
-            <div className="min-h-full w-full">
-              {mainSections.map((section) => (
-                <SortableSection 
-                  key={section.id} 
-                  id={section.id} 
-                  section={section} 
-                  feel={currentFeel || feel} 
-                  isEditingText={isEditingText}
-                  isExpanded={expandedSectionId === section.id}
-                  onClick={() => setExpandedSectionId(section.id)}
-                  onUpdateText={handleContentChange}
-                  activeTab={activeTab}
-                  selectedText={selectedText}
-                  onSelectText={(sectId, path) => {
-                    setSelectedText({ sectionId: sectId, path });
-                    setActiveTab('text');
-                    setIsEditingText(true);
-                  }}
-                />
-              ))}
+            <SortableContext
+              items={sections.map(s => s.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="min-h-full w-full">
+                {mainSections.map((section, idx) => (
+                  <SortableSection 
+                    key={section.id} 
+                    id={section.id} 
+                    section={section} 
+                    feel={currentFeel || feel} 
+                    isEditingText={true}
+                    isExpanded={expandedSectionId === section.id}
+                    onClick={() => setExpandedSectionId(section.id)}
+                    onUpdateText={handleContentChange}
+                    activeTab={activeTab}
+                    selectedText={selectedText}
+                    onSelectText={(sectId, path) => {
+                      setSelectedText({ sectionId: sectId, path });
+                    }}
+                    onMoveSection={(dir) => handleMoveSection(section.id, dir)}
+                    isFirst={idx === 0}
+                    isLast={idx === mainSections.length - 1}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+
+          {/* Footer always at bottom */}
+          {footerSection && (
+            <div 
+              id={`section-${footerSection.id}`}
+              onClick={() => setExpandedSectionId(footerSection.id)}
+              className={`transition-all duration-300 relative z-0 cursor-pointer ${
+                expandedSectionId === footerSection.id 
+                  ? 'ring-4 ring-[#d4f000] ring-offset-4 ring-offset-black' 
+                  : 'hover:ring-2 hover:ring-primary hover:ring-inset'
+              }`}
+            >
+              <EditableContext.Provider value={{ 
+                isEditingText: true, 
+                isMediaMode: activeTab === 'media',
+                selectedText,
+                onSelectText: (path) => setSelectedText({ sectionId: footerSection.id, path }),
+                updateText: (path, val) => handleContentChange(footerSection.id, path, val),
+                updateImage: (imgData) => handleContentChange(footerSection.id, 'image', imgData)
+              }}>
+                <Footer content={footerSection.content || {}} feel={currentFeel || feel} />
+              </EditableContext.Provider>
             </div>
-          </SortableContext>
-        </DndContext>
-
-        {/* Footer always at bottom */}
-        {footerSection && (
-          <div 
-            id={`section-${footerSection.id}`}
-            onClick={isEditingText ? () => setExpandedSectionId(footerSection.id) : undefined}
-            className={`transition-all duration-300 relative z-0 ${isEditingText ? 'cursor-pointer' : ''} ${
-              expandedSectionId === footerSection.id 
-                ? 'ring-4 ring-[#d4f000] ring-offset-4 ring-offset-black' 
-                : 'hover:ring-2 hover:ring-primary hover:ring-inset'
-            }`}
-          >
-            <EditableContext.Provider value={{ 
-              isEditingText, 
-              isMediaMode: activeTab === 'media',
-              selectedText,
-              onSelectText: (path) => setSelectedText({ sectionId: footerSection.id, path }),
-              updateText: (path, val) => handleContentChange(footerSection.id, path, val),
-              updateImage: (imgData) => handleContentChange(footerSection.id, 'image', imgData)
-            }}>
-              <Footer content={footerSection.content || {}} feel={feel} />
-            </EditableContext.Provider>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Publish Modal */}
