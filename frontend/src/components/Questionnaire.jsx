@@ -71,9 +71,11 @@ const FEELS = [
 // Themes grouped by feel — each feel has its own curated palette
 const THEMES_BY_FEEL = {
   professional: [
-    { id: 'pro-corporate', name: 'Corporate', colors: { primary: '#1a56db', secondary: '#374151', background: '#ffffff' } },
-    { id: 'pro-slate', name: 'Slate', colors: { primary: '#0f172a', secondary: '#64748b', background: '#f8fafc' } },
-    { id: 'pro-navy', name: 'Navy', colors: { primary: '#ffffff', secondary: '#94a3b8', background: '#0f172a' } },
+    { id: 'pro-corporate', name: 'Corporate Blue', colors: { primary: '#1d4ed8', secondary: '#334155', background: '#ffffff' } },
+    { id: 'pro-slate', name: 'Executive Slate', colors: { primary: '#0f172a', secondary: '#2563eb', background: '#f8fafc' } },
+    { id: 'pro-emerald', name: 'Emerald Tech', colors: { primary: '#047857', secondary: '#1e293b', background: '#f0fdf4' } },
+    { id: 'pro-indigo', name: 'Indigo Premium', colors: { primary: '#4f46e5', secondary: '#0f172a', background: '#faf5ff' } },
+    { id: 'pro-charcoal', name: 'Modern Charcoal', colors: { primary: '#18181b', secondary: '#2563eb', background: '#fafafa' } },
   ],
   minimal: [
     { id: 'min-snow', name: 'Snow', colors: { primary: '#111111', secondary: '#999999', background: '#ffffff' } },
@@ -81,9 +83,11 @@ const THEMES_BY_FEEL = {
     { id: 'min-ink', name: 'Ink', colors: { primary: '#e0e0e0', secondary: '#555555', background: '#121212' } },
   ],
   luxury: [
-    { id: 'lux-gold', name: 'Gold & Black', colors: { primary: '#d4af37', secondary: '#1a1a1a', background: '#0a0a0a' } },
-    { id: 'lux-rose', name: 'Rose Gold', colors: { primary: '#b76e79', secondary: '#2d2d2d', background: '#fdf8f5' } },
-    { id: 'lux-royal', name: 'Royal', colors: { primary: '#c9a94e', secondary: '#1e1e3f', background: '#0d0d1a' } },
+    { id: 'lux-gold', name: 'Champagne & Obsidian', colors: { primary: '#d4af37', secondary: '#e5c158', background: '#0a0a0c' } },
+    { id: 'lux-emerald', name: 'Emerald Velvet & Gold', colors: { primary: '#d4af37', secondary: '#10b981', background: '#061510' } },
+    { id: 'lux-midnight', name: 'Midnight Velvet & Silver', colors: { primary: '#e2e8f0', secondary: '#94a3b8', background: '#090d16' } },
+    { id: 'lux-rose', name: 'Rose Gold & Charcoal', colors: { primary: '#e0a96d', secondary: '#f43f5e', background: '#121014' } },
+    { id: 'lux-royal', name: 'Royal Crown Gold', colors: { primary: '#c9a959', secondary: '#e2e8f0', background: '#0f0e13' } },
   ],
   friendly: [
     { id: 'fri-warm', name: 'Warm Sunset', colors: { primary: '#f97316', secondary: '#7c3aed', background: '#fffbf5' } },

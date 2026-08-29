@@ -1,5 +1,6 @@
 import React from 'react';
 import { getStyles } from '../../utils/themeHelper';
+import { Sparkles } from 'lucide-react';
 import EditableText from '../EditableText';
 
 export default function Hero({ content = {}, feel }) {
@@ -55,14 +56,33 @@ export default function Hero({ content = {}, feel }) {
   const buttonsList = getButtonsList();
 
   return (
-    <div className={s.container} style={customContainerStyle}>
-      <div className="mx-auto max-w-3xl text-center flex flex-col items-center py-12">
-        <h1 className={s.heading}>
+    <div className={`${s.container} relative overflow-hidden`} style={customContainerStyle}>
+      {/* Subtle ambient lighting effect */}
+      <div 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] rounded-full blur-[140px] pointer-events-none opacity-20"
+        style={{ backgroundColor: 'var(--color-primary, #3b82f6)' }}
+      />
+
+      <div className="mx-auto max-w-4xl text-center flex flex-col items-center py-16 sm:py-20 relative z-10">
+        {/* Top Tagline / Trust Pill */}
+        <div className="mb-6">
+          <span className={s.subheading}>
+            <Sparkles className="w-3.5 h-3.5" />
+            <EditableText path="tagline" value={content.tagline || 'Next-Generation Experience'} />
+          </span>
+        </div>
+
+        {/* Main Headline */}
+        <h1 className={`${s.heading} max-w-3xl`}>
           <EditableText path="headline" value={content.headline || 'Creative Design Reimagined'} />
         </h1>
-        <p className={`mt-6 ${s.body}`}>
+
+        {/* Subheadline */}
+        <div className={`mt-6 ${s.body} mx-auto text-center`}>
           <EditableText path="subheadline" value={content.subheadline || 'We build stunning web projects with cutting edge aesthetic and smart interactions.'} />
-        </p>
+        </div>
+
+        {/* Action Buttons */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           {buttonsList.map((btn, index) => (
             <EditableText
