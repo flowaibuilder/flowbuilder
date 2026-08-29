@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BaseWebView</string>
+    <string name="title_activity_main">BaseWebView</string>
+    <string name="package_name">com.flowbuilder.webview</string>
+    <string name="custom_url_scheme">com.flowbuilder.webview</string>
+</resources>

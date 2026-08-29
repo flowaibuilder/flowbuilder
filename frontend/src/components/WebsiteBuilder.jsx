@@ -15,7 +15,7 @@ import {
   useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Sparkles, Send, Loader2, Menu, X, ChevronDown, ChevronUp, Image, Upload, Trash2, Bot, User, Terminal, CheckCircle2 } from 'lucide-react';
+import { GripVertical, Sparkles, Send, Loader2, Menu, X, ChevronDown, ChevronUp, Image, Upload, Trash2, Bot, User, Terminal, CheckCircle2, Smartphone, Download } from 'lucide-react';
 import FloatingImage from './FloatingImage';
 
 import { EditableContext } from './EditableText';
@@ -265,6 +265,100 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
   const [publishSuccessUrl, setPublishSuccessUrl] = useState(null);
   const [subdomainStatus, setSubdomainStatus] = useState(null); // null | 'checking' | 'available' | 'taken' | 'yours'
   const subdomainCheckRef = useRef(null);
+
+  // APK Export State
+  const [showApkModal, setShowApkModal] = useState(false);
+  const [apkAppName, setApkAppName] = useState('');
+  const [apkPackageId, setApkPackageId] = useState('');
+  const [isBuildingApk, setIsBuildingApk] = useState(false);
+  const [apkProgress, setApkProgress] = useState(0);
+  const [apkStatusMessage, setApkStatusMessage] = useState('');
+  const [apkDownloadUrl, setApkDownloadUrl] = useState(null);
+  const [apkError, setApkError] = useState(null);
+
+  const openApkModal = () => {
+    setApkAppName(businessName || 'My Website');
+    const cleanPackage = (businessName || 'mywebsite')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+    setApkPackageId(`com.flowbuilder.${cleanPackage || 'app'}`);
+    setApkDownloadUrl(null);
+    setApkError(null);
+    setApkProgress(0);
+    setApkStatusMessage('');
+    setShowApkModal(true);
+  };
+
+  const handleStartApkBuild = async (e) => {
+    e.preventDefault();
+    setIsBuildingApk(true);
+    setApkError(null);
+    setApkDownloadUrl(null);
+    setApkProgress(15);
+    setApkStatusMessage('Starting APK build job...');
+
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+      const siteUrl = currentPublishedSubdomain ? `https://${currentPublishedSubdomain}.flow.devshahid.me` : '';
+
+      const res = await fetch(`${backendUrl}/api/apk/build`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: websiteId || 'temp',
+          appName: apkAppName,
+          packageId: apkPackageId,
+          siteUrl: siteUrl,
+          siteData: {
+            businessName,
+            sections,
+            theme,
+            logo,
+            feel,
+            siteImages
+          }
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to start build job');
+      }
+
+      const buildId = data.job.id;
+
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusRes = await fetch(`${backendUrl}/api/apk/status/${buildId}`);
+          const statusData = await statusRes.json();
+
+          if (statusData.success && statusData.job) {
+            const job = statusData.job;
+            setApkProgress(job.progress || 50);
+            setApkStatusMessage(job.message || 'Building APK...');
+
+            if (job.status === 'completed') {
+              clearInterval(pollInterval);
+              setIsBuildingApk(false);
+              setApkProgress(100);
+              setApkDownloadUrl(`${backendUrl}${job.downloadUrl}`);
+            } else if (job.status === 'failed') {
+              clearInterval(pollInterval);
+              setIsBuildingApk(false);
+              setApkError(job.error || 'APK build failed');
+            }
+          }
+        } catch (err) {
+          console.error('Error polling APK status:', err);
+        }
+      }, 2000);
+
+    } catch (err) {
+      console.error('Failed to build APK:', err);
+      setApkError(err.message);
+      setIsBuildingApk(false);
+    }
+  };
 
   // Load existing published subdomain for this website on open
   const openPublishModal = async () => {
@@ -1615,6 +1709,14 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             className="flex-1 bg-[#d4f000] hover:bg-[#b8d000] text-[#080808] py-2.5 rounded font-bold text-xs uppercase tracking-wider transition-colors">
             {currentPublishedSubdomain ? 'Republish' : 'Publish'}
           </button>
+          <button
+            onClick={openApkModal}
+            className="px-3 bg-white/10 hover:bg-white/20 text-white py-2.5 rounded font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
+            title="Export Android APK"
+          >
+            <Smartphone size={14} />
+            <span>APK</span>
+          </button>
         </div>
       </div>
 
@@ -1788,6 +1890,112 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                    currentPublishedSubdomain && subdomainInput.trim() === currentPublishedSubdomain ? 'Republish (Update Live Site)' :
                    currentPublishedSubdomain ? 'Publish on New Domain' :
                    'Publish Now'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* APK Export Modal */}
+      {showApkModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl max-w-md w-full p-6 relative overflow-hidden shadow-2xl">
+            <button 
+              onClick={() => setShowApkModal(false)}
+              className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-[#d4f000]/10 border border-[#d4f000]/30 flex items-center justify-center text-[#d4f000]">
+                <Smartphone size={20} />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-white uppercase tracking-wider">Export Android APK</h2>
+                <p className="text-xs text-white/50">Convert your website into an installable Android App</p>
+              </div>
+            </div>
+
+            {apkDownloadUrl ? (
+              <div className="py-6 text-center space-y-4">
+                <div className="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+                  <CheckCircle2 size={32} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-1">APK Ready for Download!</h3>
+                  <p className="text-xs text-white/60">Your Android package bundle has been generated.</p>
+                </div>
+                <a
+                  href={apkDownloadUrl}
+                  download
+                  className="w-full bg-[#d4f000] text-[#080808] font-bold uppercase tracking-wider py-3 rounded hover:bg-[#b8d000] transition-colors flex items-center justify-center gap-2"
+                >
+                  <Download size={18} /> Download APK File
+                </a>
+                <button
+                  onClick={() => setShowApkModal(false)}
+                  className="w-full bg-white/5 text-white/60 font-semibold py-2 rounded text-xs hover:bg-white/10 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            ) : isBuildingApk ? (
+              <div className="py-8 text-center space-y-4">
+                <Loader2 size={36} className="animate-spin text-[#d4f000] mx-auto" />
+                <div>
+                  <p className="text-sm font-bold text-white">{apkStatusMessage || 'Building your APK...'}</p>
+                  <p className="text-xs text-white/50 mt-1">This may take 10-30 seconds</p>
+                </div>
+                <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                  <div 
+                    className="bg-[#d4f000] h-full transition-all duration-500 ease-out"
+                    style={{ width: `${apkProgress}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleStartApkBuild} className="space-y-4">
+                {apkError && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-red-400 text-xs">
+                    {apkError}
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-1">App Name</label>
+                  <input
+                    type="text"
+                    value={apkAppName}
+                    onChange={(e) => setApkAppName(e.target.value)}
+                    required
+                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#d4f000]"
+                    placeholder="My App"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-1">Package ID</label>
+                  <input
+                    type="text"
+                    value={apkPackageId}
+                    onChange={(e) => setApkPackageId(e.target.value)}
+                    required
+                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#d4f000]"
+                    placeholder="com.mycompany.myapp"
+                  />
+                </div>
+
+                <div className="p-3 bg-white/5 border border-white/10 rounded text-[11px] text-white/60 leading-relaxed">
+                  💡 Running on your local server backend. If Java JDK and Android SDK are installed on your server machine, it will compile a full binary APK.
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-[#d4f000] text-[#080808] font-bold uppercase tracking-wider py-3 rounded hover:bg-[#b8d000] transition-colors flex items-center justify-center gap-2"
+                >
+                  <Smartphone size={16} /> Build Android APK
                 </button>
               </form>
             )}

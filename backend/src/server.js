@@ -11,6 +11,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 const aiRoutes = require('./routes/ai');
 const dataRoutes = require('./routes/data');
 const formRoutes = require('./routes/form');
+const apkRoutes = require('./routes/apk');
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Backend is running' });
@@ -19,6 +20,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api', aiRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/form', formRoutes);
+app.use('/api/apk', apkRoutes);
+app.use('/apks', express.static(require('path').join(__dirname, '../public/apks')));
 
 // For local development
 if (process.env.NODE_ENV !== 'production') {
