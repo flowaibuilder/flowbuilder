@@ -3,7 +3,7 @@ import {
   UploadCloud, Loader2, BarChart2, CheckCircle2, X,
   ArrowLeft, FileSpreadsheet, Pencil, Trash2, MoreVertical, Plus,
   Sparkles, ChevronRight, AlertTriangle, Table2, TrendingUp,
-  Package, DollarSign, Users, Sliders,
+  Package, DollarSign, Users, Sliders, Menu, Search
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -42,22 +42,12 @@ function saveDashboards(list) {
 // ── Dashboard Card ────────────────────────────────────────────────────────────
 
 function DashboardCard({ dashboard, isSelected, onOpen, onRename, onDelete }) {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [nameValue, setNameValue] = useState(dashboard.name);
   const inputRef = useRef(null);
-  const menuRef = useRef(null);
 
   useEffect(() => { if (editing && inputRef.current) inputRef.current.focus(); }, [editing]);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const h = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
-    };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, [menuOpen]);
 
   const commitRename = () => {
     const t = nameValue.trim();
@@ -76,111 +66,121 @@ function DashboardCard({ dashboard, isSelected, onOpen, onRename, onDelete }) {
   });
 
   return (
-    <div
-      onClick={() => !editing && onOpen(dashboard)}
-      style={{
-        position: 'relative', cursor: 'pointer',
-        background: isSelected ? 'rgba(212,240,0,0.06)' : 'rgba(255,255,255,0.02)',
-        border: `1px solid ${isSelected ? ACCENT : 'rgba(255,255,255,0.08)'}`,
-        padding: '16px', marginBottom: '4px', transition: 'all 0.2s',
-      }}
-      className="group"
-      onMouseOver={(e) => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-      onMouseOut={(e) => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
-    >
-      {isSelected && (
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '2px', background: ACCENT }} />
-      )}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-        <div
-          style={{
-            flexShrink: 0, width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: `1px solid ${isSelected ? ACCENT : 'rgba(255,255,255,0.1)'}`,
-            color: isSelected ? ACCENT : 'rgba(255,255,255,0.4)', marginTop: '2px',
-          }}
-        >
-          <FileSpreadsheet size={15} />
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {editing ? (
-            <input
-              ref={inputRef}
-              value={nameValue}
-              onChange={(e) => setNameValue(e.target.value)}
-              onBlur={commitRename}
-              onKeyDown={onKey}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: '100%', background: 'transparent', color: '#fff', fontSize: '14px',
-                fontWeight: 600, outline: 'none', border: 'none', borderBottom: `1px solid ${ACCENT}`,
-                paddingBottom: '2px', boxSizing: 'border-box',
-              }}
-            />
-          ) : (
-            <p style={{
-              fontSize: '14px', fontWeight: 600,
-              color: isSelected ? ACCENT : 'rgba(255,255,255,0.85)',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>
-              {dashboard.name}
-            </p>
-          )}
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '3px' }}>
-            {dashboard.fileName} · {date}
-          </p>
-        </div>
-        <div
-          className="opacity-0 group-hover:opacity-100"
-          style={{ display: 'flex', alignItems: 'center', gap: '2px', transition: 'opacity 0.15s' }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            onClick={() => { setEditing(true); setMenuOpen(false); }}
-            style={{ padding: '6px', color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer' }}
-            onMouseOver={(e) => e.currentTarget.style.color = '#fff'}
-            onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
-            title="Rename"
+    <>
+      <div
+        onClick={() => !editing && onOpen(dashboard)}
+        style={{
+          position: 'relative', cursor: 'pointer',
+          background: isSelected ? 'rgba(212,240,0,0.06)' : 'rgba(255,255,255,0.02)',
+          border: `1px solid ${isSelected ? ACCENT : 'rgba(255,255,255,0.08)'}`,
+          padding: '16px', marginBottom: '4px', transition: 'all 0.2s',
+        }}
+        className="group"
+        onMouseOver={(e) => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+        onMouseOut={(e) => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+      >
+        {isSelected && (
+          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '2px', background: ACCENT }} />
+        )}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+          <div
+            style={{
+              flexShrink: 0, width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: `1px solid ${isSelected ? ACCENT : 'rgba(255,255,255,0.1)'}`,
+              color: isSelected ? ACCENT : 'rgba(255,255,255,0.4)', marginTop: '2px',
+            }}
           >
-            <Pencil size={13} />
-          </button>
-          <div ref={menuRef} style={{ position: 'relative' }}>
+            <FileSpreadsheet size={15} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {editing ? (
+              <input
+                ref={inputRef}
+                value={nameValue}
+                onChange={(e) => setNameValue(e.target.value)}
+                onBlur={commitRename}
+                onKeyDown={onKey}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  width: '100%', background: 'transparent', color: '#fff', fontSize: '14px',
+                  fontWeight: 600, outline: 'none', border: 'none', borderBottom: `1px solid ${ACCENT}`,
+                  paddingBottom: '2px', boxSizing: 'border-box',
+                }}
+              />
+            ) : (
+              <p style={{
+                fontSize: '14px', fontWeight: 600,
+                color: isSelected ? ACCENT : 'rgba(255,255,255,0.85)',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                {dashboard.name}
+              </p>
+            )}
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '3px' }}>
+              {date}
+            </p>
+          </div>
+          <div
+            className="opacity-0 group-hover:opacity-100"
+            style={{ display: 'flex', alignItems: 'center', gap: '2px', transition: 'opacity 0.15s' }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
-              onClick={() => setMenuOpen((v) => !v)}
+              onClick={() => setEditing(true)}
               style={{ padding: '6px', color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer' }}
               onMouseOver={(e) => e.currentTarget.style.color = '#fff'}
               onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
-              title="More"
+              title="Rename"
             >
-              <MoreVertical size={13} />
+              <Pencil size={13} />
             </button>
-            {menuOpen && (
-              <div style={{
-                position: 'absolute', right: 0, top: '32px', zIndex: 50, width: '144px',
-                background: '#111', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 0', boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
-              }}>
-                <button
-                  onClick={() => { setEditing(true); setMenuOpen(false); }}
-                  style={{ width: '100%', textAlign: 'left', padding: '8px 12px', fontSize: '12px', color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                  onMouseOut={(e) => e.currentTarget.style.background = 'none'}
-                >
-                  <Pencil size={12} /> Rename
-                </button>
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '4px 0' }} />
-                <button
-                  onClick={() => { onDelete(dashboard.id); setMenuOpen(false); }}
-                  style={{ width: '100%', textAlign: 'left', padding: '8px 12px', fontSize: '12px', color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(248,113,113,0.1)'}
-                  onMouseOut={(e) => e.currentTarget.style.background = 'none'}
-                >
-                  <Trash2 size={12} /> Delete
-                </button>
-              </div>
-            )}
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              style={{ padding: '6px', color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer' }}
+              onMouseOver={(e) => e.currentTarget.style.color = '#f87171'}
+              onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
+              title="Delete"
+            >
+              <Trash2 size={13} />
+            </button>
           </div>
         </div>
       </div>
-    </div>
+
+      {showDeleteModal && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={(e) => { e.stopPropagation(); setShowDeleteModal(false); }}
+        >
+          <div 
+            className="bg-[#111] border border-white/10 p-6 w-full max-w-sm flex flex-col items-center text-center shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-12 h-12 bg-red-500/10 text-red-500 border border-red-500/20 rounded-full flex items-center justify-center mb-4">
+              <AlertTriangle size={22} />
+            </div>
+            <h3 className="text-base font-bold text-white/90 mb-1">Delete Dashboard</h3>
+            <p className="text-white/50 text-xs mb-6 leading-relaxed">
+              Are you sure you want to delete <span className="text-white font-semibold">"{dashboard.name}"</span>? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 w-full">
+              <button 
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 py-2.5 border border-white/10 text-white/60 hover:text-white hover:bg-white/5 text-[11px] uppercase tracking-widest font-bold transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => { onDelete(dashboard.id); setShowDeleteModal(false); }}
+                className="flex-1 py-2.5 bg-red-500 text-white hover:bg-red-600 text-[11px] uppercase tracking-widest font-bold transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -203,36 +203,108 @@ function EmptyState() {
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
 function Sidebar({ savedDashboards, activeDashboard, onOpen, onRename, onDelete, onNewAnalysis, style, className }) {
+  const [isOpen, setIsOpen] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredDashboards = savedDashboards.filter(d => 
+    d.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    d.fileName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const defaultWidth = style?.width || '320px';
+
   return (
-    <aside className={className} style={{
+    <aside className={`${className || ''} ${!isOpen ? 'sidebar-closed' : ''}`} style={{
       display: 'flex', flexDirection: 'column', flexShrink: 0,
-      width: '280px', borderRight: '1px solid rgba(255,255,255,0.08)', background: '#080808',
+      width: isOpen ? defaultWidth : '64px', 
+      borderRight: isOpen ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent', 
+      background: isOpen ? '#080808' : 'transparent',
+      transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease, background-color 0.3s ease',
+      overflow: 'hidden',
+      position: 'relative',
       ...style,
+      width: isOpen ? defaultWidth : '64px',
     }}>
-      <div style={{ padding: '32px 24px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <h2 style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.35)', margin: 0 }}>
-          Saved Dashboards
-        </h2>
-      </div>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
-        {savedDashboards.length === 0 ? <EmptyState /> : (
-          savedDashboards.map((d) => (
-            <DashboardCard
-              key={d.id} dashboard={d} isSelected={activeDashboard?.id === d.id}
-              onOpen={onOpen} onRename={onRename} onDelete={onDelete}
+      {/* Header with Title, Search & Hamburger toggle */}
+      <div style={{ padding: isOpen ? '24px 20px 16px' : '20px 12px', borderBottom: isOpen ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent', transition: 'padding 0.3s ease, border-color 0.3s ease' }}>
+        <div style={{ display: 'flex', justifyContent: isOpen ? 'space-between' : 'center', alignItems: 'center', minHeight: '28px' }}>
+          {isOpen && (
+            <h2 style={{ 
+              fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.35)', margin: 0,
+              whiteSpace: 'nowrap', opacity: isOpen ? 1 : 0, transition: 'opacity 0.2s ease'
+            }}>
+              Saved Dashboards
+            </h2>
+          )}
+          <button 
+            onClick={() => setIsOpen(prev => !prev)} 
+            style={{ color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', padding: '6px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            onMouseOver={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; e.currentTarget.style.background = 'none'; }}
+            title={isOpen ? "Close Sidebar" : "Open Sidebar"}
+          >
+            <Menu size={18} />
+          </button>
+        </div>
+
+        {isOpen && (
+          <div style={{ position: 'relative', marginTop: '16px', opacity: isOpen ? 1 : 0, transition: 'opacity 0.2s ease' }}>
+            <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)' }} />
+            <input 
+              type="text" 
+              placeholder="Search dashboards..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+                color: '#fff', fontSize: '13px', padding: '8px 12px 8px 32px', outline: 'none', borderRadius: '4px',
+                boxSizing: 'border-box', transition: 'border-color 0.2s'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#d4f000'}
+              onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
             />
-          ))
+          </div>
         )}
       </div>
-      {onNewAnalysis && (
-        <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+
+      {/* Main List Area */}
+      <div style={{ 
+        flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: isOpen ? '8px' : '8px 4px',
+        opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? 'auto' : 'none',
+        transition: 'opacity 0.2s ease, padding 0.3s ease'
+      }}>
+        {isOpen && (
+          filteredDashboards.length === 0 ? (
+            searchQuery ? (
+              <div style={{ padding: '32px 16px', textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontSize: '13px', whiteSpace: 'nowrap' }}>
+                No results found
+              </div>
+            ) : <EmptyState />
+          ) : (
+            filteredDashboards.map((d) => (
+              <DashboardCard
+                key={d.id} dashboard={d} isSelected={activeDashboard?.id === d.id}
+                onOpen={onOpen} onRename={onRename} onDelete={onDelete}
+              />
+            ))
+          )
+        )}
+      </div>
+
+      {/* Footer Action Button */}
+      {onNewAnalysis && isOpen && (
+        <div style={{ 
+          padding: '16px', borderTop: '1px solid rgba(255,255,255,0.06)',
+          opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? 'auto' : 'none',
+          transition: 'opacity 0.2s ease'
+        }}>
           <button
             onClick={onNewAnalysis}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               padding: '10px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em',
               border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)', background: 'none', cursor: 'pointer',
-              transition: 'all 0.15s',
+              whiteSpace: 'nowrap', transition: 'all 0.15s',
             }}
             onMouseOver={(e) => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
             onMouseOut={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
@@ -557,7 +629,7 @@ export default function DataDashboard() {
 
   if (activeDashboard && activeDashboard.result) {
     return (
-      <div style={{ display: 'flex', height: 'calc(100vh - 73px)', background: '#080808' }}>
+      <div style={{ display: 'flex', height: 'calc(100vh - 81px)', background: '#080808' }}>
         <div style={{ display: 'none' }} className="lg-sidebar-placeholder" />
         <style>{`.lg-sidebar-placeholder { display: none; } @media(min-width:1024px){.lg-sidebar-placeholder{display:flex;} .dash-sidebar{display:flex !important;}}`}</style>
         <div className="dash-sidebar" style={{ display: 'none', flexShrink: 0 }}>
@@ -568,7 +640,7 @@ export default function DataDashboard() {
             onRename={handleRenameDashboard}
             onDelete={handleDeleteDashboard}
             onNewAnalysis={() => setActiveDashboard(null)}
-            style={{ width: '240px' }}
+            style={{ width: '280px' }}
           />
         </div>
         <div style={{ flex: 1, overflow: 'hidden' }}>
@@ -592,18 +664,27 @@ export default function DataDashboard() {
   return (
     <>
       <style>{`
-        .da-layout { display: flex; min-height: calc(100vh - 73px); background: #080808; }
-        .da-sidebar { width: 280px; flex-shrink: 0; }
+        .da-layout { display: flex; height: calc(100vh - 81px); background: #080808; }
+        .da-sidebar { width: 320px; flex-shrink: 0; }
         .da-main { flex: 1; overflow-y: auto; }
         @media (max-width: 767px) {
-          .da-layout { flex-direction: column; }
-          .da-sidebar { width: 100%; border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.08); max-height: 260px; overflow-y: auto; }
+          .da-layout { flex-direction: column; height: auto; min-height: calc(100vh - 81px); }
+          .da-sidebar { width: 100%; border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.08); max-height: 260px; overflow-y: auto; overflow-x: hidden; }
         }
         @media (min-width: 768px) and (max-width: 1023px) {
-          .da-sidebar { width: 220px; }
+          .da-sidebar { width: 260px; }
+        }
+        .sidebar-closed { width: 64px !important; }
+        @media (max-width: 767px) {
+          .sidebar-closed { 
+            width: 100% !important; height: 60px !important; 
+            flex-direction: row !important; justify-content: flex-start !important; padding: 0 16px !important;
+            border-bottom: 1px solid rgba(255,255,255,0.08) !important; max-height: none !important;
+          }
         }
         .da-browse-btn:hover { border-color: #d4f000 !important; color: #d4f000 !important; }
         .da-type-btn:hover { border-color: rgba(255,255,255,0.2) !important; color: rgba(255,255,255,0.7) !important; }
+
       `}</style>
       <div className="da-layout">
 
