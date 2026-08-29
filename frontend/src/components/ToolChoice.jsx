@@ -328,14 +328,12 @@ export default function ToolChoice({ onEditSite, onBuildNewWebsite }) {
 
                   {/* Right Action Controls */}
                   <div className="flex items-center gap-2.5 self-end md:self-center flex-shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-white/5 w-full md:w-auto justify-end">
-                  {/* Card Actions */}
-                  <div className="mt-8 pt-4 border-t border-white/5 flex items-center justify-between gap-2">
                     <button
                       onClick={() => {
                         if (onEditSite) onEditSite(site);
                         else navigate('/aibuilder');
                       }}
-                      className="flex-1 py-2.5 px-3 bg-white/5 hover:bg-white/10 rounded-xl text-white text-[11px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
+                      className="flex-1 md:flex-none py-2.5 px-3 bg-white/5 hover:bg-white/10 rounded-xl text-white text-[11px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
                     >
                       <Pencil size={12} /> Edit
                     </button>
@@ -346,8 +344,7 @@ export default function ToolChoice({ onEditSite, onBuildNewWebsite }) {
                         target="_blank"
                         rel="noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="p-2.5 border border-white/10 bg-white/5 hover:border-[#d4f000] hover:bg-[#d4f000]/10 text-white/60 hover:text-[#d4f000] transition-all"
-                        className="p-2.5 border border-white/10 hover:border-[#d4f000] rounded-xl text-white/50 hover:text-[#d4f000] transition-colors"
+                        className="p-2.5 border border-white/10 bg-white/5 hover:bg-[#d4f000]/10 hover:border-[#d4f000] rounded-xl text-white/60 hover:text-[#d4f000] transition-colors"
                         title="View Live Site"
                       >
                         <ExternalLink size={14} />
@@ -359,7 +356,7 @@ export default function ToolChoice({ onEditSite, onBuildNewWebsite }) {
                         e.stopPropagation();
                         setDeleteModalSite(site);
                       }}
-                      className="p-2.5 border border-white/10 bg-white/5 hover:border-red-500/50 hover:bg-red-500/10 text-white/40 hover:text-red-500 transition-all"
+                      className="p-2.5 border border-white/10 bg-white/5 hover:border-red-500/50 hover:bg-red-500/10 rounded-xl text-white/40 hover:text-red-500 transition-all"
                       title="Delete Website"
                     >
                       <Trash2 size={14} />
