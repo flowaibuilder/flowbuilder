@@ -51,9 +51,9 @@ export default function Contact({ content = {}, feel }) {
               <h2 className={s.heading}>
                 <EditableText path="title" value={content.title || "Let's Start a Conversation"} />
               </h2>
-              <p className="mt-4 text-sm sm:text-base opacity-80 leading-relaxed">
+              <div className="mt-4 text-sm sm:text-base opacity-80 leading-relaxed">
                 <EditableText path="description" value={content.description || 'Have a project in mind or want to learn more about our solutions? Reach out anytime.'} />
-              </p>
+              </div>
             </div>
 
             <div className="space-y-4 pt-4 border-t border-current/10">

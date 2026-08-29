@@ -873,18 +873,41 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
 
   const handleSaveProject = async () => {
     setIsSaving(true);
-    setSaveSuccess(false);
-    setSaveError(false);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('You must be logged in to save.');
 
+      // Strip large base64 data from sections (avatarUrl, imageUrl from portfolio/testimonials)
+      const stripBase64 = (obj) => {
+        if (!obj || typeof obj !== 'object') return obj;
+        if (Array.isArray(obj)) return obj.map(stripBase64);
+        const cleaned = {};
+        for (const [k, v] of Object.entries(obj)) {
+          if (typeof v === 'string' && v.startsWith('data:image/') && v.length > 5000) {
+            cleaned[k] = ''; // strip base64 to avoid 500 on large payload
+          } else {
+            cleaned[k] = stripBase64(v);
+          }
+        }
+        return cleaned;
+      };
+
+      const cleanedSections = sections.map(s => ({
+        ...s,
+        content: stripBase64(s.content)
+      }));
+
+      const cleanedSiteImages = siteImages.map(img => ({
+        ...img,
+        url: (typeof img.url === 'string' && img.url.startsWith('data:image/') && img.url.length > 5000) ? '' : img.url
+      }));
+
       const payload = {
         user_id: user.id,
         name: businessName || 'My Website',
-        spec: sections,
+        spec: cleanedSections,
         theme: currentTheme || theme,
-        config: { businessName, pages, logo, feel: currentFeel || feel, fontStyle, siteImages },
+        config: { businessName, pages, logo, feel: currentFeel || feel, fontStyle, siteImages: cleanedSiteImages },
         updated_at: new Date().toISOString()
       };
 
@@ -894,7 +917,6 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           .update(payload)
           .eq('id', websiteId);
         if (error) throw error;
-        
         setSaveSuccess(true);
         setSaveError(false);
         return websiteId;
@@ -908,7 +930,6 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         if (data && onSave) {
           onSave(data.id);
         }
-        
         setSaveSuccess(true);
         setSaveError(false);
         return data?.id;
@@ -1015,20 +1036,19 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
   const [selectedImageId, setSelectedImageId] = useState(null);
   const [selectedText, setSelectedText] = useState(null);
 
-  // Debounced auto-save hook
+  // Debounced auto-save hook — only sections/theme/feel/siteImages trigger this
+  const handleSaveProjectRef = useRef(handleSaveProject);
+  useEffect(() => { handleSaveProjectRef.current = handleSaveProject; });
+
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
     }
 
-    // Mark as unsaved/saving while typing or moving sections
-    setSaveSuccess(false);
-    setSaveError(false);
-
     const timer = setTimeout(() => {
-      handleSaveProject();
-    }, 400); // 400ms instant debounce
+      handleSaveProjectRef.current();
+    }, 800); // 800ms debounce — generous enough to batch rapid keystrokes
 
     return () => clearTimeout(timer);
   }, [sections, currentTheme, currentFeel, siteImages]);
@@ -1173,9 +1193,9 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           const rect = previewContainer.getBoundingClientRect();
           const x = rect.width / 2 + previewContainer.scrollLeft;
           const y = rect.height / 2 + previewContainer.scrollTop;
-          addNewFloatingImage(fileUrl, x, y);
+          addNewFloatingElement('image', x, y, fileUrl);
         } else {
-          addNewFloatingImage(fileUrl, 300, 200);
+          addNewFloatingElement('image', 300, 200, fileUrl);
         }
       };
       reader.readAsDataURL(file);
@@ -2223,7 +2243,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                           const previewContainer = document.getElementById('preview-scroll-container');
                           const x = previewContainer ? (previewContainer.clientWidth / 2 + previewContainer.scrollLeft) : 300;
                           const y = previewContainer ? (previewContainer.clientHeight / 2 + previewContainer.scrollTop) : 200;
-                          addNewFloatingImage(mediaUrl, x, y);
+                          addNewFloatingElement('image', x, y, mediaUrl);
                         }}
                         className="bg-[#d4f000] text-[#080808] font-bold text-xs px-3 hover:bg-[#b8d000] rounded transition-colors"
                       >
@@ -2251,7 +2271,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                           const previewContainer = document.getElementById('preview-scroll-container');
                           const x = previewContainer ? (previewContainer.clientWidth / 2 + previewContainer.scrollLeft) : 300;
                           const y = previewContainer ? (previewContainer.clientHeight / 2 + previewContainer.scrollTop) : 200;
-                          addNewFloatingImage(url, x, y);
+                          addNewFloatingElement('image', x, y, url);
                         }}
                         className="relative aspect-[3/2] rounded overflow-hidden border cursor-grab active:cursor-grabbing border-white/10 hover:border-[#d4f000]/50 transition-all group"
                       >
