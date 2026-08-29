@@ -19,3 +19,67 @@ body {
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
+
+/* ─── MOBILE PREVIEW OVERRIDES ────────────────────────────────────────────── */
+.is-mobile-view {
+  width: 340px !important;
+  max-width: 340px !important;
+  box-sizing: border-box !important;
+}
+
+.is-mobile-view .grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 1.25rem !important;
+}
+
+.is-mobile-view [class*="col-span-"] {
+  grid-column: span 1 / span 1 !important;
+}
+
+.is-mobile-view .sm\:py-20,
+.is-mobile-view .py-20,
+.is-mobile-view .py-16 {
+  padding-top: 2rem !important;
+  padding-bottom: 2rem !important;
+}
+
+.is-mobile-view .lg\:px-8,
+.is-mobile-view .px-6,
+.is-mobile-view .px-8 {
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+.is-mobile-view h1,
+.is-mobile-view [class*="heading"] {
+  font-size: 1.65rem !important;
+  line-height: 2.1rem !important;
+}
+
+.is-mobile-view h2 {
+  font-size: 1.3rem !important;
+  line-height: 1.65rem !important;
+}
+
+.is-mobile-view .flex-wrap {
+  flex-direction: column !important;
+  width: 100% !important;
+}
+
+.is-mobile-view .flex-wrap > * {
+  width: 100% !important;
+}
+
+/* Force mobile hamburger and hide desktop nav links in preview */
+.is-mobile-view nav .hidden.md\:flex,
+.is-mobile-view nav .hidden.md\:inline-flex {
+  display: none !important;
+}
+
+.is-mobile-view nav button.md\:hidden {
+  display: block !important;
+}
+
+.is-mobile-view nav div.md\:hidden {
+  display: flex !important;
+}
