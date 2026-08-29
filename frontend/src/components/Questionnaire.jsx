@@ -299,6 +299,112 @@ function StepGoal({ data, onChange, onSuggest, suggesting, suggestSuccess }) {
           />
         </div>
       )}
+
+      <div className="pt-6 mt-6 border-t border-white/10">
+        <h3 className="text-sm font-bold text-[#d4f000] uppercase tracking-wider mb-4">Detailed Business Info (For AI Context)</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+          <div>
+            <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2">Tagline / Unique Selling Point</label>
+            <input
+              type="text"
+              value={data.tagline || ''}
+              onChange={e => onChange({ tagline: e.target.value })}
+              className="w-full px-4 py-3 border border-white/10 bg-white/5 text-white text-sm outline-none focus:border-[#d4f000] transition-all placeholder-white/20"
+              placeholder="e.g. India's #1 trusted service"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2">Public Contact Email</label>
+            <input
+              type="email"
+              value={data.email || ''}
+              onChange={e => onChange({ email: e.target.value })}
+              className="w-full px-4 py-3 border border-white/10 bg-white/5 text-white text-sm outline-none focus:border-[#d4f000] transition-all placeholder-white/20"
+              placeholder="e.g. hello@business.in"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+          <div>
+            <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2">Primary Phone Number</label>
+            <input
+              type="tel"
+              value={data.phone || ''}
+              onChange={e => onChange({ phone: e.target.value })}
+              className="w-full px-4 py-3 border border-white/10 bg-white/5 text-white text-sm outline-none focus:border-[#d4f000] transition-all placeholder-white/20"
+              placeholder="e.g. +91 98765 43210"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2">WhatsApp Business Number</label>
+            <input
+              type="tel"
+              value={data.whatsapp || ''}
+              onChange={e => onChange({ whatsapp: e.target.value })}
+              className="w-full px-4 py-3 border border-white/10 bg-white/5 text-white text-sm outline-none focus:border-[#d4f000] transition-all placeholder-white/20"
+              placeholder="e.g. +91 98765 43210"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+          <div className="col-span-1 md:col-span-2">
+            <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2">Business Address</label>
+            <input
+              type="text"
+              value={data.address || ''}
+              onChange={e => onChange({ address: e.target.value })}
+              className="w-full px-4 py-3 border border-white/10 bg-white/5 text-white text-sm outline-none focus:border-[#d4f000] transition-all placeholder-white/20"
+              placeholder="e.g. 123 Main Street, Bangalore"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2">Landmark</label>
+            <input
+              type="text"
+              value={data.landmark || ''}
+              onChange={e => onChange({ landmark: e.target.value })}
+              className="w-full px-4 py-3 border border-white/10 bg-white/5 text-white text-sm outline-none focus:border-[#d4f000] transition-all placeholder-white/20"
+              placeholder="e.g. Near SBI Bank"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2">Working Hours</label>
+            <input
+              type="text"
+              value={data.workingHours || ''}
+              onChange={e => onChange({ workingHours: e.target.value })}
+              className="w-full px-4 py-3 border border-white/10 bg-white/5 text-white text-sm outline-none focus:border-[#d4f000] transition-all placeholder-white/20"
+              placeholder="e.g. Mon - Sat: 9 AM - 7 PM"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2">GSTIN / Tax Details</label>
+            <input
+              type="text"
+              value={data.gst || ''}
+              onChange={e => onChange({ gst: e.target.value })}
+              className="w-full px-4 py-3 border border-white/10 bg-white/5 text-white text-sm outline-none focus:border-[#d4f000] transition-all placeholder-white/20"
+              placeholder="e.g. 29ABCDE1234F1Z5"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2">Social Media Links</label>
+            <input
+              type="text"
+              value={data.socialLinks || ''}
+              onChange={e => onChange({ socialLinks: e.target.value })}
+              className="w-full px-4 py-3 border border-white/10 bg-white/5 text-white text-sm outline-none focus:border-[#d4f000] transition-all placeholder-white/20"
+              placeholder="e.g. @ourbusiness on Instagram"
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1068,6 +1174,15 @@ export default function Questionnaire({ onWebsiteGenerated, onOpenProject, initi
     feel: '',
     fontStyle: 'ai',
     differentiator: '',
+    tagline: '',
+    phone: '',
+    whatsapp: '',
+    email: '',
+    address: '',
+    landmark: '',
+    workingHours: '',
+    gst: '',
+    socialLinks: '',
     logo: null,
     logoSource: 'none',
   });
@@ -1092,6 +1207,15 @@ export default function Questionnaire({ onWebsiteGenerated, onOpenProject, initi
         pages: initialData.pages || d.pages,
         feel: initialData.feel || d.feel,
         fontStyle: initialData.fontStyle || d.fontStyle,
+        tagline: initialData.tagline || d.tagline,
+        phone: initialData.phone || d.phone,
+        whatsapp: initialData.whatsapp || d.whatsapp,
+        email: initialData.email || d.email,
+        address: initialData.address || d.address,
+        landmark: initialData.landmark || d.landmark,
+        workingHours: initialData.workingHours || d.workingHours,
+        gst: initialData.gst || d.gst,
+        socialLinks: initialData.socialLinks || d.socialLinks,
         logo: initialData.logo || d.logo,
       }));
     }
@@ -1202,6 +1326,15 @@ export default function Questionnaire({ onWebsiteGenerated, onOpenProject, initi
         data.feel && `Website feel: ${data.feel}`,
         data.fontStyle && data.fontStyle !== 'ai' && `Font style: ${data.fontStyle}`,
         data.differentiator && `Unique value: ${data.differentiator}`,
+        data.tagline && `Tagline/Slogan: ${data.tagline}`,
+        data.email && `Contact Email: ${data.email}`,
+        data.phone && `Primary Phone: ${data.phone}`,
+        data.whatsapp && `WhatsApp Business: ${data.whatsapp}`,
+        data.address && `Business Address: ${data.address}`,
+        data.landmark && `Address Landmark: ${data.landmark}`,
+        data.workingHours && `Working Hours: ${data.workingHours}`,
+        data.gst && `GSTIN/Tax Details: ${data.gst}`,
+        data.socialLinks && `Social Media Links: ${data.socialLinks}`,
       ].filter(Boolean).join('. '),
       pages: data.pages || ['home', 'about', 'services', 'contact'],
       feel: data.feel,
