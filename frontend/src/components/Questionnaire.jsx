@@ -1053,23 +1053,31 @@ function Row({ label, value }) {
 
 // ─── MAIN QUESTIONNAIRE ───────────────────────────────────────────────────────
 
-export default function Questionnaire({ onWebsiteGenerated, onOpenProject }) {
+export default function Questionnaire({ onWebsiteGenerated, onOpenProject, initialData }) {
   const [step, setStep] = useState(0);
   const [data, setData] = useState({
-    name: initialData?.name || '',
-    industry: initialData?.industry || '',
-    goal: initialData?.goal || '',
-    audience: initialData?.audience || '',
-    cta: initialData?.cta || '',
-    pages: initialData?.pages || null,
-    themeId: initialData?.themeId || 'bold-neon',
-    feel: initialData?.feel || '',
-    fontStyle: initialData?.fontStyle || 'ai',
-    differentiator: initialData?.differentiator || '',
-    logo: initialData?.logo || null,
-    logoSource: initialData?.logoSource || 'none',
+    name: '',
+    industry: '',
+    goal: '',
+    audience: '',
+    cta: '',
+    pages: null,
+    themeId: 'bold-neon',
+    feel: '',
+    fontStyle: 'ai',
+    differentiator: '',
+    logo: null,
+    logoSource: 'none',
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestSuccess, setSuggestSuccess] = useState(false);
 
+  const [savedWebsites, setSavedWebsites] = useState([]);
+  const [loadingWebsites, setLoadingWebsites] = useState(true);
+
+  // Pre-populate form when initialData is provided (editing a draft)
   useEffect(() => {
     if (initialData) {
       setData(d => ({
@@ -1086,13 +1094,6 @@ export default function Questionnaire({ onWebsiteGenerated, onOpenProject }) {
       }));
     }
   }, [initialData]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [suggesting, setSuggesting] = useState(false);
-  const [suggestSuccess, setSuggestSuccess] = useState(false);
-
-  const [savedWebsites, setSavedWebsites] = useState([]);
-  const [loadingWebsites, setLoadingWebsites] = useState(true);
 
   useEffect(() => {
     const fetchWebsites = async () => {

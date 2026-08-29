@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Layout, Plus, Globe, Sparkles, ExternalLink, Trash2, Search, ArrowRight, CheckCircle2, AlertTriangle, Loader2, FileCode, Layers, Pencil } from 'lucide-react';
+import { Layout, Plus, Globe, ExternalLink, Trash2, Search, AlertTriangle, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import heroImage from '../assets/hero-image.png';
 
 const ACCENT = '#d4f000';
 
-export default function ToolChoice({ onEditSite, onBuildNewWebsite }) {
+export default function ToolChoice() {
   const navigate = useNavigate();
   const [showSignOut, setShowSignOut] = useState(false);
   const [deleteModalSite, setDeleteModalSite] = useState(null);
@@ -57,8 +57,6 @@ export default function ToolChoice({ onEditSite, onBuildNewWebsite }) {
             status: 'published',
             subdomain: p.subdomain,
             config: p.config,
-            spec: p.config?.sections || p.config?.spec || [],
-            theme: p.config?.theme || null,
             createdAt: p.published_at || new Date().toISOString(),
             table: 'published_sites'
           });
@@ -190,11 +188,8 @@ export default function ToolChoice({ onEditSite, onBuildNewWebsite }) {
           {/* Large Action CTA Button */}
           <div className="relative z-10 mt-auto pt-6 border-t border-white/10">
             <button
-              onClick={() => {
-                if (onBuildNewWebsite) onBuildNewWebsite();
-                else navigate('/aibuilder');
-              }}
-              className="w-full py-4.5 px-6 rounded-xl flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] transition-all transform hover:-translate-y-0.5 shadow-lg shadow-[#d4f000]/10"
+              onClick={() => navigate('/aibuilder', { state: null })}
+              className="w-full py-4.5 px-6 flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] transition-all shadow-lg shadow-[#d4f000]/10"
             >
               <Plus size={18} strokeWidth={3} /> Build New Website
             </button>
@@ -266,11 +261,8 @@ export default function ToolChoice({ onEditSite, onBuildNewWebsite }) {
                 {searchQuery ? `No website matching "${searchQuery}".` : 'You haven\'t created any websites yet. Click below to start building your first site with AI.'}
               </p>
               <button
-                onClick={() => {
-                  if (onBuildNewWebsite) onBuildNewWebsite();
-                  else navigate('/aibuilder');
-                }}
-                className="px-6 py-3 border border-[#d4f000] rounded-xl text-[#d4f000] text-xs font-bold uppercase tracking-widest hover:bg-[#d4f000] hover:text-[#080808] transition-colors flex items-center gap-2"
+                onClick={() => navigate('/aibuilder')}
+                className="px-6 py-3 border border-[#d4f000] text-[#d4f000] text-xs font-bold uppercase tracking-widest hover:bg-[#d4f000] hover:text-[#080808] transition-colors flex items-center gap-2"
               >
                 <Plus size={14} /> Start Building Now
               </button>
@@ -280,7 +272,13 @@ export default function ToolChoice({ onEditSite, onBuildNewWebsite }) {
               {filteredWebsites.map((site) => (
                 <div 
                   key={site.id}
-                  onClick={() => navigate(`/aibuilder?id=${site.id}`, { state: { site } })}
+                  onClick={() => {
+                    if (site.status === 'published') {
+                      navigate('/workspace', { state: { site } });
+                    } else {
+                      navigate('/aibuilder', { state: { site } });
+                    }
+                  }}
                   className="group relative bg-[#111111] hover:bg-[#151515] border border-white/10 hover:border-[#d4f000]/40 transition-all duration-300 p-5 shadow-xl hover:shadow-2xl hover:shadow-[#d4f000]/5 flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden cursor-pointer"
                 >
                   {/* Left Info Section */}
@@ -324,23 +322,13 @@ export default function ToolChoice({ onEditSite, onBuildNewWebsite }) {
 
                   {/* Right Action Controls */}
                   <div className="flex items-center gap-2.5 self-end md:self-center flex-shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-white/5 w-full md:w-auto justify-end">
-                    <button
-                      onClick={() => {
-                        if (onEditSite) onEditSite(site);
-                        else navigate('/aibuilder');
-                      }}
-                      className="flex-1 md:flex-none py-2.5 px-3 bg-white/5 hover:bg-white/10 rounded-xl text-white text-[11px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      <Pencil size={12} /> Edit
-                    </button>
-
                     {site.subdomain && (
                       <a
                         href={`https://${site.subdomain}.flow.devshahid.me`}
                         target="_blank"
                         rel="noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="p-2.5 border border-white/10 bg-white/5 hover:bg-[#d4f000]/10 hover:border-[#d4f000] rounded-xl text-white/60 hover:text-[#d4f000] transition-colors"
+                        className="p-2.5 border border-white/10 bg-white/5 hover:border-[#d4f000] hover:bg-[#d4f000]/10 text-white/60 hover:text-[#d4f000] transition-all"
                         title="View Live Site"
                       >
                         <ExternalLink size={14} />

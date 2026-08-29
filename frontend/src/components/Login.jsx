@@ -16,7 +16,7 @@ export default function Login() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/';
+  const targetPath = (location.state?.from?.pathname && location.state.from.pathname !== '/login' && location.state.from.pathname !== '/') ? location.state.from.pathname : '/tools';
 
   const handleGoogleSignIn = async () => {
     try {
@@ -71,12 +71,12 @@ export default function Login() {
         if (!data.session) {
           setSuccessMessage(`A verification link has been sent to ${email}. Please verify your email to log in.`);
         } else {
-          navigate(from, { replace: true });
+          navigate(targetPath, { replace: true });
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate(from, { replace: true });
+        navigate(targetPath, { replace: true });
       }
     } catch (err) {
       setError(err.message);
