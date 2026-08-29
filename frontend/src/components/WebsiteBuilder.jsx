@@ -258,33 +258,121 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
   // Publish State
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [subdomainInput, setSubdomainInput] = useState('');
+  const [currentPublishedSubdomain, setCurrentPublishedSubdomain] = useState(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishError, setPublishError] = useState(null);
   const [publishSuccessUrl, setPublishSuccessUrl] = useState(null);
+  const [subdomainStatus, setSubdomainStatus] = useState(null); // null | 'checking' | 'available' | 'taken' | 'yours'
+  const subdomainCheckRef = useRef(null);
+
+  // Load existing published subdomain for this website on open
+  const openPublishModal = async () => {
+    setPublishSuccessUrl(null);
+    setPublishError(null);
+    setSubdomainStatus(null);
+    if (websiteId) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase
+            .from('published_sites')
+            .select('subdomain')
+            .eq('website_id', websiteId)
+            .eq('user_id', user.id)
+            .maybeSingle();
+          if (data?.subdomain) {
+            setSubdomainInput(data.subdomain);
+            setCurrentPublishedSubdomain(data.subdomain);
+            setSubdomainStatus('yours');
+          } else {
+            setSubdomainInput('');
+            setCurrentPublishedSubdomain(null);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load existing subdomain:', err);
+      }
+    } else {
+      setSubdomainInput('');
+      setCurrentPublishedSubdomain(null);
+    }
+    setShowPublishModal(true);
+  };
+
+  const checkSubdomainAvailability = async (value) => {
+    const cleaned = value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+    if (!cleaned || cleaned.length < 2) {
+      setSubdomainStatus(null);
+      return;
+    }
+    // If same as currently published, mark as 'yours'
+    if (currentPublishedSubdomain && cleaned === currentPublishedSubdomain) {
+      setSubdomainStatus('yours');
+      return;
+    }
+    setSubdomainStatus('checking');
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data } = await supabase
+        .from('published_sites')
+        .select('subdomain, user_id')
+        .eq('subdomain', cleaned)
+        .maybeSingle();
+      if (!data) {
+        setSubdomainStatus('available');
+      } else if (data.user_id === user?.id) {
+        setSubdomainStatus('yours');
+        setCurrentPublishedSubdomain(cleaned);
+      } else {
+        setSubdomainStatus('taken');
+      }
+    } catch (err) {
+      console.error('Check failed:', err);
+      setSubdomainStatus(null);
+    }
+  };
+
+  const handleSubdomainChange = (e) => {
+    const raw = e.target.value;
+    setSubdomainInput(raw);
+    setSubdomainStatus(null);
+    if (subdomainCheckRef.current) clearTimeout(subdomainCheckRef.current);
+    subdomainCheckRef.current = setTimeout(() => checkSubdomainAvailability(raw), 600);
+  };
 
   const handlePublish = async (e) => {
     e.preventDefault();
     if (!subdomainInput.trim()) return;
-    
+    if (subdomainStatus === 'taken') return;
+
     setIsPublishing(true);
     setPublishError(null);
     setPublishSuccessUrl(null);
-    
+
     const subdomain = subdomainInput.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
-    
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('You must be logged in to publish.');
 
-      // Check availability
+      // Final security check — re-verify ownership server-side before upsert
       const { data: existing } = await supabase
         .from('published_sites')
         .select('subdomain, user_id')
         .eq('subdomain', subdomain)
-        .single();
-        
+        .maybeSingle();
+
       if (existing && existing.user_id !== user.id) {
-        throw new Error('This subdomain is already taken by another user.');
+        throw new Error('This subdomain is already claimed by another user.');
+      }
+
+      // If user changed domain, delete the old record first
+      if (currentPublishedSubdomain && currentPublishedSubdomain !== subdomain) {
+        await supabase
+          .from('published_sites')
+          .delete()
+          .eq('subdomain', currentPublishedSubdomain)
+          .eq('user_id', user.id);
       }
 
       const payload = {
@@ -305,10 +393,11 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
       const { error } = await supabase
         .from('published_sites')
         .upsert(payload, { onConflict: 'subdomain' });
-        
+
       if (error) throw error;
-      
-      const domainUrl = `http://${subdomain}.flow.devshahid.me`;
+
+      setCurrentPublishedSubdomain(subdomain);
+      const domainUrl = `https://${subdomain}.flow.devshahid.me`;
       setPublishSuccessUrl(domainUrl);
     } catch (err) {
       console.error('Publish failed:', err);
@@ -1404,9 +1493,9 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
               {isSaving ? <Loader2 size={14} className="animate-spin" /> : saveSuccess ? 'Saved!' : 'Save'}
             </button>
             <button 
-              onClick={() => setShowPublishModal(true)}
+              onClick={openPublishModal}
               className="flex-1 bg-[#d4f000] hover:bg-[#b8d000] text-[#080808] px-4 py-2.5 font-bold text-xs uppercase tracking-wider transition-colors">
-              Publish
+              {currentPublishedSubdomain ? 'Republish' : 'Publish'}
             </button>
           </div>
           <button
@@ -1533,7 +1622,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                   <a href={publishSuccessUrl} target="_blank" rel="noreferrer" className="text-white hover:text-[#d4f000] transition-colors break-all text-sm block mb-1">
                     {publishSuccessUrl}
                   </a>
-                  <p className="text-[10px] text-white/40">It might take a few moments for the DNS to propagate.</p>
+                  <p className="text-[10px] text-white/40">It may take a few moments for DNS to propagate.</p>
                 </div>
                 <button
                   onClick={() => setShowPublishModal(false)}
@@ -1545,18 +1634,28 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             ) : (
               <form onSubmit={handlePublish} className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-white/50 uppercase tracking-widest block mb-2">Subdomain</label>
-                  <div className="flex items-center">
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-xs font-bold text-white/50 uppercase tracking-widest">Subdomain</label>
+                    {subdomainStatus === 'checking' && <span className="text-[10px] text-white/40 flex items-center gap-1"><Loader2 size={10} className="animate-spin" /> Checking...</span>}
+                    {subdomainStatus === 'available' && <span className="text-[10px] text-emerald-400 flex items-center gap-1"><CheckCircle2 size={10} /> Available!</span>}
+                    {subdomainStatus === 'taken' && <span className="text-[10px] text-red-400">✗ Already taken</span>}
+                    {subdomainStatus === 'yours' && <span className="text-[10px] text-[#d4f000]">✓ Your domain</span>}
+                  </div>
+                  <div className="flex items-stretch">
                     <input
                       type="text"
                       value={subdomainInput}
-                      onChange={(e) => setSubdomainInput(e.target.value)}
+                      onChange={handleSubdomainChange}
                       placeholder="my-startup"
-                      className="w-full bg-white/5 border border-r-0 border-white/10 rounded-l p-3 text-white focus:outline-none focus:border-[#d4f000]"
-                      pattern="[a-zA-Z0-9-]+"
+                      className={`flex-1 bg-white/5 border border-r-0 rounded-l p-3 text-white focus:outline-none transition-colors ${
+                        subdomainStatus === 'taken' ? 'border-red-500/60 focus:border-red-500' :
+                        subdomainStatus === 'available' ? 'border-emerald-500/60 focus:border-emerald-500' :
+                        subdomainStatus === 'yours' ? 'border-[#d4f000]/50 focus:border-[#d4f000]' :
+                        'border-white/10 focus:border-[#d4f000]'
+                      }`}
                       required
                     />
-                    <span className="bg-white/5 border border-l-0 border-white/10 rounded-r p-3 text-white/50 select-none">
+                    <span className="bg-white/5 border border-l-0 border-white/10 rounded-r p-3 text-white/40 select-none text-xs flex items-center">
                       .flow.devshahid.me
                     </span>
                   </div>
@@ -1568,10 +1667,13 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
 
                 <button
                   type="submit"
-                  disabled={isPublishing || !subdomainInput}
-                  className="w-full bg-[#d4f000] text-[#080808] font-bold uppercase tracking-wider py-3 rounded hover:bg-[#b8d000] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  disabled={isPublishing || !subdomainInput || subdomainStatus === 'taken' || subdomainStatus === 'checking'}
+                  className="w-full bg-[#d4f000] text-[#080808] font-bold uppercase tracking-wider py-3 rounded hover:bg-[#b8d000] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isPublishing ? <Loader2 size={16} className="animate-spin" /> : 'Publish Now'}
+                  {isPublishing ? <Loader2 size={16} className="animate-spin" /> :
+                   currentPublishedSubdomain && subdomainInput.trim() === currentPublishedSubdomain ? 'Republish (Update Live Site)' :
+                   currentPublishedSubdomain ? 'Publish on New Domain' :
+                   'Publish Now'}
                 </button>
               </form>
             )}
