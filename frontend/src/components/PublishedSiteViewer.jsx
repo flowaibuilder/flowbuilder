@@ -22,6 +22,16 @@ export default function PublishedSiteViewer({ subdomain }) {
         if (!data) throw new Error('Site not found');
         
         setSiteData(data.config);
+
+        // Track visit
+        const trackedKey = `tracked_visit_${subdomain}_${new Date().toISOString().split('T')[0]}`;
+        if (!sessionStorage.getItem(trackedKey)) {
+          fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/data/track-visit/${subdomain}`, {
+            method: 'POST'
+          }).catch(err => console.error('Error tracking visit:', err));
+          sessionStorage.setItem(trackedKey, 'true');
+        }
+
       } catch (err) {
         console.error('Failed to load published site:', err);
         setError('Website not found or unavailable.');
