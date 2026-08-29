@@ -1069,7 +1069,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             <p className="text-[10px] text-white/40 tracking-wider">AI Editor & Host</p>
           </div>
           <button
-            onClick={() => window.location.href = '/tools'}
+            onClick={() => window.location.href = '/'}
             className="px-2.5 py-1 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white rounded text-[10px] uppercase font-bold tracking-wider transition-all"
           >
             Exit
