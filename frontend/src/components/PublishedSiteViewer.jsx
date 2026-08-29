@@ -68,7 +68,14 @@ export default function PublishedSiteViewer({ subdomain }) {
   const footerSection = sections.find(s => s.type === 'footer');
 
   return (
-    <div className="w-full min-h-screen font-sans relative overflow-x-hidden" style={themeStyle}>
+    <div 
+      className="w-full min-h-screen font-sans relative overflow-x-hidden" 
+      style={{
+        ...themeStyle,
+        backgroundColor: 'var(--color-bg-base, #ffffff)',
+        color: 'var(--color-text-base, #000000)'
+      }}
+    >
       <SiteNavbar businessName={businessName} sections={sections} theme={theme} logo={logo} />
       
       <main className="relative">
