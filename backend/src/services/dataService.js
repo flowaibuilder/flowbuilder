@@ -1,12 +1,13 @@
-const { Groq } = require('groq-sdk');
+const OpenAI = require('openai');
 require('dotenv').config();
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY || 'missing-key',
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || 'missing-key',
+  baseURL: process.env.OPENAI_BASE_URL || 'https://api.novita.ai/v3/openai',
 });
 
 // Use a model with large context window that can handle 100+ rows
-const MODEL_NAME = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+const MODEL_NAME = process.env.MODEL_NAME || 'openai/gpt-oss-120b';
 
 async function analyzeDataWithLLM(csvContent, userQuery) {
   const rows = csvContent.split('\n').filter(r => r.trim() !== '');
@@ -96,7 +97,7 @@ Rules:
 - insights must be a single string with markdown formatting`;
 
   try {
-    const completion = await groq.chat.completions.create({
+    const completion = await client.chat.completions.create({
       model: MODEL_NAME,
       messages: [
         { role: 'system', content: 'You are an expert Data Analyst. You ONLY output raw valid JSON, never markdown code fences or extra text.' },
