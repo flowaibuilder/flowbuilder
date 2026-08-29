@@ -1053,7 +1053,7 @@ function Row({ label, value }) {
 
 // ─── MAIN QUESTIONNAIRE ───────────────────────────────────────────────────────
 
-export default function Questionnaire({ onWebsiteGenerated, initialData }) {
+export default function Questionnaire({ onWebsiteGenerated, onOpenProject }) {
   const [step, setStep] = useState(0);
   const [data, setData] = useState({
     name: initialData?.name || '',
@@ -1105,7 +1105,7 @@ export default function Questionnaire({ onWebsiteGenerated, initialData }) {
 
         const { data, error } = await supabase
           .from('saved_websites')
-          .select('id, name, updated_at, theme, config, spec')
+          .select('*')
           .eq('user_id', user.id)
           .order('updated_at', { ascending: false });
 
@@ -1244,7 +1244,9 @@ export default function Questionnaire({ onWebsiteGenerated, initialData }) {
               <button
                 key={site.id}
                 onClick={() => {
-                  if (onWebsiteGenerated) {
+                  if (onOpenProject) {
+                    onOpenProject(site);
+                  } else if (onWebsiteGenerated) {
                     onWebsiteGenerated(
                       site.spec,
                       site.theme,
@@ -1260,10 +1262,17 @@ export default function Questionnaire({ onWebsiteGenerated, initialData }) {
                 }}
                 className="w-full text-left p-4 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-[#d4f000]/30 transition-all rounded-lg group"
               >
-                <h4 className="text-sm font-bold text-white mb-1 group-hover:text-[#d4f000] transition-colors">{site.name}</h4>
-                <p className="text-[10px] text-white/40 uppercase tracking-wider">
-                  Updated: {new Date(site.updated_at).toLocaleDateString()}
-                </p>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <h4 className="text-sm font-bold text-white group-hover:text-[#d4f000] transition-colors truncate">{site.name}</h4>
+                  <span className="text-[9px] uppercase font-black px-1.5 py-0.5 bg-white/5 text-white/50 group-hover:text-[#d4f000] rounded">
+                    Open Hub →
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] text-white/40 uppercase tracking-wider">
+                  <span>{(site.config?.pages || []).length || (site.spec || []).length || 3} pages</span>
+                  <span>•</span>
+                  <span>{new Date(site.updated_at).toLocaleDateString()}</span>
+                </div>
               </button>
             ))}
           </div>

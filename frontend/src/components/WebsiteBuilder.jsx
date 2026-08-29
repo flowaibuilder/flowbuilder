@@ -356,6 +356,12 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('You must be logged in to publish.');
 
+      // Auto-save the project first so it appears in the dashboard
+      const currentWebsiteId = await handleSaveProject();
+      if (!currentWebsiteId) {
+        throw new Error('Could not save project to dashboard before publishing.');
+      }
+
       // Final security check — re-verify ownership server-side before upsert
       const { data: existing } = await supabase
         .from('published_sites')
@@ -379,7 +385,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
       const payload = {
         subdomain,
         user_id: user.id,
-        website_id: websiteId || null,
+        website_id: currentWebsiteId,
         config: {
           businessName,
           sections,
@@ -431,6 +437,10 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           .update(payload)
           .eq('id', websiteId);
         if (error) throw error;
+        
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+        return websiteId;
       } else {
         const { data, error } = await supabase
           .from('saved_websites')
@@ -441,12 +451,15 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         if (data && onSave) {
           onSave(data.id);
         }
+        
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+        return data?.id;
       }
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
       console.error('Save failed:', err);
       alert('Failed to save project: ' + err.message);
+      return null;
     } finally {
       setIsSaving(false);
     }
@@ -1069,7 +1082,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             <p className="text-[10px] text-white/40 tracking-wider">AI Editor & Host</p>
           </div>
           <button
-            onClick={() => window.location.href = '/tools'}
+            onClick={() => window.location.href = '/'}
             className="px-2.5 py-1 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white rounded text-[10px] uppercase font-bold tracking-wider transition-all"
           >
             Exit
