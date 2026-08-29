@@ -23,9 +23,17 @@ export default function PublishedSiteViewer({ subdomain }) {
         
         setSiteData(data.config);
 
-        // Track visit (removed sessionStorage safeguard to count every page load)
+        // Track visit with referrer and UTM source info
+        const searchParams = new URLSearchParams(window.location.search);
         fetch(`/api/data/track-visit/${subdomain}`, {
-          method: 'POST'
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            referrer: document.referrer || '',
+            utmSource: searchParams.get('utm_source') || '',
+            utmMedium: searchParams.get('utm_medium') || '',
+            utmCampaign: searchParams.get('utm_campaign') || '',
+          })
         }).catch(err => console.error('Error tracking visit:', err));
         
       } catch (err) {
