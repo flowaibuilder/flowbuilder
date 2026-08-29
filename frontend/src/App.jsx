@@ -45,6 +45,8 @@ function AIBuilderContainer() {
   const [fontStyle, setFontStyle]                 = useState('');
   const [websiteId, setWebsiteId]                 = useState(null);
   const [initialSiteImages, setInitialSiteImages] = useState([]);
+  const [initialDataHeaders, setInitialDataHeaders] = useState(null);
+  const [initialDataRows, setInitialDataRows] = useState(null);
   const [loadingSite, setLoadingSite]             = useState(false);
   const [initialQuestionnaireData, setInitialQuestionnaireData] = useState(null);
 
@@ -59,6 +61,8 @@ function AIBuilderContainer() {
     setFontStyle('');
     setWebsiteId(null);
     setInitialSiteImages([]);
+    setInitialDataHeaders(null);
+    setInitialDataRows(null);
     setInitialQuestionnaireData(null);
     setLoadingSite(false);
   };
@@ -89,6 +93,8 @@ function AIBuilderContainer() {
           setFeel(saved.config?.feel || '');
           setFontStyle(saved.config?.fontStyle || '');
           setInitialSiteImages(saved.config?.siteImages || []);
+          setInitialDataHeaders(saved.config?.dataHeaders || null);
+          setInitialDataRows(saved.config?.dataRows || null);
 
           if (saved.spec && Array.isArray(saved.spec) && saved.spec.length > 0) {
             setWebsiteSpec(saved.spec);
@@ -126,6 +132,8 @@ function AIBuilderContainer() {
           setFeel(pub.config.feel || '');
           setFontStyle(pub.config.fontStyle || '');
           setInitialSiteImages(pub.config.siteImages || []);
+          setInitialDataHeaders(pub.config.dataHeaders || null);
+          setInitialDataRows(pub.config.dataRows || null);
         }
       } catch (err) {
         console.error('Error loading existing website:', err);
@@ -190,6 +198,8 @@ function AIBuilderContainer() {
           websiteId={websiteId}
           onSave={(id) => setWebsiteId(id)}
           initialSiteImages={initialSiteImages}
+          initialDataHeaders={initialDataHeaders}
+          initialDataRows={initialDataRows}
         />
       )}
     </div>
