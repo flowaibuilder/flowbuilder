@@ -97,24 +97,33 @@ export default function ToolChoice() {
 
   const handleDeleteWebsite = async (site) => {
     try {
-      const isPublished = site.table === 'published_sites' || site.status === 'published';
-      const table = isPublished ? 'published_sites' : 'saved_websites';
-      
-      const matchField = isPublished ? 'subdomain' : 'id';
-      const matchVal = isPublished ? site.subdomain : site.id;
+      // 1. Delete from published_sites (if it was published)
+      if (site.subdomain) {
+        await supabase
+          .from('published_sites')
+          .delete()
+          .eq('subdomain', site.subdomain);
+      } else {
+        await supabase
+          .from('published_sites')
+          .delete()
+          .eq('website_id', site.id);
+      }
 
-      const { error } = await supabase
-        .from(table)
+      // 2. Delete from saved_websites (the draft / main record)
+      const { error: draftDeleteError } = await supabase
+        .from('saved_websites')
         .delete()
-        .eq(matchField, matchVal);
+        .eq('id', site.id);
 
-      if (error) {
-        console.error('Error deleting site:', error);
-        alert('Failed to delete website: ' + error.message);
+      if (draftDeleteError) {
+        console.error('Error deleting draft site:', draftDeleteError);
+        alert('Failed to delete website: ' + draftDeleteError.message);
         return;
       }
 
-      setWebsites(prev => prev.filter(s => s.id !== site.id));
+      // 3. Remove from UI state
+      setWebsites(prev => prev.filter(s => s.id !== site.id && s.subdomain !== site.subdomain));
       setDeleteModalSite(null);
     } catch (err) {
       console.error('Delete error:', err);
