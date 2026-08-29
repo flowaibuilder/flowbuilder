@@ -75,6 +75,12 @@ function AuthenticatedLayout({ children }) {
 
   return (
     <div className="min-h-screen flex flex-col font-sans" style={{ background: '#080808' }}>
+      <style>{`
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+      `}</style>
       <nav className="bg-[#080808] border-b border-white/10 px-8 py-6 flex justify-between items-center sticky top-0 z-50">
         <Link to="/tools" className="text-2xl font-normal text-white" style={{fontFamily: "'Pacifico', cursive"}}>
           flow
@@ -82,7 +88,7 @@ function AuthenticatedLayout({ children }) {
         <div className="flex space-x-4 items-center p-1">
           <button 
             onClick={() => setShowSignOut(true)}
-            className="px-4 py-1.5 rounded-md text-sm font-medium transition-colors text-red-500 hover:text-red-700 hover:bg-red-50"
+            className="px-4 py-1.5 rounded-sm border border-red-500/30 text-[11px] uppercase tracking-widest font-bold transition-all text-red-500 hover:text-white hover:bg-red-500/20 hover:border-red-500/50"
           >
             Sign Out
           </button>
