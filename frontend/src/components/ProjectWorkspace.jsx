@@ -15,6 +15,7 @@ import {
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from 'recharts';
 import ReactMarkdown from 'react-markdown';
+import { supabase } from '../lib/supabase';
 const ACCENT = '#d4f000';
 const CHART_COLORS = ['#d4f000', '#a3b800', '#ffffff', '#888888', '#555555', '#333333'];
 
@@ -370,17 +371,19 @@ export default function ProjectWorkspace({
   };
 
   // ── Save Whole Project to Supabase ─────────────────────────────────────────
-  const handleSaveProject = async () => {
+  const handleSaveProject = async (overrideName) => {
     setSaveStatus('saving');
+    const finalName = overrideName || projectName || businessName || 'My Project';
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
       const payload = {
-        name: projectName || businessName || 'My Project',
+        name: finalName,
         spec: websiteSpec,
         theme,
         config: {
-          businessName,
+          ...(project?.config || {}),
+          businessName: finalName,
           pages,
           logo,
           feel,
@@ -588,11 +591,25 @@ export default function ProjectWorkspace({
                   type="text"
                   value={projectName}
                   onChange={(e) => { setProjectName(e.target.value); setSaveStatus('unsaved'); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') setIsEditingName(false); }}
-                  onBlur={() => setIsEditingName(false)}
+                  onKeyDown={(e) => { 
+                    if (e.key === 'Enter') {
+                      setIsEditingName(false);
+                      handleSaveProject(e.target.value);
+                    }
+                  }}
+                  onBlur={(e) => {
+                    setIsEditingName(false);
+                    handleSaveProject(e.target.value);
+                  }}
                   className="bg-white/10 border border-[#d4f000] text-white font-black text-sm px-2 py-1 outline-none uppercase tracking-wide rounded"
                 />
-                <button onClick={() => setIsEditingName(false)} className="text-[#d4f000] p-1">
+                <button 
+                  onClick={() => {
+                    setIsEditingName(false);
+                    handleSaveProject(projectName);
+                  }} 
+                  className="text-[#d4f000] p-1"
+                >
                   <Check size={14} />
                 </button>
               </div>
@@ -607,17 +624,6 @@ export default function ProjectWorkspace({
                 <Edit2 size={12} className="text-white/30 group-hover:text-[#d4f000] transition-colors" />
               </div>
             )}
-
-            {/* Status Pill */}
-            <span className={`text-[9px] uppercase tracking-widest font-black px-2 py-0.5 rounded border ${
-              saveStatus === 'saved'
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                : saveStatus === 'saving'
-                ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
-                : 'bg-white/5 text-white/40 border-white/10'
-            }`}>
-              {saveStatus === 'saved' ? 'Saved' : saveStatus === 'saving' ? 'Saving...' : 'Unsaved Changes'}
-            </span>
           </div>
         </div>
 
@@ -625,8 +631,7 @@ export default function ProjectWorkspace({
         <div className="flex items-center bg-white/[0.04] p-1 border border-white/10 rounded-lg">
           {[
             { id: 'overview', label: 'Overview', icon: Layout },
-            { id: 'data', label: 'Spreadsheet', icon: FileSpreadsheet },
-            { id: 'analytics', label: 'Analytics & AI', icon: TrendingUp },
+            { id: 'data', label: 'Datasheet', icon: FileSpreadsheet },
           ].map(tab => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -649,21 +654,6 @@ export default function ProjectWorkspace({
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowExportModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 hover:border-white/30 text-white/70 hover:text-white text-xs uppercase font-bold tracking-wider rounded transition-colors"
-          >
-            <Download size={13} />
-            <span className="hidden sm:inline">Export</span>
-          </button>
-
-          <button
-            onClick={handleShareForm}
-            className="flex items-center gap-1.5 px-3 py-1.5 border border-[#d4f000]/30 text-[#d4f000] hover:bg-[#d4f000]/10 text-xs uppercase font-bold tracking-wider rounded transition-colors"
-          >
-            <Share2 size={13} />
-            <span className="hidden sm:inline">Form</span>
-          </button>
 
           <button
             onClick={() => navigate('/aibuilder', { state: { site: project } })}
@@ -674,12 +664,16 @@ export default function ProjectWorkspace({
           </button>
 
           <button
-            onClick={handleSaveProject}
-            disabled={saveStatus === 'saving'}
-            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] text-xs uppercase font-black tracking-wider rounded transition-colors disabled:opacity-50"
+            onClick={() => {
+              const subdomain = project?.subdomain;
+              if (subdomain) {
+                window.open(`https://${subdomain}.flow.devshahid.me`, '_blank', 'noopener,noreferrer');
+              }
+            }}
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] text-xs uppercase font-black tracking-wider rounded transition-colors"
           >
-            {saveStatus === 'saving' ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
-            <span>Save</span>
+            <ExternalLink size={13} />
+            <span className="hidden sm:inline">Live Website</span>
           </button>
         </div>
       </header>
@@ -695,40 +689,6 @@ export default function ProjectWorkspace({
         {activeTab === 'overview' && (
           <div className="p-8 max-w-7xl mx-auto w-full space-y-8 animate-fadeIn">
             
-            {/* Quick Hero Banner */}
-            <div className="p-8 border border-white/10 bg-gradient-to-r from-white/[0.03] to-transparent rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-96 h-96 bg-[#d4f000]/5 rounded-full blur-3xl pointer-events-none" />
-              <div>
-                <span className="text-[10px] uppercase tracking-widest text-[#d4f000] font-black mb-1 block">Project Hub</span>
-                <h2 className="text-3xl font-black uppercase text-white tracking-tight mb-2">
-                  {projectName}
-                </h2>
-                <p className="text-sm text-white/50 max-w-xl leading-relaxed">
-                  Unified dashboard connecting your AI-generated website, marketing spreadsheet data, and live analytics.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    const subdomain = project?.subdomain;
-                    if (subdomain) {
-                      window.open(`https://${subdomain}.flow.devshahid.me`, '_blank', 'noopener,noreferrer');
-                    }
-                  }}
-                  className="px-5 py-2.5 bg-[#d4f000] text-[#080808] font-bold text-xs uppercase tracking-wider rounded hover:bg-[#b8d000] flex items-center gap-2 transition-all"
-                >
-                  <ExternalLink size={14} /> Open Live Website
-                </button>
-                <button
-                  onClick={() => setActiveTab('data')}
-                  className="px-5 py-2.5 bg-white/10 hover:bg-white/15 text-white font-bold text-xs uppercase tracking-wider rounded flex items-center gap-2 transition-all"
-                >
-                  <FileSpreadsheet size={14} /> View Data
-                </button>
-              </div>
-            </div>
-
             {/* Top 4 KPI Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {metricsList.slice(0, 4).map((m, idx) => (
@@ -831,7 +791,7 @@ export default function ProjectWorkspace({
                   <Table2 size={18} />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold uppercase text-white group-hover:text-[#d4f000] transition-colors">Spreadsheet Data</h4>
+                  <h4 className="text-xs font-bold uppercase text-white group-hover:text-[#d4f000] transition-colors">Datasheet</h4>
                   <p className="text-[11px] text-white/40">{data.length} rows, {headers.length} columns</p>
                 </div>
               </div>
@@ -921,9 +881,25 @@ export default function ProjectWorkspace({
                 {/* Import File Button */}
                 <label className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 hover:border-white/30 text-white/70 hover:text-white text-xs font-bold uppercase tracking-wider rounded cursor-pointer transition-colors">
                   <UploadCloud size={13} />
-                  <span className="hidden sm:inline">Import CSV/Excel</span>
+                  <span className="hidden xl:inline">Import</span>
                   <input ref={fileInputRef} type="file" accept=".csv,.xlsx,.xls" onChange={handleFileUpload} className="hidden" />
                 </label>
+
+                <button
+                  onClick={() => setShowExportModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 hover:border-white/30 text-white/70 hover:text-white text-xs uppercase font-bold tracking-wider rounded transition-colors"
+                >
+                  <Download size={13} />
+                  <span className="hidden xl:inline">Export</span>
+                </button>
+
+                <button
+                  onClick={handleShareForm}
+                  className="flex items-center gap-1.5 px-3 py-1.5 border border-[#d4f000]/30 text-[#d4f000] hover:bg-[#d4f000]/10 text-xs uppercase font-bold tracking-wider rounded transition-colors"
+                >
+                  <Share2 size={13} />
+                  <span className="hidden xl:inline">Form</span>
+                </button>
               </div>
             </div>
 
@@ -1060,164 +1036,7 @@ export default function ProjectWorkspace({
           </div>
         )}
 
-        {/* ============================================================
-            TAB 4: ANALYTICS & AI INSIGHTS
-        ============================================================ */}
-        {activeTab === 'analytics' && (
-          <div className="p-8 max-w-7xl mx-auto w-full space-y-8 animate-fadeIn">
-            
-            {/* Header / Chart Controls */}
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
-              <div>
-                <h2 className="text-xl font-black uppercase text-white tracking-tight flex items-center gap-2">
-                  <TrendingUp size={20} className="text-[#d4f000]" /> Intelligence & Visual Analytics
-                </h2>
-                <p className="text-xs text-white/50 mt-1">Deep statistical observations and visualizations generated from your data</p>
-              </div>
 
-              <div className="flex items-center gap-2">
-                {['bar', 'area', 'pie'].map(t => (
-                  <button
-                    key={t}
-                    onClick={() => setActiveChartType(t)}
-                    className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded transition-colors ${
-                      activeChartType === t ? 'bg-[#d4f000] text-[#080808]' : 'bg-white/5 text-white/60 hover:text-white'
-                    }`}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Visual Analytics Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              
-              {/* Left Chart View (7 cols) */}
-              <div className="lg:col-span-7 bg-[#0e0e0e] border border-white/10 p-6 rounded-xl space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs uppercase tracking-widest font-bold text-white/80">
-                    {headers[0] || 'Metric'} vs {headers[1] || 'Value'}
-                  </h3>
-                  <span className="text-[10px] text-white/40 font-mono">Live Render</span>
-                </div>
-
-                <div className="h-80 w-full pt-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    {activeChartType === 'pie' ? (
-                      <PieChart>
-                        <Pie
-                          data={liveChartData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={65}
-                          outerRadius={105}
-                          paddingAngle={4}
-                          dataKey="value"
-                          nameKey="name"
-                          stroke="none"
-                        >
-                          {liveChartData.map((_, index) => (
-                            <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px' }} itemStyle={{ color: ACCENT }} />
-                        <Legend wrapperStyle={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }} iconType="circle" />
-                      </PieChart>
-                    ) : activeChartType === 'area' ? (
-                      <AreaChart data={liveChartData} margin={{ top: 10, right: 10, left: -20, bottom: 15 }}>
-                        <XAxis dataKey="name" fontSize={10} tickLine={false} axisLine={false} tick={{ fill: 'rgba(255,255,255,0.4)' }} />
-                        <YAxis fontSize={10} tickLine={false} axisLine={false} tick={{ fill: 'rgba(255,255,255,0.4)' }} />
-                        <Tooltip contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px' }} itemStyle={{ color: ACCENT }} />
-                        <Area type="monotone" dataKey="value" stroke={ACCENT} fill="rgba(212,240,0,0.15)" strokeWidth={2} />
-                      </AreaChart>
-                    ) : (
-                      <BarChart data={liveChartData} margin={{ top: 10, right: 10, left: -20, bottom: 15 }}>
-                        <XAxis dataKey="name" fontSize={10} tickLine={false} axisLine={false} tick={{ fill: 'rgba(255,255,255,0.4)' }} />
-                        <YAxis fontSize={10} tickLine={false} axisLine={false} tick={{ fill: 'rgba(255,255,255,0.4)' }} />
-                        <Tooltip contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px' }} itemStyle={{ color: ACCENT }} />
-                        <Bar dataKey="value" fill={ACCENT} radius={[3, 3, 0, 0]} />
-                      </BarChart>
-                    )}
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Right: AI Insights Report & Suggestions (5 cols) */}
-              <div className="lg:col-span-5 space-y-6">
-                
-                {/* AI Markdown Report */}
-                <div className="bg-[#0e0e0e] border border-[#d4f000]/20 p-6 rounded-xl space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs uppercase tracking-widest font-black text-[#d4f000] flex items-center gap-2">
-                      <Sparkles size={14} /> AI Analysis
-                    </h3>
-                    <button
-                      onClick={handleReanalyzeWithAI}
-                      disabled={isReanalyzing}
-                      className="text-[10px] text-white/50 hover:text-white font-bold uppercase flex items-center gap-1"
-                    >
-                      <RefreshCw size={10} className={isReanalyzing ? 'animate-spin' : ''} />
-                      {isReanalyzing ? 'Thinking...' : 'Re-analyze'}
-                    </button>
-                  </div>
-
-                  <div className="text-xs text-white/75 leading-relaxed space-y-2 max-h-60 overflow-y-auto pr-1">
-                    <ReactMarkdown
-                      components={{
-                        h1: ({ children }) => <h4 className="text-sm font-bold text-white mt-2 mb-1">{children}</h4>,
-                        h2: ({ children }) => <h5 className="text-xs font-bold text-white mt-2 mb-1">{children}</h5>,
-                        p: ({ children }) => <p className="mb-2">{children}</p>,
-                        ul: ({ children }) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
-                        strong: ({ children }) => <strong className="text-[#d4f000]">{children}</strong>
-                      }}
-                    >
-                      {insightsText}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-
-                {/* Flow Assistant Actions */}
-                <div className="bg-[#0e0e0e] border border-white/10 p-5 rounded-xl space-y-3">
-                  <h3 className="text-xs uppercase tracking-widest font-bold text-white/80 flex items-center gap-2">
-                    <Zap size={14} className="text-[#d4f000]" /> Recommended Actions
-                  </h3>
-                  <div className="space-y-2">
-                    {aiSuggestions.map(sug => {
-                      const Icon = sug.icon;
-                      const isApplied = appliedSuggestions.has(sug.id);
-                      return (
-                        <div key={sug.id} className="p-3 bg-white/[0.02] border border-white/5 rounded-lg flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <Icon size={14} className="text-[#d4f000] shrink-0" />
-                            <div>
-                              <p className="text-xs font-bold text-white">{sug.title}</p>
-                              <p className="text-[10px] text-white/40 truncate">{sug.desc}</p>
-                            </div>
-                          </div>
-                          <button
-                            onClick={sug.action}
-                            disabled={isApplied}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded transition-colors ${
-                              isApplied
-                                ? 'bg-emerald-500/20 text-emerald-400'
-                                : 'bg-[#d4f000] text-[#080808] hover:bg-[#b8d000]'
-                            }`}
-                          >
-                            {isApplied ? 'Applied' : 'Apply'}
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-        )}
 
       </main>
 
