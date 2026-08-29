@@ -190,8 +190,6 @@ export default function ToolChoice({ onEditSite, onBuildNewWebsite }) {
           {/* Large Action CTA Button */}
           <div className="relative z-10 mt-auto pt-6 border-t border-white/10">
             <button
-              onClick={() => navigate('/aibuilder')}
-              className="w-full py-4.5 px-6 flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] transition-all shadow-lg shadow-[#d4f000]/10"
               onClick={() => {
                 if (onBuildNewWebsite) onBuildNewWebsite();
                 else navigate('/aibuilder');
@@ -268,8 +266,6 @@ export default function ToolChoice({ onEditSite, onBuildNewWebsite }) {
                 {searchQuery ? `No website matching "${searchQuery}".` : 'You haven\'t created any websites yet. Click below to start building your first site with AI.'}
               </p>
               <button
-                onClick={() => navigate('/aibuilder')}
-                className="px-6 py-3 border border-[#d4f000] text-[#d4f000] text-xs font-bold uppercase tracking-widest hover:bg-[#d4f000] hover:text-[#080808] transition-colors flex items-center gap-2"
                 onClick={() => {
                   if (onBuildNewWebsite) onBuildNewWebsite();
                   else navigate('/aibuilder');
