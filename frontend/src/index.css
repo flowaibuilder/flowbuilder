@@ -22,8 +22,8 @@ body {
 
 /* ─── MOBILE PREVIEW OVERRIDES ────────────────────────────────────────────── */
 .is-mobile-view {
-  width: 390px !important;
-  max-width: 390px !important;
+  width: 340px !important;
+  max-width: 340px !important;
   box-sizing: border-box !important;
 }
 
@@ -68,4 +68,18 @@ body {
 
 .is-mobile-view .flex-wrap > * {
   width: 100% !important;
+}
+
+/* Force mobile hamburger and hide desktop nav links in preview */
+.is-mobile-view nav .hidden.md\:flex,
+.is-mobile-view nav .hidden.md\:inline-flex {
+  display: none !important;
+}
+
+.is-mobile-view nav button.md\:hidden {
+  display: block !important;
+}
+
+.is-mobile-view nav div.md\:hidden {
+  display: flex !important;
 }

@@ -2679,7 +2679,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             onMouseDown={handlePreviewClick}
             className={`relative transition-all duration-300 ${
               viewMode === 'mobile' 
-                ? 'is-mobile-view w-full max-w-[390px] min-h-[700px] border-[8px] border-[#222226] rounded-[36px] shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-x-hidden' 
+                ? 'is-mobile-view w-full max-w-[340px] min-h-[700px] border-[8px] border-[#222226] rounded-[36px] shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-x-hidden' 
                 : 'w-full min-h-full border-none rounded-none shadow-none'
             }`}
             style={{ 
