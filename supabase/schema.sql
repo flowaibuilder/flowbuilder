@@ -1,57 +1,117 @@
--- Create the shared_forms table to store form configurations
-CREATE TABLE public.shared_forms (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    headers JSONB NOT NULL,
-    dashboard_name TEXT
-);
+-- ==============================================================================
+-- FLOW AI WEB BUILDER - MASTER SUPABASE DATABASE SCHEMA
+-- ==============================================================================
 
--- Create the form_submissions table to store user responses
-CREATE TABLE public.form_submissions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    form_id UUID REFERENCES public.shared_forms(id) ON DELETE CASCADE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    data JSONB NOT NULL
-);
+-- 1. CLEANUP UNNEEDED MODULES
+-- Remove legacy Data Agent tables if present
+DROP TABLE IF EXISTS public.saved_dashboards CASCADE;
 
--- Enable Realtime for form_submissions (Optional, but good if you want to use Supabase Realtime in the future)
-alter publication supabase_realtime add table public.form_submissions;
+-- Enable UUID extension if not enabled
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Protect Network Security by Enabling Row Level Security (RLS)
--- This blocks all public (anon) access by default, but our backend's Service Role Key bypasses it.
-ALTER TABLE public.shared_forms ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.form_submissions ENABLE ROW LEVEL SECURITY;
+-- ==============================================================================
+-- 2. CORE WEB BUILDER TABLES
+-- ==============================================================================
 
--- Create the saved_dashboards table to store user dashboards
-CREATE TABLE public.saved_dashboards (
+-- ------------------------------------------------------------------------------
+-- TABLE: saved_websites
+-- Description: Stores draft and saved website projects created by users
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.saved_websites (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    file_name TEXT,
-    csv_content TEXT,
-    analysis_type TEXT DEFAULT 'general',
-    result JSONB NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    status TEXT DEFAULT 'draft', -- 'draft' or 'published'
+    spec JSONB,                  -- AI-generated section structure & content
+    theme JSONB,                 -- Custom color palette & design tokens
+    config JSONB,                -- Site metadata (feel, font, logo, subdomain)
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Enable Row Level Security (RLS)
-ALTER TABLE public.saved_dashboards ENABLE ROW LEVEL SECURITY;
+-- Ensure status column exists for existing tables
+ALTER TABLE public.saved_websites ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'draft';
 
--- RLS Policies (Users can manage their own saved dashboards)
-CREATE POLICY "Users can select their own dashboards" 
-    ON public.saved_dashboards FOR SELECT 
-    USING (auth.uid() = user_id);
+-- ------------------------------------------------------------------------------
+-- TABLE: published_sites
+-- Description: Stores live published websites accessible via custom subdomains
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.published_sites (
+    subdomain TEXT PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    website_id UUID REFERENCES public.saved_websites(id) ON DELETE SET NULL,
+    config JSONB NOT NULL,       -- Live site configuration served to visitors
+    published_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
-CREATE POLICY "Users can insert their own dashboards" 
-    ON public.saved_dashboards FOR INSERT 
-    WITH CHECK (auth.uid() = user_id);
+-- ------------------------------------------------------------------------------
+-- TABLE: shared_forms
+-- Description: Stores contact/lead form schemas generated for websites
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.shared_forms (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    headers JSONB NOT NULL,      -- Array of field headers e.g. ["Name", "Email", "Message"]
+    dashboard_name TEXT
+);
 
-CREATE POLICY "Users can update their own dashboards" 
-    ON public.saved_dashboards FOR UPDATE 
-    USING (auth.uid() = user_id);
+-- ------------------------------------------------------------------------------
+-- TABLE: form_submissions
+-- Description: Stores live responses submitted by visitors on published websites
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.form_submissions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    form_id UUID REFERENCES public.shared_forms(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    data JSONB NOT NULL          -- Submitted form response values
+);
 
-CREATE POLICY "Users can delete their own dashboards" 
-    ON public.saved_dashboards FOR DELETE 
-    USING (auth.uid() = user_id);
+-- ==============================================================================
+-- 3. SUPABASE REALTIME CONFIGURATION
+-- ==============================================================================
+-- Enable Realtime for form_submissions so lead submissions stream in real-time
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' 
+    AND schemaname = 'public' 
+    AND tablename = 'form_submissions'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.form_submissions;
+  END IF;
+END $$;
 
+-- ==============================================================================
+-- 4. ROW LEVEL SECURITY (RLS) & ACCESS POLICIES
+-- ==============================================================================
+
+-- Enable Row Level Security (RLS) on all tables
+ALTER TABLE public.saved_websites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.published_sites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.shared_forms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.form_submissions ENABLE ROW LEVEL SECURITY;
+
+-- ------------------------------------------------------------------------------
+-- POLICIES: saved_websites
+-- ------------------------------------------------------------------------------
+DROP POLICY IF EXISTS "Users manage saved_websites" ON public.saved_websites;
+CREATE POLICY "Users manage saved_websites" 
+    ON public.saved_websites FOR ALL 
+    USING (auth.uid() = user_id OR user_id IS NULL);
+
+-- ------------------------------------------------------------------------------
+-- POLICIES: published_sites
+-- ------------------------------------------------------------------------------
+DROP POLICY IF EXISTS "Public read for published sites" ON public.published_sites;
+CREATE POLICY "Public read for published sites" 
+    ON public.published_sites FOR SELECT 
+    USING (true);
+
+DROP POLICY IF EXISTS "Users insert published sites" ON public.published_sites;
+CREATE POLICY "Users insert published sites" 
+    ON public.published_sites FOR INSERT 
+    WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+
+-- ==============================================================================
+-- END OF SCHEMA
+-- ==============================================================================

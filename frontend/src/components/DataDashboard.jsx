@@ -190,7 +190,7 @@ function EmptyState() {
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
-function Sidebar({ savedDashboards, activeDashboard, onOpen, onRename, onDelete, onNewAnalysis, style, className }) {
+function Sidebar({ savedDashboards, activeDashboard, onOpen, onRename, onDelete, onNewAnalysis, fetching, style, className }) {
   const [isOpen, setIsOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -262,7 +262,14 @@ function Sidebar({ savedDashboards, activeDashboard, onOpen, onRename, onDelete,
         transition: 'opacity 0.2s ease, padding 0.3s ease'
       }}>
         {isOpen && (
-          filteredDashboards.length === 0 ? (
+          fetching ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 16px', gap: '12px' }}>
+              <Loader2 className="animate-spin text-[#d4f000]" size={20} />
+              <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)', margin: 0 }}>
+                Fetching dashboards...
+              </p>
+            </div>
+          ) : filteredDashboards.length === 0 ? (
             searchQuery ? (
               <div style={{ padding: '32px 16px', textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontSize: '13px', whiteSpace: 'nowrap' }}>
                 No results found
@@ -505,6 +512,7 @@ function DashboardView({ dashboard, onBack, onUpdateName, onUpdateDashboard }) {
 
 export default function DataDashboard() {
   const [savedDashboards, setSavedDashboards] = useState([]);
+  const [fetchingDashboards, setFetchingDashboards] = useState(true);
   const [activeDashboard, setActiveDashboard] = useState(null);
   const [fileState, setFileState] = useState({ file: null, fileName: '', fileSize: '', csvContent: '' });
   const [isDragging, setIsDragging] = useState(false);
@@ -515,6 +523,7 @@ export default function DataDashboard() {
   const fileInputRef = useRef(null);
 
   const fetchDashboards = useCallback(async () => {
+    setFetchingDashboards(true);
     try {
       const { data, error } = await supabase
         .from('saved_dashboards')
@@ -537,6 +546,8 @@ export default function DataDashboard() {
       }
     } catch (err) {
       console.error('Error fetching dashboards from database:', err);
+    } finally {
+      setFetchingDashboards(false);
     }
   }, []);
 
@@ -708,6 +719,7 @@ export default function DataDashboard() {
             onRename={handleRenameDashboard}
             onDelete={handleDeleteDashboard}
             onNewAnalysis={() => setActiveDashboard(null)}
+            fetching={fetchingDashboards}
             style={{ width: '280px' }}
           />
         </div>
@@ -783,6 +795,7 @@ export default function DataDashboard() {
           onRename={handleRenameDashboard}
           onDelete={handleDeleteDashboard}
           onNewAnalysis={null}
+          fetching={fetchingDashboards}
           style={{}}
           className="da-sidebar"
         />
