@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import DataEditor from './DataEditor';
 import ReactMarkdown from 'react-markdown';
+import { supabase } from '../lib/supabase';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -25,19 +26,6 @@ const ANALYSIS_TYPES = [
   { id: 'customer',  label: 'Customer Insights',   icon: Users },
   { id: 'custom',    label: 'Custom',              icon: Sliders },
 ];
-
-const STORAGE_KEY = 'flow_saved_dashboards';
-
-function loadSavedDashboards() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
-}
-
-function saveDashboards(list) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch {}
-}
 
 // ── Dashboard Card ────────────────────────────────────────────────────────────
 
@@ -516,7 +504,7 @@ function DashboardView({ dashboard, onBack, onUpdateName, onUpdateDashboard }) {
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function DataDashboard() {
-  const [savedDashboards, setSavedDashboards] = useState(loadSavedDashboards);
+  const [savedDashboards, setSavedDashboards] = useState([]);
   const [activeDashboard, setActiveDashboard] = useState(null);
   const [fileState, setFileState] = useState({ file: null, fileName: '', fileSize: '', csvContent: '' });
   const [isDragging, setIsDragging] = useState(false);
@@ -526,18 +514,74 @@ export default function DataDashboard() {
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
 
-  const persistDashboards = (next) => { setSavedDashboards(next); saveDashboards(next); };
+  const fetchDashboards = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('saved_dashboards')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-  const handleDeleteDashboard = (id) => {
-    const next = savedDashboards.filter((d) => d.id !== id);
-    persistDashboards(next);
-    if (activeDashboard?.id === id) setActiveDashboard(null);
+      if (error) {
+        console.error('Error fetching saved dashboards:', error);
+      } else if (data) {
+        const mapped = data.map(d => ({
+          id: d.id,
+          name: d.name,
+          fileName: d.file_name,
+          csvContent: d.csv_content,
+          analysisType: d.analysis_type,
+          result: d.result,
+          createdAt: d.created_at,
+        }));
+        setSavedDashboards(mapped);
+      }
+    } catch (err) {
+      console.error('Error fetching dashboards from database:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboards();
+  }, [fetchDashboards]);
+
+  const handleDeleteDashboard = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('saved_dashboards')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting dashboard:', error);
+        alert('Failed to delete dashboard: ' + error.message);
+        return;
+      }
+
+      setSavedDashboards(prev => prev.filter((d) => d.id !== id));
+      if (activeDashboard?.id === id) setActiveDashboard(null);
+    } catch (err) {
+      console.error('Delete error:', err);
+    }
   };
 
-  const handleRenameDashboard = (id, newName) => {
-    const next = savedDashboards.map((d) => d.id === id ? { ...d, name: newName } : d);
-    persistDashboards(next);
-    if (activeDashboard?.id === id) setActiveDashboard((p) => ({ ...p, name: newName }));
+  const handleRenameDashboard = async (id, newName) => {
+    try {
+      const { error } = await supabase
+        .from('saved_dashboards')
+        .update({ name: newName, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error renaming dashboard:', error);
+        alert('Failed to rename dashboard: ' + error.message);
+        return;
+      }
+
+      setSavedDashboards(prev => prev.map((d) => d.id === id ? { ...d, name: newName } : d));
+      if (activeDashboard?.id === id) setActiveDashboard((p) => (p ? { ...p, name: newName } : null));
+    } catch (err) {
+      console.error('Rename error:', err);
+    }
   };
 
   const handleOpenDashboard = (dashboard) => {
@@ -609,17 +653,41 @@ export default function DataDashboard() {
       if (!response.ok) throw new Error(data.error || 'Failed to analyze data');
       const baseName = fileState.fileName.replace(/\.[^/.]+$/, '');
       const cleanName = baseName.replace(/[-_]/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-      const newDash = {
-        id: `dash_${Date.now()}`,
+
+      // Fetch user ID if logged in
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const newDashPayload = {
         name: `${cleanName} Dashboard`,
-        fileName: fileState.fileName,
-        csvContent: fileState.csvContent,
+        file_name: fileState.fileName,
+        csv_content: fileState.csvContent,
+        analysis_type: analysisType,
         result: data.result,
-        createdAt: new Date().toISOString(),
-        analysisType,
+        user_id: user ? user.id : null,
       };
-      const next = [newDash, ...savedDashboards];
-      persistDashboards(next);
+
+      const { data: insertedData, error: insertError } = await supabase
+        .from('saved_dashboards')
+        .insert([newDashPayload])
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Database insert error:', insertError);
+        throw new Error('Failed to save dashboard to database: ' + insertError.message);
+      }
+
+      const newDash = {
+        id: insertedData.id,
+        name: insertedData.name,
+        fileName: insertedData.file_name,
+        csvContent: insertedData.csv_content,
+        result: insertedData.result,
+        createdAt: insertedData.created_at,
+        analysisType: insertedData.analysis_type,
+      };
+
+      setSavedDashboards(prev => [newDash, ...prev]);
       setActiveDashboard(newDash);
     } catch (err) { setError(err.message); }
     finally { setLoading(false); }
@@ -648,10 +716,29 @@ export default function DataDashboard() {
             dashboard={activeDashboard}
             onBack={() => setActiveDashboard(null)}
             onUpdateName={handleRenameDashboard}
-            onUpdateDashboard={(updatedDash) => {
-              const next = savedDashboards.map(d => d.id === updatedDash.id ? updatedDash : d);
-              persistDashboards(next);
-              setActiveDashboard(updatedDash);
+            onUpdateDashboard={async (updatedDash) => {
+              try {
+                const { error } = await supabase
+                  .from('saved_dashboards')
+                  .update({
+                    name: updatedDash.name,
+                    csv_content: updatedDash.csvContent,
+                    result: updatedDash.result,
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq('id', updatedDash.id);
+
+                if (error) {
+                  console.error('Error updating dashboard:', error);
+                  alert('Failed to update dashboard: ' + error.message);
+                  return;
+                }
+
+                setSavedDashboards(prev => prev.map(d => d.id === updatedDash.id ? updatedDash : d));
+                setActiveDashboard(updatedDash);
+              } catch (err) {
+                console.error('Update error:', err);
+              }
             }}
           />
         </div>
