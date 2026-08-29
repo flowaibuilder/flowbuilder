@@ -1,12 +1,11 @@
 const OpenAI = require('openai');
 require('dotenv').config();
 
-const groq = new OpenAI({
+const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'missing-key',
   baseURL: process.env.OPENAI_BASE_URL || 'https://api.novita.ai/v3/openai',
 });
 
-// Using the model the user provided
 const MODEL_NAME = process.env.MODEL_NAME || 'openai/gpt-oss-120b';
 
 async function generateWebsiteSpec(businessDetails) {
@@ -62,7 +61,7 @@ Example output format:
 ]`;
 
   try {
-    const completion = await groq.chat.completions.create({
+    const completion = await client.chat.completions.create({
       model: MODEL_NAME,
       messages: [
         { role: 'system', content: 'You are a JSON-only API. Output ONLY a valid JSON array with no markdown fences, no comments, and no extra text.' },
@@ -152,7 +151,7 @@ Return ONLY a valid JSON object matching this exact structure (no markdown fence
   "summary": "Detailed summary of precise actions executed."
 }`;
 
-  // Format conversational history for Groq
+  // Format conversational history for Novita AI
   const historyMessages = (chatHistory || [])
     .filter(m => m.text && m.sender)
     .slice(-10)
@@ -175,7 +174,7 @@ Current Theme Colors: ${JSON.stringify(currentTheme || { primary: '#d4f000', sec
 Current Layout Personality/Feel: "${currentFeel || 'professional'}"`;
 
   try {
-    const completion = await groq.chat.completions.create({
+    const completion = await client.chat.completions.create({
       model: MODEL_NAME,
       messages: [
         { role: 'system', content: systemPrompt },
@@ -233,7 +232,7 @@ Rules:
 - Make the description and differentiator very specific and catchy for the business.`;
 
   try {
-    const completion = await groq.chat.completions.create({
+    const completion = await client.chat.completions.create({
       model: MODEL_NAME,
       messages: [
         { role: 'system', content: 'You are a JSON-only assistant. Output ONLY a valid JSON object and nothing else.' },
