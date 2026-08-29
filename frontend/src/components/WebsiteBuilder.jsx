@@ -1260,18 +1260,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
 
           {activeTab === 'refine' && (
             <div className="flex-1 flex flex-col min-h-0">
-              {previousHistoryState && (
-                <div className="p-2.5 bg-[#d4f000]/10 border-b border-[#d4f000]/25 flex items-center justify-between text-xs text-white px-3 gap-2">
-                  <span className="text-[10px] text-white/70">Revert to the design before your last AI update?</span>
-                  <button
-                    type="button"
-                    onClick={handleRevert}
-                    className="px-2.5 py-1 bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] font-black uppercase rounded text-[9px] tracking-wide shrink-0 transition-colors"
-                  >
-                    Revert
-                  </button>
-                </div>
-              )}
+
               {/* Chat Messages Feed */}
               <div className="flex-1 overflow-y-auto p-3 space-y-3.5 bg-black/40">
                 {chatMessages.map((msg) => (
@@ -1306,6 +1295,19 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                 <div ref={chatEndRef} />
               </div>
 
+
+              {previousHistoryState && (
+                <div className="p-2.5 bg-[#d4f000]/10 border-t border-[#d4f000]/25 flex items-center justify-between text-xs text-white px-3 gap-2">
+                  <span className="text-[10px] text-white/70">Undo last AI update?</span>
+                  <button
+                    type="button"
+                    onClick={handleRevert}
+                    className="px-2.5 py-1 bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] font-black uppercase rounded text-[9px] tracking-wide shrink-0 transition-colors"
+                  >
+                    Revert
+                  </button>
+                </div>
+              )}
 
               {/* Chat Input Form */}
               <form onSubmit={handleRefine} className="p-3 bg-[#121212] border-t border-white/10 flex flex-col gap-2">
@@ -1610,7 +1612,10 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         onDrop={handlePreviewDrop}
         onMouseDown={handlePreviewClick}
         className="flex-1 overflow-auto relative" 
-        style={{ backgroundColor: 'var(--color-bg-base, #ffffff)' }}
+        style={{ 
+          backgroundColor: 'var(--color-bg-base, #ffffff)',
+          color: 'var(--color-text-base, #000000)'
+        }}
       >
         {/* Generated Site Navbar */}
         <SiteNavbar businessName={businessName} sections={sections} theme={theme} logo={logo} />
