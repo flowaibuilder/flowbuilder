@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Loader2, ChevronRight, ChevronLeft, Check, Sparkles, Globe, Palette, FileText, Rocket, Zap } from 'lucide-react';
 
@@ -1054,6 +1055,7 @@ function Row({ label, value }) {
 // ─── MAIN QUESTIONNAIRE ───────────────────────────────────────────────────────
 
 export default function Questionnaire({ onWebsiteGenerated, onOpenProject, initialData }) {
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [data, setData] = useState({
     name: '',
@@ -1274,14 +1276,23 @@ export default function Questionnaire({ onWebsiteGenerated, onOpenProject, initi
           {/* Navigation */}
           {step < 3 && (
             <div className="flex justify-between items-center mt-10 pt-6 border-t border-white/8">
-              <button
-                type="button"
-                onClick={() => setStep(s => s - 1)}
-                disabled={step === 0}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white/40 hover:text-white/70 transition-colors disabled:opacity-0 disabled:pointer-events-none"
-              >
-                <ChevronLeft size={16} /> Back
-              </button>
+              {step === 0 ? (
+                <button
+                  type="button"
+                  onClick={() => navigate('/home')}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white/40 hover:text-white/70 transition-colors"
+                >
+                  <ChevronLeft size={16} /> Cancel
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setStep(s => s - 1)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white/40 hover:text-white/70 transition-colors"
+                >
+                  <ChevronLeft size={16} /> Back
+                </button>
+              )}
 
               <button
                 type="button"
