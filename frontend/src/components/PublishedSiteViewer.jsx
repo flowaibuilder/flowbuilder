@@ -100,95 +100,106 @@ export default function PublishedSiteViewer({ subdomain }) {
           );
         })}
 
-        {/* Floating Images Layer */}
-        {(siteImages || []).map(img => {
-          const aspect = (img.type !== 'text' && img.width && img.height) ? `${img.width} / ${img.height}` : 'auto';
-          return (
-            <div
-              key={img.id}
-              style={{
-                position: 'absolute',
-                left: `${img.xPercent || 0}%`,
-                top: `${img.y}px`,
-                width: `${img.widthPercent || 20}%`,
-                maxWidth: '100%',
-                aspectRatio: aspect,
-                zIndex: img.zIndex !== undefined ? img.zIndex : 10,
-                opacity: img.opacity !== undefined ? img.opacity : 1,
-                filter: img.blur ? `blur(${img.blur}px)` : 'none',
-                pointerEvents: 'none',
-              }}
-              className={`floating-image-container ${
-                img.shadow === 'soft' ? 'shadow-md' :
-                img.shadow === 'medium' ? 'shadow-xl' :
-                img.shadow === 'hard' ? 'shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]' :
-                'shadow-none'
-              }`}
-            >
-              {(!img.type || img.type === 'image') && (
-                <img
-                  src={img.url}
-                  alt=""
-                  className="w-full h-full object-cover"
-                  style={{
-                    borderRadius: `${img.borderRadius || 0}px`
-                  }}
-                />
-              )}
-
-              {img.type === 'button' && (
-                <a
-                  href={img.link || '#'}
-                  className="w-full h-full flex items-center justify-center font-bold px-4 text-center select-none"
-                  style={{
-                    backgroundColor: img.color || '#d4f000',
-                    color: img.textColor || '#000000',
-                    borderRadius: `${img.borderRadius || 4}px`,
-                    fontSize: 'inherit',
-                    textDecoration: 'none',
-                    pointerEvents: 'auto'
-                  }}
-                >
-                  {img.text || 'Click Me'}
-                </a>
-              )}
-
-              {img.type === 'text' && (
-                <div
-                  className="w-full h-full p-2 select-none overflow-visible"
-                  style={{
-                    color: img.textColor || '#ffffff',
-                    fontSize: `${img.fontSize || 16}px`,
-                    fontFamily: img.fontFamily || 'Inter, sans-serif',
-                    fontWeight: img.fontWeight || '400',
-                    textAlign: img.textAlign || 'left',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
-                    pointerEvents: 'auto'
-                  }}
-                >
-                  {img.text || ''}
-                </div>
-              )}
-
-              {img.type === 'shape' && (
-                <div
-                  className="w-full h-full"
-                  style={{
-                    backgroundColor: img.color || '#333333',
-                    borderRadius: `${img.borderRadius || 0}px`,
-                    border: img.borderWidth ? `${img.borderWidth}px solid ${img.borderColor || '#ffffff'}` : 'none'
-                  }}
-                />
-              )}
-            </div>
-          );
-        })}
       </main>
 
       {footerSection && (
         <div id={`section-${footerSection.id}`}>
           <Footer content={footerSection.content || {}} feel={feel} />
+        </div>
+      )}
+
+      {/* Floating Layer — fixed overlay so it never causes page overflow/scrollbars */}
+      {false && (siteImages || []).length > 0 && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            pointerEvents: 'none',
+            overflow: 'hidden',
+            zIndex: 40,
+          }}
+        >
+          {(siteImages || []).map(img => {
+            const aspect = (img.type !== 'text' && img.width && img.height) ? `${img.width} / ${img.height}` : 'auto';
+            return (
+              <div
+                key={img.id}
+                style={{
+                  position: 'absolute',
+                  left: `${img.xPercent || 0}%`,
+                  top: `${img.y}px`,
+                  width: `${img.widthPercent || 20}%`,
+                  maxWidth: '100%',
+                  aspectRatio: aspect,
+                  zIndex: img.zIndex !== undefined ? img.zIndex : 10,
+                  opacity: img.opacity !== undefined ? img.opacity : 1,
+                  filter: img.blur ? `blur(${img.blur}px)` : 'none',
+                  pointerEvents: 'none',
+                }}
+                className={`floating-image-container ${
+                  img.shadow === 'soft' ? 'shadow-md' :
+                  img.shadow === 'medium' ? 'shadow-xl' :
+                  img.shadow === 'hard' ? 'shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]' :
+                  'shadow-none'
+                }`}
+              >
+                {(!img.type || img.type === 'image') && (
+                  <img
+                    src={img.url}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    style={{ borderRadius: `${img.borderRadius || 0}px` }}
+                  />
+                )}
+
+                {img.type === 'button' && (
+                  <a
+                    href={img.link || '#'}
+                    className="w-full h-full flex items-center justify-center font-bold px-4 text-center select-none"
+                    style={{
+                      backgroundColor: img.color || '#d4f000',
+                      color: img.textColor || '#000000',
+                      borderRadius: `${img.borderRadius || 4}px`,
+                      fontSize: 'inherit',
+                      textDecoration: 'none',
+                      pointerEvents: 'auto',
+                    }}
+                  >
+                    {img.text || 'Click Me'}
+                  </a>
+                )}
+
+                {img.type === 'text' && (
+                  <div
+                    className="w-full h-full p-2 select-none overflow-visible"
+                    style={{
+                      color: img.textColor || '#ffffff',
+                      fontSize: `${img.fontSize || 16}px`,
+                      fontFamily: img.fontFamily || 'Inter, sans-serif',
+                      fontWeight: img.fontWeight || '400',
+                      textAlign: img.textAlign || 'left',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      pointerEvents: 'auto',
+                    }}
+                  >
+                    {img.text || ''}
+                  </div>
+                )}
+
+                {img.type === 'shape' && (
+                  <div
+                    className="w-full h-full"
+                    style={{
+                      backgroundColor: img.color || '#333333',
+                      borderRadius: `${img.borderRadius || 0}px`,
+                      border: img.borderWidth ? `${img.borderWidth}px solid ${img.borderColor || '#ffffff'}` : 'none',
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

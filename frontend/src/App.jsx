@@ -275,9 +275,9 @@ function ProjectWorkspaceContainer() {
   return (
     <ProjectWorkspace 
       project={siteData} 
-      onBack={() => navigate('/tools')}
+      onBack={() => navigate('/home')}
       onUpdateProject={(updated) => setSiteData(updated)}
-      onDeleteProject={() => navigate('/tools')}
+      onDeleteProject={() => navigate('/home')}
     />
   );
 }
@@ -302,7 +302,7 @@ function AuthenticatedLayout({ children }) {
       `}</style>
 
       <nav className="bg-[#080808] border-b border-white/10 px-8 py-6 flex justify-between items-center sticky top-0 z-50">
-        <Link to="/tools" className="text-2xl font-normal text-white" style={{ fontFamily: "'Pacifico', cursive" }}>
+        <Link to="/home" className="text-2xl font-normal text-white" style={{ fontFamily: "'Pacifico', cursive" }}>
           flow
         </Link>
         <button
@@ -380,13 +380,13 @@ function App() {
         {/* Public landing page — redirect logged-in users straight to /tools */}
         <Route
           path="/"
-          element={session ? <Navigate to="/tools" replace /> : <LandingPage />}
+          element={session ? <Navigate to="/home" replace /> : <LandingPage />}
         />
 
         {/* Login — redirect logged-in users to /tools */}
         <Route
           path="/login"
-          element={session ? <Navigate to="/tools" replace /> : <Login />}
+          element={session ? <Navigate to="/home" replace /> : <Login />}
         />
 
         {/* Static public pages */}
@@ -396,7 +396,7 @@ function App() {
 
         {/* ── Protected: /tools — Your Websites Dashboard ── */}
         <Route
-          path="/tools"
+          path="/home"
           element={
             <ProtectedRoute session={session}>
               <ToolChoice />
@@ -427,7 +427,7 @@ function App() {
         />
 
         {/* Catch-all fallback */}
-        <Route path="*" element={<Navigate to={session ? '/tools' : '/'} replace />} />
+        <Route path="*" element={<Navigate to={session ? '/home' : '/'} replace />} />
       </Routes>
     </Router>
   );

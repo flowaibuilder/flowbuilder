@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import {
@@ -14,9 +15,6 @@ import {
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from 'recharts';
 import ReactMarkdown from 'react-markdown';
-import { supabase } from '../lib/supabase';
-import WebsiteBuilder from './WebsiteBuilder';
-
 const ACCENT = '#d4f000';
 const CHART_COLORS = ['#d4f000', '#a3b800', '#ffffff', '#888888', '#555555', '#333333'];
 
@@ -36,6 +34,7 @@ export default function ProjectWorkspace({
   onUpdateProject,
   onDeleteProject,
 }) {
+  const navigate = useNavigate();
   // ── Project Metadata ────────────────────────────────────────────────────────
   const [projectId, setProjectId] = useState(project?.id || null);
   const [projectName, setProjectName] = useState(project?.name || project?.config?.businessName || 'My Website Project');
@@ -626,7 +625,6 @@ export default function ProjectWorkspace({
         <div className="flex items-center bg-white/[0.04] p-1 border border-white/10 rounded-lg">
           {[
             { id: 'overview', label: 'Overview', icon: Layout },
-            { id: 'website', label: 'Website Builder', icon: Globe },
             { id: 'data', label: 'Spreadsheet', icon: FileSpreadsheet },
             { id: 'analytics', label: 'Analytics & AI', icon: TrendingUp },
           ].map(tab => {
@@ -668,6 +666,14 @@ export default function ProjectWorkspace({
           </button>
 
           <button
+            onClick={() => navigate('/aibuilder', { state: { site: project } })}
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 hover:border-white/30 text-white/70 hover:text-white text-xs uppercase font-bold tracking-wider rounded transition-colors"
+          >
+            <Edit2 size={13} />
+            <span className="hidden sm:inline">Edit Website</span>
+          </button>
+
+          <button
             onClick={handleSaveProject}
             disabled={saveStatus === 'saving'}
             className="flex items-center gap-1.5 px-4 py-1.5 bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] text-xs uppercase font-black tracking-wider rounded transition-colors disabled:opacity-50"
@@ -704,10 +710,15 @@ export default function ProjectWorkspace({
 
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setActiveTab('website')}
+                  onClick={() => {
+                    const subdomain = project?.subdomain;
+                    if (subdomain) {
+                      window.open(`https://${subdomain}.flow.devshahid.me`, '_blank', 'noopener,noreferrer');
+                    }
+                  }}
                   className="px-5 py-2.5 bg-[#d4f000] text-[#080808] font-bold text-xs uppercase tracking-wider rounded hover:bg-[#b8d000] flex items-center gap-2 transition-all"
                 >
-                  <Globe size={14} /> Open Live Website
+                  <ExternalLink size={14} /> Open Live Website
                 </button>
                 <button
                   onClick={() => setActiveTab('data')}
@@ -811,20 +822,7 @@ export default function ProjectWorkspace({
             </div>
 
             {/* Quick Actions Footer */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div
-                onClick={() => setActiveTab('website')}
-                className="p-5 bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 hover:border-[#d4f000]/30 rounded-xl cursor-pointer transition-all flex items-center gap-4 group"
-              >
-                <div className="w-10 h-10 bg-white/5 group-hover:bg-[#d4f000] text-white group-hover:text-[#080808] rounded-lg flex items-center justify-center transition-colors">
-                  <Globe size={18} />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold uppercase text-white group-hover:text-[#d4f000] transition-colors">Edit Sections</h4>
-                  <p className="text-[11px] text-white/40">{websiteSpec.length} sections designed</p>
-                </div>
-              </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div
                 onClick={() => setActiveTab('data')}
                 className="p-5 bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 hover:border-[#d4f000]/30 rounded-xl cursor-pointer transition-all flex items-center gap-4 group"
@@ -855,28 +853,7 @@ export default function ProjectWorkspace({
           </div>
         )}
 
-        {/* ============================================================
-            TAB 2: WEBSITE BUILDER
-        ============================================================ */}
-        {activeTab === 'website' && (
-          <div className="flex-1 w-full h-[calc(100vh-65px)] relative">
-            <WebsiteBuilder
-              initialSpec={websiteSpec}
-              theme={theme}
-              businessName={businessName || projectName}
-              pages={pages}
-              logo={logo}
-              feel={feel}
-              fontStyle={fontStyle}
-              websiteId={projectId}
-              initialSiteImages={siteImages}
-              onSave={(id) => {
-                if (id) setProjectId(id);
-                setSaveStatus('saved');
-              }}
-            />
-          </div>
-        )}
+
 
         {/* ============================================================
             TAB 3: DATA / SPREADSHEET
