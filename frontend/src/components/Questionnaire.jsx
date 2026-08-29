@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Loader2, ChevronRight, ChevronLeft, Check, Sparkles, Globe, Palette, FileText, Rocket, Zap } from 'lucide-react';
+import { uploadImageFile } from '../utils/uploadHelper';
 
 const ACCENT = '#d4f000';
 
@@ -823,12 +824,11 @@ function StepBrand({ data, onChange }) {
                       <span className="text-[10px] text-white/40 uppercase tracking-widest font-semibold">Select File</span>
                     </div>
                   )}
-                  <input type="file" accept="image/*" onChange={(e) => {
+                  <input type="file" accept="image/*" onChange={async (e) => {
                     const file = e.target.files[0];
                     if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (ev) => onChange({ logo: ev.target.result });
-                      reader.readAsDataURL(file);
+                      const fileUrl = await uploadImageFile(file);
+                      onChange({ logo: fileUrl });
                     }
                   }} className="hidden" />
                 </label>

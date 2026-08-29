@@ -4,12 +4,69 @@ const { createClient } = require('@supabase/supabase-js');
 
 const router = express.Router();
 
+const multer = require('multer');
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+});
+
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 let supabase;
 if (supabaseUrl && supabaseKey) {
   supabase = createClient(supabaseUrl, supabaseKey);
 }
+
+router.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    if (!supabase) {
+      return res.status(500).json({ error: 'Supabase client not initialized' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const file = req.file;
+    const cleanName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '_');
+    const fileName = `${Date.now()}-${cleanName}`;
+    const bucketName = 'images';
+
+    // Check buckets
+    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+    if (listError) throw listError;
+
+    const bucketExists = buckets && buckets.some(b => b.name === bucketName);
+    if (!bucketExists) {
+      const { error: createError } = await supabase.storage.createBucket(bucketName, {
+        public: true,
+        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'],
+        fileSizeLimit: 10485760 // 10MB
+      });
+      if (createError) throw createError;
+    }
+
+    // Upload to Supabase Storage
+    const { data, error: uploadError } = await supabase.storage
+      .from(bucketName)
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (uploadError) throw uploadError;
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(fileName);
+
+    res.json({ success: true, url: publicUrl });
+  } catch (error) {
+    console.error('File upload route error:', error);
+    res.status(500).json({ error: error.message || 'Failed to upload file' });
+  }
+});
 
 
 router.post('/analyze', async (req, res) => {

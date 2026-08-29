@@ -21,6 +21,7 @@ import FloatingImage from './FloatingImage';
 
 import { EditableContext } from './EditableText';
 import { supabase } from '../lib/supabase';
+import { uploadImageFile } from '../utils/uploadHelper';
 
 import Hero from './sections/Hero';
 import Features from './sections/Features';
@@ -1086,16 +1087,14 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
     // File drop
     const file = e.dataTransfer.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const fileUrl = reader.result;
+      (async () => {
+        const fileUrl = await uploadImageFile(file);
         setUploadedLibrary(prev => {
           if (prev.includes(fileUrl)) return prev;
           return [...prev, fileUrl];
         });
         addNewFloatingElement('image', x, y, fileUrl);
-      };
-      reader.readAsDataURL(file);
+      })();
       return;
     }
 
@@ -1177,28 +1176,24 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
     setSelectedImageId(newElement.id);
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const fileUrl = reader.result;
-        setMediaUrl(fileUrl);
-        setUploadedLibrary(prev => {
-          if (prev.includes(fileUrl)) return prev;
-          return [...prev, fileUrl];
-        });
-        const previewContainer = document.getElementById('preview-scroll-container');
-        if (previewContainer) {
-          const rect = previewContainer.getBoundingClientRect();
-          const x = rect.width / 2 + previewContainer.scrollLeft;
-          const y = rect.height / 2 + previewContainer.scrollTop;
-          addNewFloatingElement('image', x, y, fileUrl);
-        } else {
-          addNewFloatingElement('image', 300, 200, fileUrl);
-        }
-      };
-      reader.readAsDataURL(file);
+      const fileUrl = await uploadImageFile(file);
+      setMediaUrl(fileUrl);
+      setUploadedLibrary(prev => {
+        if (prev.includes(fileUrl)) return prev;
+        return [...prev, fileUrl];
+      });
+      const previewContainer = document.getElementById('preview-scroll-container');
+      if (previewContainer) {
+        const rect = previewContainer.getBoundingClientRect();
+        const x = rect.width / 2 + previewContainer.scrollLeft;
+        const y = rect.height / 2 + previewContainer.scrollTop;
+        addNewFloatingElement('image', x, y, fileUrl);
+      } else {
+        addNewFloatingElement('image', 300, 200, fileUrl);
+      }
     }
   };
 

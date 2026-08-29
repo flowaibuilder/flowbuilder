@@ -20,7 +20,7 @@ export default function Hero({ content = {}, feel }) {
       }
       rawArr.forEach((b, idx) => {
         const text = typeof b === 'object' ? (b.text || b.label || 'Click Here') : String(b);
-        const path = `buttons.${idx}.text`;
+        const path = `buttons.${idx}`;
         items.push({ text, isSecondary: items.length > 0, path });
       });
       return items;
@@ -84,16 +84,21 @@ export default function Hero({ content = {}, feel }) {
 
         {/* Action Buttons */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          {buttonsList.map((btn, index) => (
-            <EditableText
-              key={index}
-              path={btn.path || `buttons.${index}.text`}
-              value={btn.text}
-              className={btn.isSecondary || index > 0 ? s.buttonSec : s.button}
-              isLink
-              href="#"
-            />
-          ))}
+          {buttonsList.map((btn, index) => {
+            const rawVal = btn.path.includes('.') 
+              ? (content.buttons?.[index] || btn.text) 
+              : (content[btn.path] || btn.text);
+            return (
+              <EditableText
+                key={index}
+                path={btn.path}
+                value={rawVal}
+                className={btn.isSecondary || index > 0 ? s.buttonSec : s.button}
+                isLink
+                href="#"
+              />
+            );
+          })}
         </div>
       </div>
     </div>
