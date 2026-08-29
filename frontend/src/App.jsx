@@ -22,8 +22,9 @@ function AIBuilderContainer() {
   const [feel, setFeel] = useState('');
   const [fontStyle, setFontStyle] = useState('');
   const [websiteId, setWebsiteId] = useState(null);
+  const [initialSiteImages, setInitialSiteImages] = useState([]);
 
-  const handleWebsiteGenerated = (spec, themeColors, name, selectedPages, selectedLogo, selectedFeel, selectedFont, id = null) => {
+  const handleWebsiteGenerated = (spec, themeColors, name, selectedPages, selectedLogo, selectedFeel, selectedFont, id = null, siteImages = []) => {
     setWebsiteSpec(spec);
     setTheme(themeColors);
     setBusinessName(name || '');
@@ -32,6 +33,7 @@ function AIBuilderContainer() {
     setFeel(selectedFeel || '');
     setFontStyle(selectedFont || '');
     setWebsiteId(id);
+    setInitialSiteImages(siteImages || []);
   };
 
   return (
@@ -56,6 +58,7 @@ function AIBuilderContainer() {
           fontStyle={fontStyle} 
           websiteId={websiteId}
           onSave={(id) => setWebsiteId(id)}
+          initialSiteImages={initialSiteImages}
         />
       )}
     </div>

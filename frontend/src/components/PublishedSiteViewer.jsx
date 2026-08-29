@@ -53,24 +53,25 @@ export default function PublishedSiteViewer({ subdomain }) {
     );
   }
 
-  const { businessName, sections, theme, logo, feel } = siteData;
+  const { businessName, sections, theme, logo, feel, siteImages } = siteData;
 
   // Setup CSS variables for the theme
   const themeStyle = theme ? {
     '--color-primary': theme.primary,
     '--color-secondary': theme.secondary,
     '--color-bg-base': theme.background,
-    backgroundColor: theme.background,
+    '--color-text-base': isLight(theme.background) ? '#000000' : '#ffffff',
   } : {};
 
+  // Non-footer sections for the preview area
   const mainSections = sections.filter(s => s.type !== 'footer');
   const footerSection = sections.find(s => s.type === 'footer');
 
   return (
-    <div className="w-full min-h-screen font-sans" style={themeStyle}>
+    <div className="w-full min-h-screen font-sans relative overflow-x-hidden" style={themeStyle}>
       <SiteNavbar businessName={businessName} sections={sections} theme={theme} logo={logo} />
       
-      <main>
+      <main className="relative">
         {mainSections.map((section) => {
           const Component = SectionComponents[section.type];
           if (!Component) return null;
@@ -78,6 +79,42 @@ export default function PublishedSiteViewer({ subdomain }) {
           return (
             <div key={section.id} id={`section-${section.id}`}>
               <Component content={section.content || {}} feel={feel} />
+            </div>
+          );
+        })}
+
+        {/* Floating Images Layer */}
+        {(siteImages || []).map(img => {
+          const aspect = img.width && img.height ? `${img.width} / ${img.height}` : 'auto';
+          return (
+            <div
+              key={img.id}
+              style={{
+                position: 'absolute',
+                left: `${img.xPercent || 0}%`,
+                top: `${img.y}px`,
+                width: `${img.widthPercent || 20}%`,
+                aspectRatio: aspect,
+                zIndex: img.zIndex || 10,
+                opacity: img.opacity !== undefined ? img.opacity : 1,
+                filter: img.blur ? `blur(${img.blur}px)` : 'none',
+                pointerEvents: 'none',
+              }}
+              className={`floating-image-container ${
+                img.shadow === 'soft' ? 'shadow-md' :
+                img.shadow === 'medium' ? 'shadow-xl' :
+                img.shadow === 'hard' ? 'shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]' :
+                'shadow-none'
+              }`}
+            >
+              <img
+                src={img.url}
+                alt=""
+                className="w-full h-full object-cover"
+                style={{
+                  borderRadius: `${img.borderRadius || 0}px`
+                }}
+              />
             </div>
           );
         })}

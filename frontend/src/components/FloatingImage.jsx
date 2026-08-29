@@ -116,10 +116,17 @@ export default function FloatingImage({ image, onUpdate, onDelete, isEditable, i
         top: `${image.y}px`,
         width: `${image.widthPercent || 20}%`,
         aspectRatio: aspect,
-        zIndex: isEditable ? (isSelected ? 100 : 99) : 10,
+        zIndex: isEditable ? (isSelected ? 1000 : (image.zIndex || 99)) : (image.zIndex || 10),
+        opacity: image.opacity !== undefined ? image.opacity : 1,
+        filter: image.blur ? `blur(${image.blur}px)` : 'none',
       }}
       className={`floating-image-container group ${isEditable ? 'cursor-grab active:cursor-grabbing' : ''} ${
         isEditable && isSelected ? 'ring-2 ring-[#d4f000]' : ''
+      } ${
+        image.shadow === 'soft' ? 'shadow-md' :
+        image.shadow === 'medium' ? 'shadow-xl' :
+        image.shadow === 'hard' ? 'shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]' :
+        'shadow-none'
       }`}
       onMouseDown={(e) => {
         handleMouseDownMove(e);
@@ -129,7 +136,7 @@ export default function FloatingImage({ image, onUpdate, onDelete, isEditable, i
       <img
         src={image.url}
         alt="Floating site asset"
-        className="w-full h-full object-cover shadow-2xl pointer-events-none"
+        className="w-full h-full object-cover pointer-events-none"
         style={{
           borderRadius: `${image.borderRadius || 0}px`
         }}

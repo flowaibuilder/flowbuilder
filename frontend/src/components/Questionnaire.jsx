@@ -1227,7 +1227,8 @@ export default function Questionnaire({ onWebsiteGenerated }) {
                       site.config?.logo,
                       site.config?.feel,
                       site.config?.fontStyle,
-                      site.id
+                      site.id,
+                      site.config?.siteImages
                     );
                   }
                 }}
