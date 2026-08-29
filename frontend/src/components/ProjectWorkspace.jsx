@@ -86,35 +86,11 @@ export default function ProjectWorkspace({
     project?.config?.aiInsights ||
     `### AI Intelligence & Performance Report\n- **Primary Growth Channel**: Organic search drives **42% of total conversions**.\n- **Conversion Efficiency**: Email campaigns have the highest conversion rate at **10.2%**.\n- **Optimization Suggestion**: Improving mobile load speed can reduce social bounce rate from **56.1%** to sub-**40%**.\n- **Website Alignment**: Your current CTA matches high-intent search landing pages.`
   );
-  const defaultMetrics = [
-    { label: 'Visitors (1 Day)', value: '0' },
-    { label: 'Visitors (30 Days)', value: '0' },
-    { label: 'Visitors (1 Year)', value: '0' },
-    { label: 'Total Conversions', value: '0' },
-    { label: 'Gross Revenue', value: '$0' },
-    { label: 'Avg Conversion Rate', value: '0%' }
-  ];
 
-  const [metricsList, setMetricsList] = useState(() => {
-    if (project?.config?.aiMetrics) {
-      // If there are saved metrics, still zero out the visitor ones initially to avoid flash
-      // and let the fetch handle the real visitor data.
-      const filtered = project.config.aiMetrics.filter(m => !m.label.includes('Visitors (') && m.label !== 'Total Visitors');
-      return [
-        { label: 'Visitors (1 Day)', value: '0' },
-        { label: 'Visitors (30 Days)', value: '0' },
-        { label: 'Visitors (1 Year)', value: '0' },
-        ...filtered.map(m => {
-          // If the saved value is the exact static mock value, change it to 0
-          if (m.value === '2,440') return { ...m, value: '0' };
-          if (m.value === '$122,000') return { ...m, value: '$0' };
-          if (m.value === '6.5%') return { ...m, value: '0%' };
-          return m;
-        })
-      ];
-    }
-    return defaultMetrics;
-  });
+
+  const [rawVisitorStats, setRawVisitorStats] = useState({});
+  const [visitorFilter, setVisitorFilter] = useState({ type: 'preset', value: '30d' }); // type: preset | date | month
+
   const [dismissedSuggestions, setDismissedSuggestions] = useState(new Set());
   const [appliedSuggestions, setAppliedSuggestions] = useState(new Set());
 
@@ -133,33 +109,7 @@ export default function ProjectWorkspace({
         if (error) return;
         
         const visitorStats = data?.config?.visitorStats || {};
-        
-        const now = new Date();
-        now.setHours(0,0,0,0);
-        let visitors1d = 0;
-        let visitors30d = 0;
-        let visitors1y = 0;
-        
-        Object.entries(visitorStats).forEach(([dateStr, count]) => {
-          const date = new Date(dateStr);
-          date.setHours(0,0,0,0);
-          const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-          
-          if (diffDays <= 0) visitors1d += count;
-          if (diffDays <= 30) visitors30d += count;
-          if (diffDays <= 365) visitors1y += count;
-        });
-
-        setMetricsList(prev => {
-          // Remove existing default visitor counts if any, to prevent duplicates
-          const filtered = prev.filter(m => !m.label.includes('Visitors (') && m.label !== 'Total Visitors');
-          return [
-            { label: 'Visitors (1 Day)', value: visitors1d.toLocaleString() },
-            { label: 'Visitors (30 Days)', value: visitors30d.toLocaleString() },
-            { label: 'Visitors (1 Year)', value: visitors1y.toLocaleString() },
-            ...filtered
-          ];
-        });
+        setRawVisitorStats(visitorStats);
       } catch (err) {
         console.error('Error fetching visitor stats:', err);
       }
@@ -167,6 +117,132 @@ export default function ProjectWorkspace({
     
     fetchVisitors();
   }, [project?.subdomain]);
+
+  const displayVisitors = useMemo(() => {
+    let count = 0;
+    const now = new Date();
+    now.setHours(0,0,0,0);
+    
+    Object.entries(rawVisitorStats).forEach(([dateStr, c]) => {
+      const date = new Date(dateStr);
+      date.setHours(0,0,0,0);
+      
+      if (visitorFilter.type === 'preset') {
+        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+        if (visitorFilter.value === '1d' && diffDays <= 0) count += c;
+        if (visitorFilter.value === '30d' && diffDays <= 30) count += c;
+        if (visitorFilter.value === '1y' && diffDays <= 365) count += c;
+      }
+    });
+    return count.toLocaleString();
+  }, [rawVisitorStats, visitorFilter]);
+
+  // Build per-day visitor chart data based on current filter
+  const visitorChartData = useMemo(() => {
+    // Use LOCAL date string to match Supabase-stored date keys
+    const toLocal = (d) => {
+      const yr = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, '0');
+      const dy = String(d.getDate()).padStart(2, '0');
+      return `${yr}-${mo}-${dy}`;
+    };
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    if (visitorFilter.value === '1y') {
+      const monthMap = {};
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now);
+        d.setMonth(d.getMonth() - i);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        monthMap[key] = { label: d.toLocaleString('default', { month: 'short' }), value: 0 };
+      }
+      Object.entries(rawVisitorStats).forEach(([dateStr, c]) => {
+        const key = dateStr.slice(0, 7);
+        if (monthMap[key]) monthMap[key].value += c;
+      });
+      return Object.values(monthMap);
+    }
+
+    // 1d → show last 7 days (so area chart has enough points to draw a curve)
+    // 30d → show last 30 days
+    const days = visitorFilter.value === '1d' ? 7 : 30;
+    const result = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = toLocal(d);
+      // 7-day view: show weekday name; 30-day view: show MM/DD
+      const label = days === 7
+        ? d.toLocaleString('default', { weekday: 'short' })
+        : `${d.getMonth() + 1}/${d.getDate()}`;
+      result.push({ label, value: rawVisitorStats[dateStr] || 0 });
+    }
+    return result;
+  }, [rawVisitorStats, visitorFilter]);
+
+  // Build leads chart data based on current filter
+  const leadsChartData = useMemo(() => {
+    const toLocal = (d) => {
+      const yr = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, '0');
+      const dy = String(d.getDate()).padStart(2, '0');
+      return `${yr}-${mo}-${dy}`;
+    };
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const dateColIdx = headers.findIndex(h => /date|time|created|submitted/i.test(h));
+
+    if (visitorFilter.value === '1y') {
+      const monthMap = {};
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now);
+        d.setMonth(d.getMonth() - i);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        monthMap[key] = { label: d.toLocaleString('default', { month: 'short' }), value: 0 };
+      }
+      if (dateColIdx >= 0) {
+        data.forEach(row => {
+          const raw = row[dateColIdx];
+          if (!raw) return;
+          const d = new Date(raw);
+          if (isNaN(d)) return;
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          if (monthMap[key]) monthMap[key].value++;
+        });
+      } else {
+        const key = toLocal(now).slice(0, 7);
+        if (monthMap[key]) monthMap[key].value = data.length;
+      }
+      return Object.values(monthMap);
+    }
+
+    const days = visitorFilter.value === '1d' ? 7 : 30;
+    const result = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = toLocal(d);
+      const label = days === 7
+        ? d.toLocaleString('default', { weekday: 'short' })
+        : `${d.getMonth() + 1}/${d.getDate()}`;
+      let value = 0;
+      if (dateColIdx >= 0) {
+        value = data.filter(row => {
+          const raw = row[dateColIdx];
+          if (!raw) return false;
+          const rd = new Date(raw);
+          return !isNaN(rd) && toLocal(rd) === dateStr;
+        }).length;
+      } else if (i === 0) {
+        // No date column — show total on today's bar only
+        value = data.length;
+      }
+      result.push({ label, value });
+    }
+    return result;
+  }, [data, headers, visitorFilter]);
+
 
 
   // ── Modals ─────────────────────────────────────────────────────────────────
@@ -427,7 +503,7 @@ export default function ProjectWorkspace({
       if (resData.success && resData.result?.answer) {
         const ans = resData.result.answer;
         if (ans.insights) setInsightsText(ans.insights);
-        if (ans.metrics && ans.metrics.length > 0) setMetricsList(ans.metrics);
+
       }
     } catch (err) {
       console.error('AI Reanalyze error:', err);
@@ -458,7 +534,6 @@ export default function ProjectWorkspace({
           dataHeaders: headers,
           dataRows: data,
           aiInsights: insightsText,
-          aiMetrics: metricsList,
         },
         updated_at: new Date().toISOString()
       };
@@ -497,7 +572,6 @@ export default function ProjectWorkspace({
             dataHeaders: headers,
             dataRows: data,
             aiInsights: insightsText,
-            aiMetrics: metricsList,
             spec: websiteSpec,
             theme
           }
@@ -782,19 +856,141 @@ export default function ProjectWorkspace({
             TAB 1: OVERVIEW
         ============================================================ */}
         {activeTab === 'overview' && (
-          <div className="p-8 max-w-7xl mx-auto w-full space-y-8 animate-fadeIn">
-            
-            {/* Top 4 KPI Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {metricsList.slice(0, 4).map((m, idx) => (
-                <div key={idx} className="p-5 bg-[#0e0e0e] border border-white/10 rounded-xl hover:border-white/20 transition-all">
-                  <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-2 truncate">{m.label}</p>
-                  <p className="text-2xl sm:text-3xl font-black text-white">{m.value}</p>
+          <div className="p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6 animate-fadeIn">
+
+            {/* Two centred KPI cards */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+
+              {/* Visitors Card */}
+              <div className="flex-1 max-w-sm p-5 bg-[#0e0e0e] border border-white/10 rounded-2xl hover:border-white/20 transition-all flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold">Visitors</p>
+                  <select
+                    value={`preset:${visitorFilter.value}`}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val.startsWith('preset:')) {
+                        setVisitorFilter({ type: 'preset', value: val.split(':')[1] });
+                      }
+                    }}
+                    className="bg-[#1a1a1a] border border-white/10 text-[10px] text-white/70 rounded px-2 py-1 outline-none cursor-pointer transition-colors hover:bg-[#222]"
+                  >
+                    <option value="preset:1d">Last 1 Day</option>
+                    <option value="preset:30d">Last 30 Days</option>
+                    <option value="preset:1y">Last 1 Year</option>
+                  </select>
                 </div>
-              ))}
+                <p className="text-4xl font-black text-white">{displayVisitors}</p>
+                <p className="text-[10px] text-white/30 uppercase tracking-widest">Total unique visitors</p>
+              </div>
+
+              {/* Total Leads Card */}
+              <div className="flex-1 max-w-sm p-5 bg-[#0e0e0e] border border-white/10 rounded-2xl hover:border-white/20 transition-all flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold">Total Leads</p>
+                </div>
+                <p className="text-4xl font-black text-white">{data.length}</p>
+                <p className="text-[10px] text-white/30 uppercase tracking-widest">Form submissions collected</p>
+              </div>
+
             </div>
 
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
+              {/* Visitor Trend Chart */}
+              <div className="bg-[#0e0e0e] border border-white/10 rounded-2xl p-5 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-white uppercase tracking-wider">Visitor Trend</p>
+                    <p className="text-[10px] text-white/30 uppercase tracking-widest mt-0.5">
+                      {visitorFilter.value === '1d' ? 'Today' : visitorFilter.value === '30d' ? 'Last 30 days' : 'Last 12 months'}
+                    </p>
+                  </div>
+                  <div className="w-2 h-2 rounded-full bg-[#d4f000] shadow-lg shadow-[#d4f000]/40" />
+                </div>
+                <ResponsiveContainer width="100%" height={180}>
+                  <AreaChart data={visitorChartData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="visGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#d4f000" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#d4f000" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="label"
+                      tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }}
+                      axisLine={false}
+                      tickLine={false}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis
+                      tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }}
+                      axisLine={false}
+                      tickLine={false}
+                      allowDecimals={false}
+                    />
+                    <Tooltip
+                      contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
+                      labelStyle={{ color: 'rgba(255,255,255,0.5)' }}
+                      itemStyle={{ color: '#d4f000' }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#d4f000"
+                      strokeWidth={2}
+                      fill="url(#visGrad)"
+                      dot={false}
+                      activeDot={{ r: 4, fill: '#d4f000' }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Leads Trend Chart */}
+              <div className="bg-[#0e0e0e] border border-white/10 rounded-2xl p-5 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-white uppercase tracking-wider">Leads Collected</p>
+                    <p className="text-[10px] text-white/30 uppercase tracking-widest mt-0.5">
+                      {visitorFilter.value === '1d' ? 'Today' : visitorFilter.value === '30d' ? 'Last 30 days' : 'Last 12 months'}
+                    </p>
+                  </div>
+                  <div className="w-2 h-2 rounded-full bg-white/60 shadow-lg shadow-white/20" />
+                </div>
+                <ResponsiveContainer width="100%" height={180}>
+                  <BarChart data={leadsChartData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="leadGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#ffffff" stopOpacity={0.9} />
+                        <stop offset="95%" stopColor="#ffffff" stopOpacity={0.3} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="label"
+                      tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }}
+                      axisLine={false}
+                      tickLine={false}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis
+                      tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }}
+                      axisLine={false}
+                      tickLine={false}
+                      allowDecimals={false}
+                    />
+                    <Tooltip
+                      contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
+                      labelStyle={{ color: 'rgba(255,255,255,0.5)' }}
+                      itemStyle={{ color: '#ffffff' }}
+                    />
+                    <Bar dataKey="value" fill="url(#leadGrad)" radius={[4, 4, 0, 0]} maxBarSize={32} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+            </div>
 
           </div>
         )}
