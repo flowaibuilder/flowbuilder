@@ -14,6 +14,7 @@ import {
   BarChart, Bar, LineChart, Line, AreaChart, Area, XAxis, YAxis,
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from 'recharts';
+import { supabase } from '../lib/supabase';
 import ReactMarkdown from 'react-markdown';
 const ACCENT = '#d4f000';
 const CHART_COLORS = ['#d4f000', '#a3b800', '#ffffff', '#888888', '#555555', '#333333'];
@@ -91,16 +92,88 @@ export default function ProjectWorkspace({
     project?.config?.aiInsights ||
     `### AI Intelligence & Performance Report\n- **Primary Growth Channel**: Organic search drives **42% of total conversions**.\n- **Conversion Efficiency**: Email campaigns have the highest conversion rate at **10.2%**.\n- **Optimization Suggestion**: Improving mobile load speed can reduce social bounce rate from **56.1%** to sub-**40%**.\n- **Website Alignment**: Your current CTA matches high-intent search landing pages.`
   );
-  const [metricsList, setMetricsList] = useState(
-    project?.config?.aiMetrics || [
-      { label: 'Total Visitors', value: '37,520' },
-      { label: 'Total Conversions', value: '2,440' },
-      { label: 'Gross Revenue', value: '$122,000' },
-      { label: 'Avg Conversion Rate', value: '6.5%' }
-    ]
-  );
+  const defaultMetrics = [
+    { label: 'Visitors (1 Day)', value: '0' },
+    { label: 'Visitors (30 Days)', value: '0' },
+    { label: 'Visitors (1 Year)', value: '0' },
+    { label: 'Total Conversions', value: '0' },
+    { label: 'Gross Revenue', value: '$0' },
+    { label: 'Avg Conversion Rate', value: '0%' }
+  ];
+
+  const [metricsList, setMetricsList] = useState(() => {
+    if (project?.config?.aiMetrics) {
+      // If there are saved metrics, still zero out the visitor ones initially to avoid flash
+      // and let the fetch handle the real visitor data.
+      const filtered = project.config.aiMetrics.filter(m => !m.label.includes('Visitors (') && m.label !== 'Total Visitors');
+      return [
+        { label: 'Visitors (1 Day)', value: '0' },
+        { label: 'Visitors (30 Days)', value: '0' },
+        { label: 'Visitors (1 Year)', value: '0' },
+        ...filtered.map(m => {
+          // If the saved value is the exact static mock value, change it to 0
+          if (m.value === '2,440') return { ...m, value: '0' };
+          if (m.value === '$122,000') return { ...m, value: '$0' };
+          if (m.value === '6.5%') return { ...m, value: '0%' };
+          return m;
+        })
+      ];
+    }
+    return defaultMetrics;
+  });
   const [dismissedSuggestions, setDismissedSuggestions] = useState(new Set());
   const [appliedSuggestions, setAppliedSuggestions] = useState(new Set());
+
+  // Fetch real visitor stats
+  useEffect(() => {
+    if (!project?.subdomain) return;
+    
+    const fetchVisitors = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('published_sites')
+          .select('config')
+          .eq('subdomain', project.subdomain)
+          .single();
+          
+        if (error) return;
+        
+        const visitorStats = data?.config?.visitorStats || {};
+        
+        const now = new Date();
+        now.setHours(0,0,0,0);
+        let visitors1d = 0;
+        let visitors30d = 0;
+        let visitors1y = 0;
+        
+        Object.entries(visitorStats).forEach(([dateStr, count]) => {
+          const date = new Date(dateStr);
+          date.setHours(0,0,0,0);
+          const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+          
+          if (diffDays <= 0) visitors1d += count;
+          if (diffDays <= 30) visitors30d += count;
+          if (diffDays <= 365) visitors1y += count;
+        });
+
+        setMetricsList(prev => {
+          // Remove existing default visitor counts if any, to prevent duplicates
+          const filtered = prev.filter(m => !m.label.includes('Visitors (') && m.label !== 'Total Visitors');
+          return [
+            { label: 'Visitors (1 Day)', value: visitors1d.toLocaleString() },
+            { label: 'Visitors (30 Days)', value: visitors30d.toLocaleString() },
+            { label: 'Visitors (1 Year)', value: visitors1y.toLocaleString() },
+            ...filtered
+          ];
+        });
+      } catch (err) {
+        console.error('Error fetching visitor stats:', err);
+      }
+    };
+    
+    fetchVisitors();
+  }, [project?.subdomain]);
+
 
   // ── Modals ─────────────────────────────────────────────────────────────────
   const [showExportModal, setShowExportModal] = useState(false);
