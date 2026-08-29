@@ -254,6 +254,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
   const [currentFeel, setCurrentFeel] = useState(feel);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [previousHistoryState, setPreviousHistoryState] = useState(null);
   
   // Publish State
   const [showPublishModal, setShowPublishModal] = useState(false);
@@ -912,16 +913,58 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to refine layout');
 
+      // Save current state for undo/revert before applying data updates
+      setPreviousHistoryState({
+        sections: [...sections],
+        siteImages: [...siteImages],
+        theme: currentTheme ? { ...currentTheme } : null,
+        feel: currentFeel || null
+      });
+
       if (data.spec && Array.isArray(data.spec)) {
         const newSections = data.spec.map((s, idx) => {
           const existing = sections.find(old => old.id === s.id);
-          return { ...s, id: existing ? existing.id : `section-new-${Date.now()}-${idx}` };
+          
+          const content = { ...s.content };
+          if (existing && existing.content) {
+            // Restore main image URL if present
+            if (existing.content.image && content.image) {
+              content.image.url = existing.content.image.url;
+            }
+            // Restore list item image/url fields if present
+            if (Array.isArray(existing.content.items) && Array.isArray(content.items)) {
+              content.items = content.items.map((item, itemIdx) => {
+                const existingItem = existing.content.items[itemIdx];
+                if (existingItem && (existingItem.url || existingItem.image)) {
+                  return { 
+                    ...item, 
+                    url: existingItem.url || item.url,
+                    image: existingItem.image || item.image
+                  };
+                }
+                return item;
+              });
+            }
+          }
+
+          return { 
+            ...s, 
+            id: existing ? existing.id : `section-new-${Date.now()}-${idx}`,
+            content
+          };
         });
         setSections(newSections);
       }
 
       if (data.siteImages && Array.isArray(data.siteImages)) {
-        setSiteImages(data.siteImages);
+        const mergedImages = data.siteImages.map(newImg => {
+          const existing = siteImages.find(old => old.id === newImg.id);
+          return {
+            ...newImg,
+            url: existing ? existing.url : (newImg.url || '')
+          };
+        });
+        setSiteImages(mergedImages);
       }
 
       if (data.theme) {
@@ -943,16 +986,57 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
       setChatMessages(prev => [...prev, assistantMsg]);
     } catch (err) {
       console.error('Refinement failed:', err);
+      
+      let userFriendlyMessage = "I couldn't complete that update. Let's try another modification, or try rephrasing your request.";
+      const errMsg = String(err.message || '').toLowerCase();
+      
+      if (errMsg.includes('failed to fetch') || errMsg.includes('networkerror') || errMsg.includes('network')) {
+        userFriendlyMessage = "Connection lost. Please check your internet connection and try again.";
+      } else if (errMsg.includes('json') || errMsg.includes('unexpected token') || errMsg.includes('parsing')) {
+        userFriendlyMessage = "I ran into an issue reading the new design layout. Please try describing your request in a different way or clear the history and retry.";
+      } else if (errMsg.includes('limit') || errMsg.includes('too many') || errMsg.includes('429') || errMsg.includes('rate')) {
+        userFriendlyMessage = "The service is busy right now. Please wait a moment and try again.";
+      } else if (errMsg.includes('logged in') || errMsg.includes('auth') || errMsg.includes('login')) {
+        userFriendlyMessage = "Please make sure you are logged in to save and refine your site.";
+      }
+      
       const errorMsg = {
         id: `error-${Date.now()}`,
         sender: 'assistant',
-        text: '⚠️ Failed to refine: ' + err.message,
+        text: userFriendlyMessage,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setChatMessages(prev => [...prev, errorMsg]);
     } finally {
       setIsRefining(false);
     }
+  };
+
+  const handleRevert = () => {
+    if (!previousHistoryState) return;
+
+    // Apply previous states
+    setSections(previousHistoryState.sections);
+    setSiteImages(previousHistoryState.siteImages);
+    if (previousHistoryState.theme) setCurrentTheme(previousHistoryState.theme);
+    if (previousHistoryState.feel) setCurrentFeel(previousHistoryState.feel);
+
+    // Clear history state so they can only undo once
+    setPreviousHistoryState(null);
+
+    // Remove the last user prompt and assistant response, then append revert confirmation
+    setChatMessages(prev => {
+      const cleared = prev.length >= 2 ? prev.slice(0, -2) : prev;
+      return [
+        ...cleared,
+        {
+          id: `revert-${Date.now()}`,
+          sender: 'assistant',
+          text: "Design reverted back to your previous layout.",
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ];
+    });
   };
 
   if (sections.length === 0) {
@@ -1176,6 +1260,18 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
 
           {activeTab === 'refine' && (
             <div className="flex-1 flex flex-col min-h-0">
+              {previousHistoryState && (
+                <div className="p-2.5 bg-[#d4f000]/10 border-b border-[#d4f000]/25 flex items-center justify-between text-xs text-white px-3 gap-2">
+                  <span className="text-[10px] text-white/70">Revert to the design before your last AI update?</span>
+                  <button
+                    type="button"
+                    onClick={handleRevert}
+                    className="px-2.5 py-1 bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] font-black uppercase rounded text-[9px] tracking-wide shrink-0 transition-colors"
+                  >
+                    Revert
+                  </button>
+                </div>
+              )}
               {/* Chat Messages Feed */}
               <div className="flex-1 overflow-y-auto p-3 space-y-3.5 bg-black/40">
                 {chatMessages.map((msg) => (
