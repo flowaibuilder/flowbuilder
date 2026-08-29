@@ -415,7 +415,7 @@ function SortableSection({
 
 // ─── WEBSITE BUILDER ──────────────────────────────────────────────────────────
 
-export default function WebsiteBuilder({ initialSpec, theme, businessName, pages, logo, feel, fontStyle, websiteId, onSave, initialSiteImages }) {
+export default function WebsiteBuilder({ initialSpec, theme, businessName, pages, logo, feel, fontStyle, websiteId, onSave, initialSiteImages = [], initialDataHeaders = null, initialDataRows = null }) {
   const navigate = useNavigate();
   const [sections, setSections] = useState(
     (initialSpec || []).map((s, idx) => ({ ...s, id: s.id || `section-${idx}` }))

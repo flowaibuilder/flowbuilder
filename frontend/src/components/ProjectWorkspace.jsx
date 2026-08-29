@@ -20,14 +20,8 @@ const ACCENT = '#d4f000';
 const CHART_COLORS = ['#d4f000', '#a3b800', '#ffffff', '#888888', '#555555', '#333333'];
 
 // Default starter dataset for a website project if none exists yet
-const DEFAULT_HEADERS = ['Category', 'Visitors', 'Conversions', 'Revenue ($)', 'Bounce Rate (%)'];
-const DEFAULT_DATA = [
-  ['Organic Search', '14,250', '840', '42,000', '42.5'],
-  ['Direct Traffic', '9,120', '620', '31,000', '38.2'],
-  ['Social Media', '6,450', '310', '15,500', '56.1'],
-  ['Email Campaign', '4,800', '490', '24,500', '29.4'],
-  ['Referral', '2,900', '180', '9,000', '48.0'],
-];
+const DEFAULT_HEADERS = ['Name', 'Email', 'Phone', 'Message', 'Date'];
+const DEFAULT_DATA = [];
 
 export default function ProjectWorkspace({
   project,
@@ -64,12 +58,12 @@ export default function ProjectWorkspace({
   const [siteImages, setSiteImages] = useState(project?.config?.siteImages || []);
 
   // ── Spreadsheet / Data State ───────────────────────────────────────────────
-  const [headers, setHeaders] = useState(
-    project?.config?.dataHeaders || project?.dataHeaders || DEFAULT_HEADERS
-  );
-  const [data, setData] = useState(
-    project?.config?.dataRows || project?.dataRows || DEFAULT_DATA
-  );
+  const isDummyData = project?.config?.dataHeaders && project.config.dataHeaders[0] === 'Category';
+  const initialHeaders = isDummyData ? DEFAULT_HEADERS : (project?.config?.dataHeaders || project?.dataHeaders || DEFAULT_HEADERS);
+  const initialRows = isDummyData ? DEFAULT_DATA : (project?.config?.dataRows || project?.dataRows || DEFAULT_DATA);
+
+  const [headers, setHeaders] = useState(initialHeaders);
+  const [data, setData] = useState(initialRows);
   const [isParsing, setIsParsing] = useState(false);
 
   // Undo / Redo

@@ -67,4 +67,70 @@ router.post('/track-visit/:subdomain', async (req, res) => {
   }
 });
 
+router.post('/submit-form/:subdomain', async (req, res) => {
+  try {
+    if (!supabase) return res.status(500).json({ error: 'Supabase client not initialized' });
+    const { subdomain } = req.params;
+    const { name, email, phone, message } = req.body;
+
+    // Fetch the published site
+    const { data: site, error: fetchError } = await supabase
+      .from('published_sites')
+      .select('website_id, config')
+      .eq('subdomain', subdomain)
+      .single();
+
+    if (fetchError || !site) {
+      return res.status(404).json({ error: 'Site not found' });
+    }
+
+    const config = site.config || {};
+    
+    // Check if the current headers are the old dummy marketing headers
+    const isDummyData = config.dataHeaders && config.dataHeaders[0] === 'Category';
+    
+    if (!config.dataHeaders || isDummyData) {
+      config.dataHeaders = ['Name', 'Email', 'Phone', 'Message', 'Date'];
+      config.dataRows = [];
+    }
+
+    // Append new submission
+    const dateStr = new Date().toLocaleString();
+    const newRow = [name || '', email || '', phone || '', message || '', dateStr];
+    config.dataRows = [...(config.dataRows || []), newRow];
+
+    // Update published_sites
+    const { error: updateError } = await supabase
+      .from('published_sites')
+      .update({ config })
+      .eq('subdomain', subdomain);
+
+    if (updateError) throw updateError;
+
+    // Also update saved_websites so the draft workspace sees it too
+    if (site.website_id) {
+      const { data: savedSite } = await supabase
+        .from('saved_websites')
+        .select('config')
+        .eq('id', site.website_id)
+        .single();
+        
+      if (savedSite) {
+        const savedConfig = savedSite.config || {};
+        savedConfig.dataHeaders = config.dataHeaders;
+        savedConfig.dataRows = config.dataRows;
+        await supabase
+          .from('saved_websites')
+          .update({ config: savedConfig })
+          .eq('id', site.website_id);
+      }
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Form submission error:', error);
+    res.status(500).json({ error: 'Failed to submit form' });
+  }
+});
+
 module.exports = router;
