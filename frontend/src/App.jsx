@@ -14,7 +14,14 @@ import TermsOfService from './components/TermsOfService';
 import PublicForm from './components/PublicForm';
 import { ArrowLeft } from 'lucide-react';
 
+import { useSearchParams } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+
 function AIBuilderContainer() {
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const querySiteId = searchParams.get('id') || location.state?.site?.id;
+
   // 'home' (Pic1 - Your Websites Dashboard) | 'builder' (Pic2 - Questionnaire / Website Builder)
   const [viewMode, setViewMode] = useState('home');
   const [activeProject, setActiveProject] = useState(null);
@@ -27,6 +34,80 @@ function AIBuilderContainer() {
   const [fontStyle, setFontStyle] = useState('');
   const [websiteId, setWebsiteId] = useState(null);
   const [initialSiteImages, setInitialSiteImages] = useState([]);
+  const [loadingSite, setLoadingSite] = useState(!!querySiteId);
+  const [initialQuestionnaireData, setInitialQuestionnaireData] = useState(null);
+
+  useEffect(() => {
+    if (!querySiteId) {
+      setLoadingSite(false);
+      return;
+    }
+
+    const loadExistingSite = async () => {
+      setLoadingSite(true);
+      try {
+        // 1. Query saved_websites
+        const { data: saved } = await supabase
+          .from('saved_websites')
+          .select('*')
+          .eq('id', querySiteId)
+          .maybeSingle();
+
+        if (saved) {
+          setWebsiteId(saved.id);
+          const name = saved.name || saved.config?.businessName || '';
+          setBusinessName(name);
+          setTheme(saved.theme || saved.config?.themeColors || null);
+          setPages(saved.config?.pages || []);
+          setLogo(saved.config?.logo || null);
+          setFeel(saved.config?.feel || '');
+          setFontStyle(saved.config?.fontStyle || '');
+          setInitialSiteImages(saved.config?.siteImages || []);
+          
+          if (saved.spec && Array.isArray(saved.spec) && saved.spec.length > 0) {
+            setWebsiteSpec(saved.spec);
+          } else {
+            setInitialQuestionnaireData({
+              name,
+              industry: saved.config?.industry || '',
+              goal: saved.config?.goal || '',
+              feel: saved.config?.feel || '',
+              fontStyle: saved.config?.fontStyle || 'ai',
+              pages: saved.config?.pages || null,
+              logo: saved.config?.logo || null,
+            });
+          }
+          return;
+        }
+
+        // 2. Query published_sites if not in saved_websites
+        const { data: pub } = await supabase
+          .from('published_sites')
+          .select('*')
+          .or(`subdomain.eq.${querySiteId}`)
+          .maybeSingle();
+
+        if (pub && pub.config) {
+          setWebsiteId(pub.website_id || pub.subdomain);
+          const name = pub.config.businessName || pub.config.name || pub.subdomain || '';
+          setBusinessName(name);
+          setWebsiteSpec(pub.config.spec || pub.config.sections || null);
+          setTheme(pub.config.theme || pub.config.themeColors || null);
+          setPages(pub.config.pages || []);
+          setLogo(pub.config.logo || null);
+          setFeel(pub.config.feel || '');
+          setFontStyle(pub.config.fontStyle || '');
+          setInitialSiteImages(pub.config.siteImages || []);
+        }
+      } catch (err) {
+        console.error('Error loading existing website:', err);
+      } finally {
+        setLoadingSite(false);
+      }
+    };
+
+    loadExistingSite();
+  }, [querySiteId]);
 
   const handleWebsiteGenerated = (spec, themeColors, name, selectedPages, selectedLogo, selectedFeel, selectedFont, id = null, siteImages = []) => {
     setActiveProject(null);
@@ -37,9 +118,18 @@ function AIBuilderContainer() {
     setLogo(selectedLogo || null);
     setFeel(selectedFeel || '');
     setFontStyle(selectedFont || '');
-    setWebsiteId(id);
+    if (id) setWebsiteId(id);
     setInitialSiteImages(siteImages || []);
   };
+
+  if (loadingSite) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] text-white/40 gap-3">
+        <Loader2 className="animate-spin text-[#d4f000]" size={32} />
+        <span className="text-xs uppercase tracking-widest font-bold">Loading website details...</span>
+      </div>
+    );
+  }
 
   const handleOpenProject = (project) => {
     setActiveProject(project);
@@ -115,10 +205,9 @@ function AIBuilderContainer() {
               Website <span className="font-bold" style={{ color: '#d4f000' }}>Builder</span>
             </h1>
           </div>
-          <Questionnaire
-            onWebsiteGenerated={handleWebsiteGenerated}
-            onOpenProject={handleOpenProject}
-          />
+
+          <Questionnaire onWebsiteGenerated={handleWebsiteGenerated} initialData={initialQuestionnaireData} onOpenProject={handleOpenProject} />
+
         </div>
       ) : (
         <WebsiteBuilder 
