@@ -118,7 +118,7 @@ export default function PublishedSiteViewer({ subdomain }) {
       {(siteImages || []).length > 0 && (
         <div
           style={{
-            position: 'fixed',
+            position: 'absolute',
             inset: 0,
             pointerEvents: 'none',
             overflow: 'hidden',
