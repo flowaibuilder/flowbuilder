@@ -298,7 +298,7 @@ router.post('/submit-form/:subdomain', async (req, res) => {
         
         if (userEmail) {
           await resend.emails.send({
-            from: 'onboarding@resend.dev',
+            from: 'FlowBuilder <noreply@devshahid.me>',
             to: userEmail,
             subject: `New Lead Submitted on Your Website (${subdomain})`,
             html: `
