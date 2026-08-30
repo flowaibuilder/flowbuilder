@@ -95,7 +95,7 @@ export default function PublishedSiteViewer({ subdomain }) {
     );
   }
 
-  const { businessName, sections, theme, logo, feel, siteImages } = siteData;
+  const { businessName, sections, theme, logo, feel, siteImages, showBusinessName } = siteData;
 
   // Setup CSS variables for the theme
   const themeStyle = theme ? {
@@ -118,7 +118,7 @@ export default function PublishedSiteViewer({ subdomain }) {
         color: `var(--color-text-base, ${isLight(theme?.background) ? '#000000' : '#ffffff'})`
       }}
     >
-      <SiteNavbar businessName={businessName} sections={sections} theme={theme} logo={logo} feel={feel} />
+      <SiteNavbar businessName={businessName} sections={sections} theme={theme} logo={logo} feel={feel} showBusinessName={showBusinessName} />
       
       <main className="relative">
         {mainSections.map((section) => {
