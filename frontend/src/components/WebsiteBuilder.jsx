@@ -2644,9 +2644,6 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
               </button>
             </div>
           </div>
-          <div className="text-[10px] font-mono text-white/40 hidden sm:block">
-            {viewMode === 'mobile' ? '📱 Mobile Viewport (390px) — Drag/resize media for mobile placement' : '💻 Desktop Viewport (Full Width) — Drag/resize media for desktop placement'}
-          </div>
         </div>
 
         {/* Scroll Container Outer Area */}
