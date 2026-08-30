@@ -131,7 +131,6 @@ const FONTS = [
   { id: 'elegant', label: 'Elegant' },
   { id: 'bold', label: 'Bold' },
   { id: 'minimal', label: 'Minimal' },
-  { id: 'ai', label: '✨ Let AI decide' },
 ];
 
 // ─── STEP INDICATOR ───────────────────────────────────────────────────────────
@@ -398,30 +397,6 @@ function StepPages({ data, onChange }) {
 
   return (
     <div className="space-y-7">
-      {/* AI Recommendation Banner */}
-      <div
-        className="flex items-start gap-3 p-4 border"
-        style={{ borderColor: `${ACCENT}40`, background: `${ACCENT}08` }}
-      >
-        <Sparkles size={16} color={ACCENT} className="mt-0.5 shrink-0" />
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: ACCENT }}>
-            AI Recommended
-          </p>
-          <p className="text-white/50 text-sm">
-            Based on your goal, we suggest: <span className="text-white/80">{recommended.map(id => ALL_PAGES.find(p => p.id === id)?.label).join(', ')}</span>
-          </p>
-          <button
-            type="button"
-            onClick={() => onChange({ pages: recommended })}
-            className="mt-2 text-xs font-semibold uppercase tracking-widest underline underline-offset-2"
-            style={{ color: ACCENT }}
-          >
-            Use recommendation →
-          </button>
-        </div>
-      </div>
-
       <div>
         <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-3">Select Sections</label>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -758,22 +733,6 @@ function StepBrand({ data, onChange }) {
                 }}
               >
                 Upload logo
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const initials = (data.name || 'FL').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-                  const svgString = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23080808" stroke="${encodeURIComponent(selectedTheme.colors.primary)}" stroke-width="6"/><text x="50" y="58" font-family="monospace" font-size="36" font-weight="900" fill="${encodeURIComponent(selectedTheme.colors.primary)}" text-anchor="middle">${initials}</text></svg>`;
-                  onChange({ logoSource: 'generate', logo: svgString });
-                }}
-                className="px-4 py-2.5 border text-sm font-medium transition-all duration-200 flex items-center gap-1.5"
-                style={{
-                  borderColor: data.logoSource === 'generate' ? ACCENT : 'rgba(255,255,255,0.1)',
-                  background: data.logoSource === 'generate' ? `${ACCENT}12` : 'rgba(255,255,255,0.03)',
-                  color: data.logoSource === 'generate' ? ACCENT : 'rgba(255,255,255,0.6)',
-                }}
-              >
-                ✨ Generate with AI
               </button>
               {data.logoSource !== 'none' && (
                 <button
