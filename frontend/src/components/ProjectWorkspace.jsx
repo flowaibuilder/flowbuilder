@@ -9,7 +9,7 @@ import {
   Table2, Search, Filter, ArrowUpDown, ArrowUp, ArrowDown,
   RotateCcw, RotateCw, MoreVertical, X, Check, Globe, Layers,
   FileSpreadsheet, Zap, ExternalLink, RefreshCw, Loader2, UploadCloud,
-  Edit2, Eye, Layout, Sliders, Info
+  Edit2, Eye, Layout, Sliders, Info, XCircle
 } from 'lucide-react';
 import {
   BarChart, Bar, LineChart, Line, AreaChart, Area, XAxis, YAxis,
@@ -172,6 +172,74 @@ export default function ProjectWorkspace({
   const [isEditingName, setIsEditingName] = useState(false);
   const [saveStatus, setSaveStatus] = useState('saved'); // 'saved' | 'saving' | 'unsaved'
   const [lastSavedTime, setLastSavedTime] = useState(project?.updated_at || new Date().toISOString());
+  const [subdomain, setSubdomain] = useState(project?.subdomain || null);
+  const [status, setStatus] = useState(project?.status || 'draft');
+  const [isUnpublishing, setIsUnpublishing] = useState(false);
+
+  const handleUnpublish = async () => {
+    if (!subdomain) return;
+    if (!window.confirm("Are you sure you want to unpublish this website? It will no longer be accessible online.")) {
+      return;
+    }
+
+    setIsUnpublishing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('You must be logged in to unpublish.');
+
+      // 1. Delete from published_sites table
+      const { error: deleteError } = await supabase
+        .from('published_sites')
+        .delete()
+        .eq('subdomain', subdomain)
+        .eq('user_id', user.id);
+
+      if (deleteError) throw deleteError;
+
+      // 2. Update subdomain in saved_websites config
+      const { data: saved } = await supabase
+        .from('saved_websites')
+        .select('*')
+        .eq('id', project?.id)
+        .maybeSingle();
+
+      if (saved) {
+        const updatedConfig = {
+          ...saved.config,
+          subdomain: null
+        };
+        await supabase
+          .from('saved_websites')
+          .update({
+            config: updatedConfig
+          })
+          .eq('id', saved.id);
+      }
+
+      // 3. Update local state
+      setSubdomain(null);
+      setStatus('draft');
+      alert("Website unpublished successfully!");
+
+      // 4. Notify parent list to refresh
+      if (onUpdateProject) {
+        onUpdateProject({
+          ...project,
+          status: 'draft',
+          subdomain: null,
+          config: {
+            ...project?.config,
+            subdomain: null
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Unpublish failed:', err);
+      alert('Unpublish failed: ' + err.message);
+    } finally {
+      setIsUnpublishing(false);
+    }
+  };
 
   // ── Active Workspace Tab ───────────────────────────────────────────────────
   // 'overview' | 'website' | 'data' | 'analytics'
@@ -975,14 +1043,25 @@ export default function ProjectWorkspace({
             <span className="hidden sm:inline">Edit Website</span>
           </button>
 
+          {status === 'published' && subdomain && (
+            <button
+              onClick={handleUnpublish}
+              disabled={isUnpublishing}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 hover:text-red-400 text-xs uppercase font-bold tracking-wider rounded transition-colors disabled:opacity-50"
+            >
+              {isUnpublishing ? <Loader2 size={13} className="animate-spin" /> : <XCircle size={13} />}
+              <span>Unpublish</span>
+            </button>
+          )}
+
           <button
             onClick={() => {
-              const subdomain = project?.subdomain;
               if (subdomain) {
                 window.open(`https://${subdomain}.flow.devshahid.me`, '_blank', 'noopener,noreferrer');
               }
             }}
-            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] text-xs uppercase font-black tracking-wider rounded transition-colors"
+            disabled={!subdomain}
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#d4f000] text-[#080808] hover:bg-[#b8d000] text-xs uppercase font-black tracking-wider rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ExternalLink size={13} />
             <span className="hidden sm:inline">Live Website</span>
