@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { ChevronDown, HelpCircle, Copy, Trash2 } from 'lucide-react';
 import { getStyles } from '../../utils/themeHelper';
 import EditableText, { EditableContext } from '../EditableText';
@@ -8,12 +8,19 @@ export default function FAQ({ content = {}, feel }) {
   const { isEditingText, updateText } = useContext(EditableContext);
   const [hoveredCardIndex, setHoveredCardIndex] = useState(null);
 
-  const items = content.items || [
+  const rawItems = content.items || [
     { question: 'How quickly can I launch my website?', answer: 'You can generate and publish your fully customized, production-ready website in under 60 seconds using our AI builder.' },
     { question: 'Can I customize the design, colors, and layout later?', answer: 'Yes! Every section, color palette, typography token, and text block is 100% editable in real time with our live visual builder.' },
     { question: 'Is the website optimized for mobile and SEO?', answer: 'Absolutely. Every generated site is fully responsive, lightweight, accessible, and optimized with semantic HTML and metadata for search engines.' },
     { question: 'Can I connect my own custom domain?', answer: 'Yes, you can easily link your custom domain or publish instantly with our high-speed global CDN hosting.' }
   ];
+  const items = Array.isArray(rawItems) ? rawItems : Object.values(rawItems);
+
+  useEffect(() => {
+    if (!content.items && updateText) {
+      updateText('items', rawItems);
+    }
+  }, [content.items, updateText]);
 
   const [openIndices, setOpenIndices] = useState([0]); // First item open by default
 

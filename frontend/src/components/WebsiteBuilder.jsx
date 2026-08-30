@@ -52,13 +52,13 @@ export const SectionComponents = {
 };
 
 const FEELS = [
-  { id: 'professional', label: 'Professional', icon: '💼' },
-  { id: 'minimal', label: 'Minimal', icon: '◻️' },
-  { id: 'luxury', label: 'Luxury', icon: '✨' },
-  { id: 'friendly', label: 'Friendly', icon: '😊' },
-  { id: 'bold', label: 'Bold', icon: '💥' },
-  { id: 'futuristic', label: 'Futuristic', icon: '🚀' },
-  { id: 'playful', label: 'Playful', icon: '🎨' },
+  { id: 'professional', label: 'Professional', icon: 'fa-solid fa-briefcase' },
+  { id: 'minimal', label: 'Minimal', icon: 'fa-solid fa-square' },
+  { id: 'luxury', label: 'Luxury', icon: 'fa-solid fa-gem' },
+  { id: 'friendly', label: 'Friendly', icon: 'fa-solid fa-face-smile' },
+  { id: 'bold', label: 'Bold', icon: 'fa-solid fa-fire' },
+  { id: 'futuristic', label: 'Futuristic', icon: 'fa-solid fa-rocket' },
+  { id: 'playful', label: 'Playful', icon: 'fa-solid fa-palette' },
 ];
 
 const THEMES_BY_FEEL = {
@@ -117,6 +117,22 @@ const AVAILABLE_COMPONENTS = [
   { type: 'footer', label: 'Footer', description: 'Display copyright, company info, navigation, and social links.', icon: 'fa-solid fa-shoe-prints' }
 ];
 
+const SECTION_ICONS = {
+  hero: 'fa-solid fa-bolt',
+  home: 'fa-solid fa-bolt',
+  about: 'fa-solid fa-circle-info',
+  features: 'fa-solid fa-star',
+  services: 'fa-solid fa-star',
+  pricing: 'fa-solid fa-sack-dollar',
+  products: 'fa-solid fa-sack-dollar',
+  portfolio: 'fa-solid fa-images',
+  testimonials: 'fa-solid fa-comments',
+  faq: 'fa-solid fa-circle-question',
+  contact: 'fa-solid fa-phone',
+  gallery: 'fa-solid fa-image',
+  footer: 'fa-solid fa-shoe-prints'
+};
+
 // ─── UTILS ─────────────────────────────────────────────────────────────────────
 
 export function isLight(hex) {
@@ -130,7 +146,7 @@ export function isLight(hex) {
 
 // ─── SITE NAVBAR ─────────────────────────────────────────────────────────────
 
-export function SiteNavbar({ businessName, sections, theme, logo, feel }) {
+export function SiteNavbar({ businessName, sections, theme, logo, feel, showBusinessName = true }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('');
@@ -210,22 +226,22 @@ export function SiteNavbar({ businessName, sections, theme, logo, feel }) {
           style={{ color: textColor }}
         >
           {logo ? (
-            <img src={logo} alt={businessName} className="h-9 w-auto object-contain max-h-9" />
+            <img src={logo} alt={businessName} className="h-9 w-auto object-contain max-h-9 rounded-md" />
           ) : (
-            <div className="flex items-center gap-2.5">
-              <div
-                className="w-8.5 h-8.5 rounded-xl flex items-center justify-center font-black text-xs shadow-sm transition-all duration-300 hover:rotate-6"
-                style={{
-                  backgroundColor: primary,
-                  color: isLight(primary) ? '#000000' : '#ffffff',
-                }}
-              >
-                {(businessName || 'B').charAt(0).toUpperCase()}
-              </div>
-              <span className="font-extrabold tracking-tight text-base sm:text-lg uppercase">
-                {businessName || 'Your Brand'}
-              </span>
+            <div
+              className="w-8.5 h-8.5 rounded-xl flex items-center justify-center font-black text-xs shadow-sm transition-all duration-300 hover:rotate-6"
+              style={{
+                backgroundColor: primary,
+                color: isLight(primary) ? '#000000' : '#ffffff',
+              }}
+            >
+              {(businessName || 'B').charAt(0).toUpperCase()}
             </div>
+          )}
+          {showBusinessName && (
+            <span className="font-extrabold tracking-tight text-base sm:text-lg uppercase">
+              {businessName || 'Your Brand'}
+            </span>
           )}
         </a>
 
@@ -668,7 +684,9 @@ function SortableSidebarItem({ section, onRemove }) {
         >
           <GripVertical size={12} />
         </div>
-        <div className="w-1.5 h-1.5 rounded-full bg-[#d4f000] shrink-0" />
+        <div className="w-4 h-4 flex items-center justify-center text-[#d4f000] shrink-0 text-[10px]">
+          <i className={SECTION_ICONS[section.type] || 'fa-solid fa-puzzle-piece'}></i>
+        </div>
         <span className="text-xs font-bold uppercase text-white/80 tracking-wider capitalize">
           {section.type}
         </span>
@@ -687,7 +705,7 @@ function SortableSidebarItem({ section, onRemove }) {
 
 // ─── WEBSITE BUILDER ──────────────────────────────────────────────────────────
 
-export default function WebsiteBuilder({ initialSpec, theme, businessName, pages, logo, feel, fontStyle, websiteId, onSave, initialSiteImages = [], initialDataHeaders = null, initialDataRows = null }) {
+export default function WebsiteBuilder({ initialSpec, theme, businessName, pages, logo, feel, fontStyle, websiteId, onSave, initialSiteImages = [], initialDataHeaders = null, initialDataRows = null, initialShowBusinessName = true }) {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState('desktop'); // 'desktop' | 'mobile'
   const [sections, setSections] = useState(
@@ -775,6 +793,9 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
 
   const [currentTheme, setCurrentTheme] = useState(theme);
   const [currentFeel, setCurrentFeel] = useState(feel);
+  const [currentLogo, setCurrentLogo] = useState(logo || null);
+  const [currentBusinessName, setCurrentBusinessName] = useState(businessName || '');
+  const [showBusinessName, setShowBusinessName] = useState(initialShowBusinessName !== false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(true); // default to true since it starts synchronized
   const [saveError, setSaveError] = useState(false);
@@ -786,6 +807,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
   const [subdomainInput, setSubdomainInput] = useState('');
   const [currentPublishedSubdomain, setCurrentPublishedSubdomain] = useState(null);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isUnpublishing, setIsUnpublishing] = useState(false);
   const [publishError, setPublishError] = useState(null);
   const [publishSuccessUrl, setPublishSuccessUrl] = useState(null);
   const [subdomainStatus, setSubdomainStatus] = useState(null); // null | 'checking' | 'available' | 'taken' | 'yours'
@@ -912,13 +934,14 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         user_id: user.id,
         website_id: currentWebsiteId,
         config: {
-          businessName,
+          businessName: currentBusinessName,
           sections,
           theme: currentTheme || theme,
-          logo,
+          logo: currentLogo,
           feel: currentFeel || feel,
           fontStyle,
-          siteImages
+          siteImages,
+          showBusinessName
         },
         published_at: new Date().toISOString()
       };
@@ -937,6 +960,40 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
       setPublishError(err.message);
     } finally {
       setIsPublishing(false);
+    }
+  };
+
+  const handleUnpublish = async () => {
+    if (!currentPublishedSubdomain) return;
+    if (!window.confirm("Are you sure you want to unpublish this website? It will no longer be accessible online.")) {
+      return;
+    }
+    
+    setIsUnpublishing(true);
+    setPublishError(null);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('You must be logged in to unpublish.');
+
+      const { error } = await supabase
+        .from('published_sites')
+        .delete()
+        .eq('subdomain', currentPublishedSubdomain)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setCurrentPublishedSubdomain(null);
+      setSubdomainInput('');
+      setSubdomainStatus(null);
+      setShowPublishModal(false);
+      alert("Website unpublished successfully!");
+    } catch (err) {
+      console.error('Unpublish failed:', err);
+      setPublishError(err.message);
+    } finally {
+      setIsUnpublishing(false);
     }
   };
 
@@ -973,10 +1030,10 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
 
       const payload = {
         user_id: user.id,
-        name: businessName || 'My Website',
+        name: currentBusinessName || 'My Website',
         spec: cleanedSections,
         theme: currentTheme || theme,
-        config: { businessName, pages, logo, feel: currentFeel || feel, fontStyle, siteImages: cleanedSiteImages },
+        config: { businessName: currentBusinessName, pages, logo: currentLogo, feel: currentFeel || feel, fontStyle, siteImages: cleanedSiteImages, showBusinessName },
         updated_at: new Date().toISOString()
       };
 
@@ -1120,7 +1177,20 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
     }, 800); // 800ms debounce — generous enough to batch rapid keystrokes
 
     return () => clearTimeout(timer);
-  }, [sections, currentTheme, currentFeel, siteImages]);
+  }, [sections, currentTheme, currentFeel, currentLogo, currentBusinessName, showBusinessName, siteImages]);
+
+  // Update document favicon dynamically in preview
+  useEffect(() => {
+    if (currentLogo) {
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = currentLogo;
+    }
+  }, [currentLogo]);
 
   const handlePreviewClick = (e) => {
     if ((activeTab === 'media' || activeTab === 'components') && !e.target.closest('.floating-image-container') && !e.target.closest('button')) {
@@ -1291,7 +1361,10 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         let curr = newContent;
         for (let i = 0; i < parts.length - 1; i++) {
           const part = parts[i];
-          if (Array.isArray(curr[part])) {
+          const nextPart = parts[i + 1];
+          if (curr[part] === undefined) {
+            curr[part] = !isNaN(Number(nextPart)) ? [] : {};
+          } else if (Array.isArray(curr[part])) {
             curr[part] = [...curr[part]];
           } else {
             curr[part] = { ...curr[part] };
@@ -1931,16 +2004,16 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                 </h3>
                 <div className="space-y-2">
                   {[
-                    { type: 'hero', label: 'Hero / Banner', icon: '⚡', desc: 'Large headline & CTA' },
-                    { type: 'about', label: 'About Us', icon: 'ℹ️', desc: 'Team, mission, story' },
-                    { type: 'features', label: 'Features Grid', icon: '⭐', desc: 'Key features & benefits' },
-                    { type: 'pricing', label: 'Pricing Plans', icon: '💰', desc: 'Subscription tiers' },
-                    { type: 'portfolio', label: 'Portfolio', icon: '🖼️', desc: 'Project showcase grid' },
-                    { type: 'testimonials', label: 'Testimonials', icon: '💬', desc: 'Customer reviews' },
-                    { type: 'faq', label: 'FAQ', icon: '❓', desc: 'Accordion questions' },
-                    { type: 'contact', label: 'Contact', icon: '📞', desc: 'Contact form & info' },
-                    { type: 'gallery', label: 'Images Grid / Gallery', icon: '🖼️', desc: 'Custom columns grid gallery' },
-                    { type: 'footer', label: 'Footer', icon: '🦶', desc: 'Company info, links & copyright' },
+                    { type: 'hero', label: 'Hero / Banner', icon: 'fa-solid fa-bolt', desc: 'Large headline & CTA' },
+                    { type: 'about', label: 'About Us', icon: 'fa-solid fa-circle-info', desc: 'Team, mission, story' },
+                    { type: 'features', label: 'Features Grid', icon: 'fa-solid fa-star', desc: 'Key features & benefits' },
+                    { type: 'pricing', label: 'Pricing Plans', icon: 'fa-solid fa-sack-dollar', desc: 'Subscription tiers' },
+                    { type: 'portfolio', label: 'Portfolio', icon: 'fa-solid fa-images', desc: 'Project showcase grid' },
+                    { type: 'testimonials', label: 'Testimonials', icon: 'fa-solid fa-comments', desc: 'Customer reviews' },
+                    { type: 'faq', label: 'FAQ', icon: 'fa-solid fa-circle-question', desc: 'Accordion questions' },
+                    { type: 'contact', label: 'Contact', icon: 'fa-solid fa-phone', desc: 'Contact form & info' },
+                    { type: 'gallery', label: 'Images Grid / Gallery', icon: 'fa-solid fa-image', desc: 'Custom columns grid gallery' },
+                    { type: 'footer', label: 'Footer', icon: 'fa-solid fa-shoe-prints', desc: 'Company info, links & copyright' },
                   ].map(comp => {
                     const alreadyAdded = sections.some(s => s.type === comp.type);
                     return (
@@ -1955,7 +2028,9 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
-                          <span className="text-base leading-none">{comp.icon}</span>
+                          <span className="text-xs w-5 h-5 flex items-center justify-center text-white/60 group-hover:text-[#d4f000] transition-colors">
+                            <i className={comp.icon}></i>
+                          </span>
                           <div>
                             <p className={`text-[11px] font-bold uppercase tracking-wider ${alreadyAdded ? 'text-[#d4f000]' : 'text-white/80'}`}>
                               {comp.label}
@@ -1976,6 +2051,99 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
 
           {activeTab === 'theme' && (
             <div className="space-y-5 flex-1 overflow-y-auto p-4">
+              {/* Brand Logo & Favicon Settings */}
+              <div className="border border-white/10 bg-white/[0.02] p-4 rounded-xl space-y-4">
+                <div>
+                  <h3 className="text-[10px] font-bold text-[#d4f000] uppercase tracking-widest mb-1">
+                    Brand Logo & Favicon
+                  </h3>
+                  <p className="text-[9px] text-white/40 uppercase tracking-wider">
+                    Upload your brand icon. It will be used in the navigation bar and as the website's favicon.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  {/* Current Logo Preview */}
+                  <div className="w-14 h-14 border border-white/10 bg-[#080808] flex items-center justify-center rounded-xl overflow-hidden shrink-0">
+                    {currentLogo ? (
+                      <img src={currentLogo} alt="Brand Logo" className="w-full h-full object-contain p-1.5" />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-center p-1">
+                        <span className="text-white/20 text-[9px] font-bold uppercase">No Icon</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-col gap-1.5 flex-1">
+                    <div className="flex gap-2">
+                      <label className="w-full py-1.5 px-3 border border-white/10 bg-white/5 hover:bg-white/10 text-white rounded text-[10px] uppercase font-bold tracking-wider transition-all text-center cursor-pointer">
+                        Upload
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const fileUrl = await uploadImageFile(file);
+                              setCurrentLogo(fileUrl);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+
+                    {currentLogo && (
+                      <button
+                        type="button"
+                        onClick={() => setCurrentLogo(null)}
+                        className="py-1 px-3 border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-400 rounded text-[9px] uppercase font-bold tracking-wider transition-all text-center"
+                      >
+                        Remove Logo
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Business Name Settings */}
+              <div className="border border-white/10 bg-white/[0.02] p-4 rounded-xl space-y-4">
+                <div>
+                  <h3 className="text-[10px] font-bold text-[#d4f000] uppercase tracking-widest mb-1">
+                    Business Name
+                  </h3>
+                  <p className="text-[9px] text-white/40 uppercase tracking-wider">
+                    Change your brand title text or hide it completely from the header.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Brand Name Text</label>
+                    <input
+                      type="text"
+                      value={currentBusinessName}
+                      onChange={(e) => setCurrentBusinessName(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 focus:border-[#d4f000] text-white p-2 outline-none text-xs rounded"
+                      placeholder="Your Business Name"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <label className="text-[9px] font-bold uppercase text-white/60 tracking-wider">
+                      Show Name in Header
+                    </label>
+                    <input
+                      type="checkbox"
+                      checked={showBusinessName}
+                      onChange={(e) => setShowBusinessName(e.target.checked)}
+                      className="w-4 h-4 rounded border-white/10 bg-white/5 text-[#d4f000] focus:ring-0 focus:ring-offset-0 cursor-pointer accent-[#d4f000]"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Feel Selector */}
               <div>
                 <h3 className="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-2.5">
@@ -2001,7 +2169,9 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                             : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10'
                         }`}
                       >
-                        <span>{f.icon}</span>
+                        <span className="text-[10px] w-3.5 h-3.5 flex items-center justify-center shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+                          <i className={f.icon}></i>
+                        </span>
                         <span className="truncate">{f.label}</span>
                       </button>
                     );
@@ -2489,8 +2659,8 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
               color: `var(--color-text-base, ${isLight(activeTheme?.background) ? '#000000' : '#ffffff'})`
             }}
           >
-            {/* Generated Site Navbar */}
-            <SiteNavbar businessName={businessName} sections={sections} theme={currentTheme || theme} logo={logo} feel={feel} />
+             {/* Generated Site Navbar */}
+            <SiteNavbar businessName={currentBusinessName} sections={sections} theme={currentTheme || theme} logo={currentLogo} feel={currentFeel || feel} showBusinessName={showBusinessName} />
 
             {/* Sections */}
             <DndContext
@@ -2622,7 +2792,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
 
                 <button
                   type="submit"
-                  disabled={isPublishing || !subdomainInput || subdomainStatus === 'taken' || subdomainStatus === 'checking'}
+                  disabled={isPublishing || isUnpublishing || !subdomainInput || subdomainStatus === 'taken' || subdomainStatus === 'checking'}
                   className="w-full bg-[#d4f000] text-[#080808] font-bold uppercase tracking-wider py-3 rounded hover:bg-[#b8d000] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isPublishing ? <Loader2 size={16} className="animate-spin" /> :
@@ -2630,6 +2800,17 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                    currentPublishedSubdomain ? 'Publish on New Domain' :
                    'Publish Now'}
                 </button>
+
+                {currentPublishedSubdomain && (
+                  <button
+                    type="button"
+                    onClick={handleUnpublish}
+                    disabled={isUnpublishing || isPublishing}
+                    className="w-full bg-transparent border border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10 text-red-500 font-bold uppercase tracking-wider py-3 rounded transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isUnpublishing ? <Loader2 size={16} className="animate-spin" /> : 'Unpublish Website'}
+                  </button>
+                )}
               </form>
             )}
           </div>

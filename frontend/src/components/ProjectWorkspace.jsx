@@ -195,9 +195,8 @@ export default function ProjectWorkspace({
   const [siteImages, setSiteImages] = useState(project?.config?.siteImages || []);
 
   // ── Spreadsheet / Data State ───────────────────────────────────────────────
-  const isDummyData = project?.config?.dataHeaders && project.config.dataHeaders[0] === 'Category';
-  const initialHeaders = isDummyData ? DEFAULT_HEADERS : (project?.config?.dataHeaders || project?.dataHeaders || DEFAULT_HEADERS);
-  const initialRows = isDummyData ? DEFAULT_DATA : (project?.config?.dataRows || project?.dataRows || DEFAULT_DATA);
+  const initialHeaders = project?.config?.dataHeaders || project?.dataHeaders || ['Name', 'Email', 'Message', 'Submitted At'];
+  const initialRows = project?.config?.dataRows || project?.dataRows || [];
 
   const [headers, setHeaders] = useState(initialHeaders);
   const [data, setData] = useState(initialRows);

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Check, Sparkles, Copy, Trash2 } from 'lucide-react';
 import { getStyles } from '../../utils/themeHelper';
 import EditableText, { EditableContext } from '../EditableText';
@@ -8,7 +8,7 @@ export default function Pricing({ content = {}, feel }) {
   const { isEditingText, updateText } = useContext(EditableContext);
   const [hoveredCardIndex, setHoveredCardIndex] = useState(null);
 
-  const plans = (content.plans && content.plans.length > 0) ? content.plans : [
+  const rawPlans = (content.plans && content.plans.length > 0) ? content.plans : [
     {
       name: 'Starter',
       price: '$29',
@@ -34,6 +34,13 @@ export default function Pricing({ content = {}, feel }) {
       popular: false
     }
   ];
+  const plans = Array.isArray(rawPlans) ? rawPlans : Object.values(rawPlans);
+
+  useEffect(() => {
+    if ((!content.plans || content.plans.length === 0) && updateText) {
+      updateText('plans', rawPlans);
+    }
+  }, [content.plans, updateText]);
 
   const duplicateItem = (index) => {
     if (updateText) {
