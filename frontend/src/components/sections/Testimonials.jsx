@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Star, Quote, Upload, Trash2, Camera, Copy } from 'lucide-react';
+import { Star, Quote, Upload, Trash2, Camera, Copy, Loader2 } from 'lucide-react';
 import { getStyles } from '../../utils/themeHelper';
 import EditableText, { EditableContext } from '../EditableText';
 import { uploadImageFile } from '../../utils/uploadHelper';
@@ -9,6 +9,7 @@ export default function Testimonials({ content = {}, feel }) {
   const { isEditingText, updateText } = useContext(EditableContext);
   const [hoveredAvatarIndex, setHoveredAvatarIndex] = useState(null);
   const [hoveredCardIndex, setHoveredCardIndex] = useState(null);
+  const [loadingAvatarIndex, setLoadingAvatarIndex] = useState(null);
 
   const rawItems = content.items || [
     { quote: 'This platform transformed our entire online presence within minutes. The aesthetic and workflow is second to none.', author: 'Jane Doe', role: 'CEO at TechCorp', company: 'TechCorp' },
@@ -26,8 +27,15 @@ export default function Testimonials({ content = {}, feel }) {
   const handleAvatarChange = async (index, e) => {
     const file = e.target.files?.[0];
     if (file && updateText) {
-      const fileUrl = await uploadImageFile(file);
-      updateText(`items.${index}.avatarUrl`, fileUrl);
+      setLoadingAvatarIndex(index);
+      try {
+        const fileUrl = await uploadImageFile(file);
+        updateText(`items.${index}.avatarUrl`, fileUrl);
+      } catch (err) {
+        console.error("Avatar upload failed", err);
+      } finally {
+        setLoadingAvatarIndex(null);
+      }
     }
   };
 
@@ -127,7 +135,11 @@ export default function Testimonials({ content = {}, feel }) {
                     onMouseEnter={() => setHoveredAvatarIndex(index)}
                     onMouseLeave={() => setHoveredAvatarIndex(null)}
                   >
-                    {avatarUrl ? (
+                    {loadingAvatarIndex === index ? (
+                      <div className="w-10 h-10 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0 border border-primary/20">
+                        <Loader2 className="w-4 h-4 animate-spin text-[#d4f000]" />
+                      </div>
+                    ) : avatarUrl ? (
                       <img 
                         src={avatarUrl} 
                         alt={displayAuthor} 

@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { ExternalLink, Layers, Upload, Trash2, Image, Copy } from 'lucide-react';
+import { ExternalLink, Layers, Upload, Trash2, Image, Copy, Loader2 } from 'lucide-react';
 import { getStyles } from '../../utils/themeHelper';
 import EditableText, { EditableContext } from '../EditableText';
 import { uploadImageFile } from '../../utils/uploadHelper';
@@ -8,6 +8,7 @@ export default function Portfolio({ content = {}, feel }) {
   const s = getStyles(feel);
   const { isEditingText, updateText } = useContext(EditableContext);
   const [hoveredCardIndex, setHoveredCardIndex] = useState(null);
+  const [loadingCardIndex, setLoadingCardIndex] = useState(null);
 
   const rawItems = content.items || [
     { title: 'Project Nexus', category: 'Web App & AI', description: 'Next-generation intelligent automation platform with real-time sync.' },
@@ -25,8 +26,15 @@ export default function Portfolio({ content = {}, feel }) {
   const handleImageChange = async (index, e) => {
     const file = e.target.files?.[0];
     if (file && updateText) {
-      const fileUrl = await uploadImageFile(file);
-      updateText(`items.${index}.imageUrl`, fileUrl);
+      setLoadingCardIndex(index);
+      try {
+        const fileUrl = await uploadImageFile(file);
+        updateText(`items.${index}.imageUrl`, fileUrl);
+      } catch (err) {
+        console.error("Image upload failed", err);
+      } finally {
+        setLoadingCardIndex(null);
+      }
     }
   };
 
@@ -115,7 +123,12 @@ export default function Portfolio({ content = {}, feel }) {
                 <div>
                   {/* Visual Project Thumbnail */}
                   <div className="w-full h-52 bg-gradient-to-br from-primary/20 via-current/5 to-current/10 border border-current/10 mb-6 flex flex-col items-center justify-center relative overflow-hidden rounded-xl group-hover:border-primary/50 transition-all duration-300">
-                    {imageUrl ? (
+                    {loadingCardIndex === index ? (
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Loader2 className="w-8 h-8 animate-spin text-[#d4f000]" />
+                        <span className="text-xs font-bold uppercase tracking-wider opacity-60">Uploading...</span>
+                      </div>
+                    ) : imageUrl ? (
                       <img
                         src={imageUrl}
                         alt={item.title || 'Portfolio item'}

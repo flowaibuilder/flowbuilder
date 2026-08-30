@@ -1157,6 +1157,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
   const [siteImages, setSiteImages] = useState(initialSiteImages || []);
   const [uploadedLibrary, setUploadedLibrary] = useState([]);
   const [selectedImageId, setSelectedImageId] = useState(null);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [selectedText, setSelectedText] = useState(null);
 
   // Debounced auto-save hook — only sections/theme/feel/siteImages trigger this
@@ -1246,12 +1247,19 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
     const file = e.dataTransfer.files?.[0];
     if (file) {
       (async () => {
-        const fileUrl = await uploadImageFile(file);
-        setUploadedLibrary(prev => {
-          if (prev.includes(fileUrl)) return prev;
-          return [...prev, fileUrl];
-        });
-        addNewFloatingElement('image', x, y, fileUrl);
+        setIsUploadingFile(true);
+        try {
+          const fileUrl = await uploadImageFile(file);
+          setUploadedLibrary(prev => {
+            if (prev.includes(fileUrl)) return prev;
+            return [...prev, fileUrl];
+          });
+          addNewFloatingElement('image', x, y, fileUrl);
+        } catch (err) {
+          console.error("File upload failed", err);
+        } finally {
+          setIsUploadingFile(false);
+        }
       })();
       return;
     }
@@ -1337,20 +1345,27 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      const fileUrl = await uploadImageFile(file);
-      setMediaUrl(fileUrl);
-      setUploadedLibrary(prev => {
-        if (prev.includes(fileUrl)) return prev;
-        return [...prev, fileUrl];
-      });
-      const previewContainer = document.getElementById('preview-scroll-container');
-      if (previewContainer) {
-        const rect = previewContainer.getBoundingClientRect();
-        const x = rect.width / 2 + previewContainer.scrollLeft;
-        const y = rect.height / 2 + previewContainer.scrollTop;
-        addNewFloatingElement('image', x, y, fileUrl);
-      } else {
-        addNewFloatingElement('image', 300, 200, fileUrl);
+      setIsUploadingFile(true);
+      try {
+        const fileUrl = await uploadImageFile(file);
+        setMediaUrl(fileUrl);
+        setUploadedLibrary(prev => {
+          if (prev.includes(fileUrl)) return prev;
+          return [...prev, fileUrl];
+        });
+        const previewContainer = document.getElementById('preview-scroll-container');
+        if (previewContainer) {
+          const rect = previewContainer.getBoundingClientRect();
+          const x = rect.width / 2 + previewContainer.scrollLeft;
+          const y = rect.height / 2 + previewContainer.scrollTop;
+          addNewFloatingElement('image', x, y, fileUrl);
+        } else {
+          addNewFloatingElement('image', 300, 200, fileUrl);
+        }
+      } catch (err) {
+        console.error("Image upload failed", err);
+      } finally {
+        setIsUploadingFile(false);
       }
     }
   };
@@ -2097,8 +2112,15 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              const fileUrl = await uploadImageFile(file);
-                              setCurrentLogo(fileUrl);
+                              setIsUploadingFile(true);
+                              try {
+                                const fileUrl = await uploadImageFile(file);
+                                setCurrentLogo(fileUrl);
+                              } catch (err) {
+                                console.error("Logo upload failed", err);
+                              } finally {
+                                setIsUploadingFile(false);
+                              }
                             }
                           }}
                           className="hidden"
@@ -2619,6 +2641,15 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
 
       {/* Main Preview Area Wrapper */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#0c0c0e] relative">
+        
+        {/* Upload Overlay */}
+        {isUploadingFile && (
+          <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
+            <Loader2 className="w-12 h-12 text-[#d4f000] animate-spin mb-4" />
+            <span className="text-white font-bold tracking-widest uppercase">Uploading Image...</span>
+          </div>
+        )}
+
         {/* Device Switcher Header */}
         <div className="bg-[#121215] border-b border-white/10 px-4 py-2 flex items-center justify-between z-30 shrink-0 select-none">
           <div className="flex items-center gap-2">
