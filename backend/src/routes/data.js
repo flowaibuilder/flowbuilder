@@ -1,8 +1,15 @@
 const express = require('express');
 const { analyzeDataWithLLM } = require('../services/dataService');
 const { createClient } = require('@supabase/supabase-js');
+const { Resend } = require('resend');
 
 const router = express.Router();
+
+const resendApiKey = process.env.RESEND_API_KEY;
+let resend;
+if (resendApiKey && resendApiKey !== 're_xxxxxxxxx') {
+  resend = new Resend(resendApiKey);
+}
 
 const multer = require('multer');
 const upload = multer({
@@ -231,7 +238,7 @@ router.post('/submit-form/:subdomain', async (req, res) => {
     // Fetch the published site
     const { data: site, error: fetchError } = await supabase
       .from('published_sites')
-      .select('website_id, config')
+      .select('website_id, config, user_id')
       .eq('subdomain', subdomain)
       .single();
 
@@ -278,6 +285,51 @@ router.post('/submit-form/:subdomain', async (req, res) => {
           .from('saved_websites')
           .update({ config: savedConfig })
           .eq('id', site.website_id);
+      }
+    }
+
+    // ── Send Email Notification using Resend ───────────────────────────────
+    if (resend && site.user_id) {
+      try {
+        const { data: userData } = await supabase.auth.admin.getUserById(site.user_id);
+        const userEmail = userData?.user?.email;
+        
+        if (userEmail) {
+          await resend.emails.send({
+            from: 'onboarding@resend.dev',
+            to: userEmail,
+            subject: `New Lead Submitted on Your Website (${subdomain})`,
+            html: `
+              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                <h2 style="color: #111;">You've received a new form submission!</h2>
+                <p>A visitor has filled out the contact form on your published website: <strong>${subdomain}.flow.devshahid.me</strong></p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 8px 0; font-weight: bold; width: 120px;">Name:</td>
+                    <td style="padding: 8px 0;">${name || 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">Email:</td>
+                    <td style="padding: 8px 0;"><a href="mailto:${email}">${email || 'N/A'}</a></td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">Phone:</td>
+                    <td style="padding: 8px 0;">${phone || 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; font-weight: bold; vertical-align: top;">Message:</td>
+                    <td style="padding: 8px 0; white-space: pre-wrap;">${message || 'N/A'}</td>
+                  </tr>
+                </table>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                <p style="font-size: 12px; color: #666;">This notification was sent automatically by Flow AI Builder.</p>
+              </div>
+            `
+          });
+        }
+      } catch (emailErr) {
+        console.error('Failed to send lead email notification:', emailErr);
       }
     }
 
