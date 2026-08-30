@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Zap, ShieldCheck, Layers, Cpu, Sparkles, BarChart3, Copy, Trash2 } from 'lucide-react';
 import { getStyles } from '../../utils/themeHelper';
 import EditableText, { EditableContext } from '../EditableText';
@@ -10,11 +10,18 @@ export default function Features({ content = {}, feel }) {
   const { isEditingText, updateText } = useContext(EditableContext);
   const [hoveredCardIndex, setHoveredCardIndex] = useState(null);
 
-  const features = content.items || [
+  const rawItems = content.items || [
     { title: 'Lightning Speed', description: 'Engineered for extreme performance and instantaneous load times across all devices.' },
     { title: 'Bank-Grade Security', description: 'Enterprise encryption and real-time privacy protocols safeguarding every asset.' },
     { title: 'Seamless Workflow', description: 'Intuitive drag-and-drop tools and real-time synchronization built for modern teams.' }
   ];
+  const features = Array.isArray(rawItems) ? rawItems : Object.values(rawItems);
+
+  useEffect(() => {
+    if (!content.items && updateText) {
+      updateText('items', rawItems);
+    }
+  }, [content.items, updateText]);
 
   const duplicateItem = (index) => {
     if (updateText) {

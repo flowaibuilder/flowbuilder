@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { ExternalLink, Layers, Upload, Trash2, Image, Copy } from 'lucide-react';
 import { getStyles } from '../../utils/themeHelper';
 import EditableText, { EditableContext } from '../EditableText';
@@ -9,11 +9,18 @@ export default function Portfolio({ content = {}, feel }) {
   const { isEditingText, updateText } = useContext(EditableContext);
   const [hoveredCardIndex, setHoveredCardIndex] = useState(null);
 
-  const items = content.items || [
+  const rawItems = content.items || [
     { title: 'Project Nexus', category: 'Web App & AI', description: 'Next-generation intelligent automation platform with real-time sync.' },
     { title: 'Aura Analytics', category: 'Data & Dashboard', description: 'Interactive metrics visualization engine designed for modern enterprises.' },
     { title: 'Vanguard OS', category: 'Design System', description: 'Comprehensive design system and components for high-velocity teams.' }
   ];
+  const items = Array.isArray(rawItems) ? rawItems : Object.values(rawItems);
+
+  useEffect(() => {
+    if (!content.items && updateText) {
+      updateText('items', rawItems);
+    }
+  }, [content.items, updateText]);
 
   const handleImageChange = async (index, e) => {
     const file = e.target.files?.[0];

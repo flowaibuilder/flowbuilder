@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Star, Quote, Upload, Trash2, Camera, Copy } from 'lucide-react';
 import { getStyles } from '../../utils/themeHelper';
 import EditableText, { EditableContext } from '../EditableText';
@@ -10,11 +10,18 @@ export default function Testimonials({ content = {}, feel }) {
   const [hoveredAvatarIndex, setHoveredAvatarIndex] = useState(null);
   const [hoveredCardIndex, setHoveredCardIndex] = useState(null);
 
-  const items = content.items || [
+  const rawItems = content.items || [
     { quote: 'This platform transformed our entire online presence within minutes. The aesthetic and workflow is second to none.', author: 'Jane Doe', role: 'CEO at TechCorp', company: 'TechCorp' },
     { quote: 'The interactive builder and flawless design tokens made our launch effortless and stunning.', author: 'John Smith', role: 'Founder & Product Lead', company: 'DesignHub' },
     { quote: 'Exceptional attention to detail and performance. Our conversion rates increased by 40% immediately after launch.', author: 'Elena Rostova', role: 'Head of Growth', company: 'GlobalVentures' }
   ];
+  const items = Array.isArray(rawItems) ? rawItems : Object.values(rawItems);
+
+  useEffect(() => {
+    if (!content.items && updateText) {
+      updateText('items', rawItems);
+    }
+  }, [content.items, updateText]);
 
   const handleAvatarChange = async (index, e) => {
     const file = e.target.files?.[0];

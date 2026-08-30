@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Upload, Trash2, Copy, Columns, Grid } from 'lucide-react';
 import { getStyles } from '../../utils/themeHelper';
 import EditableText, { EditableContext } from '../EditableText';
@@ -11,11 +11,18 @@ export default function Gallery({ content = {}, feel }) {
 
   const columns = content.columns || 3; // Default to 3 columns
 
-  const items = content.items || [
+  const rawItems = content.items || [
     { title: 'Modern Workspace', description: 'Clean minimal workspace designed for maximum productivity.', imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80' },
     { title: 'Meeting Lounge', description: 'Cozy collaborative meeting environments.', imageUrl: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=800&q=80' },
     { title: 'Executive Studio', description: 'Sophisticated private offices with modern setups.', imageUrl: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=800&q=80' }
   ];
+  const items = Array.isArray(rawItems) ? rawItems : Object.values(rawItems);
+
+  useEffect(() => {
+    if (!content.items && updateText) {
+      updateText('items', rawItems);
+    }
+  }, [content.items, updateText]);
 
   const handleImageChange = async (index, e) => {
     const file = e.target.files?.[0];

@@ -132,12 +132,12 @@ export default function ToolChoice() {
   };
 
   const filteredWebsites = websites.filter(site => {
-    const matchesFilter = 
+    const matchesFilter =
       filter === 'all' ? true :
-      filter === 'published' ? site.status === 'published' :
-      site.status === 'draft';
+        filter === 'published' ? site.status === 'published' :
+          site.status === 'draft';
 
-    const matchesSearch = 
+    const matchesSearch =
       site.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (site.subdomain && site.subdomain.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -150,7 +150,7 @@ export default function ToolChoice() {
       <header className="w-full px-8 py-6 flex justify-between items-center border-b border-white/10 relative z-20 bg-[#080808]">
         <Link to="/" className="text-2xl font-normal text-white" style={{ fontFamily: "'Pacifico', cursive" }}>flow</Link>
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => setShowSignOut(true)}
             className="px-4 py-1.5 border border-red-500/30 text-[11px] uppercase tracking-widest font-bold transition-all text-red-500 hover:text-white hover:bg-red-500/20 hover:border-red-500/50"
           >
@@ -161,12 +161,12 @@ export default function ToolChoice() {
 
       {/* Main Two-Column Layout */}
       <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden p-6 lg:p-8 gap-8">
-        
+
         {/* LEFT COLUMN: Create / Build New Website Panel */}
         <div className="w-full lg:w-[420px] xl:w-[450px] flex-shrink-0 bg-[#0c0c0c] border border-white/10 p-8 lg:p-10 flex flex-col justify-between relative shadow-2xl overflow-hidden">
           {/* Background Ambient Glow */}
-          <div className="absolute inset-0 pointer-events-none opacity-20">
-            <img src={heroImage} alt="" className="w-full h-full object-cover grayscale opacity-20" />
+          <div className="absolute inset-0 pointer-events-none opacity-60">
+            <img src={heroImage} alt="" className="w-full h-full object-cover grayscale opacity-70" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c]/90 to-transparent" />
           </div>
 
@@ -223,9 +223,9 @@ export default function ToolChoice() {
               {/* Search Bar */}
               <div className="relative w-full md:w-56">
                 <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" />
-                <input 
-                  type="text" 
-                  placeholder="Search websites..." 
+                <input
+                  type="text"
+                  placeholder="Search websites..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-white/[0.03] border border-white/10 text-white text-xs pl-9 pr-3.5 py-2.5 outline-none focus:border-[#d4f000] transition-colors"
@@ -242,11 +242,10 @@ export default function ToolChoice() {
                   <button
                     key={t.id}
                     onClick={() => setFilter(t.id)}
-                    className={`px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all ${
-                      filter === t.id 
-                        ? t.activeClass 
-                        : 'text-white/40 hover:text-white'
-                    }`}
+                    className={`px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all ${filter === t.id
+                      ? t.activeClass
+                      : 'text-white/40 hover:text-white'
+                      }`}
                   >
                     {t.label}
                   </button>
@@ -280,7 +279,7 @@ export default function ToolChoice() {
           ) : (
             <div className="flex flex-col gap-4">
               {filteredWebsites.map((site) => (
-                <div 
+                <div
                   key={site.id}
                   onClick={() => {
                     if (site.status === 'published') {
@@ -294,8 +293,18 @@ export default function ToolChoice() {
                   {/* Left Info Section */}
                   <div className="flex items-center gap-4 min-w-0 flex-1">
                     {/* Website Icon Avatar */}
-                    <div className="w-12 h-12 border border-white/10 flex items-center justify-center text-[#d4f000] bg-[#080808] flex-shrink-0 group-hover:border-[#d4f000]/30 transition-colors shadow-inner">
-                      <Layout size={20} />
+                    <div className="w-12 h-12 border border-white/10 flex items-center justify-center bg-[#080808] flex-shrink-0 group-hover:border-[#d4f000]/30 transition-colors shadow-inner overflow-hidden">
+                      {site.config?.logo ? (
+                        <img
+                          src={site.config.logo}
+                          alt={`${site.name} logo`}
+                          className="w-full h-full object-contain p-1.5"
+                        />
+                      ) : (
+                        <div className="text-[#d4f000]">
+                          <Layout size={20} />
+                        </div>
+                      )}
                     </div>
 
                     <div className="min-w-0 flex-1">
@@ -304,11 +313,10 @@ export default function ToolChoice() {
                           {site.name}
                         </h3>
                         {/* Status Tag */}
-                        <span className={`inline-block px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest border flex-shrink-0 bg-transparent text-white ${
-                          site.status === 'published'
-                            ? 'border-emerald-500'
-                            : 'border-amber-400'
-                        }`}>
+                        <span className={`inline-block px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest border flex-shrink-0 bg-transparent text-white ${site.status === 'published'
+                          ? 'border-emerald-500'
+                          : 'border-amber-400'
+                          }`}>
                           {site.status === 'published' ? 'Published' : 'Draft'}
                         </span>
                       </div>
@@ -365,11 +373,11 @@ export default function ToolChoice() {
 
       {/* Delete Confirmation Modal */}
       {deleteModalSite && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
           onClick={() => setDeleteModalSite(null)}
         >
-          <div 
+          <div
             className="bg-[#111] border border-white/10 p-6 w-full max-w-sm flex flex-col items-center text-center shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
@@ -381,13 +389,13 @@ export default function ToolChoice() {
               Are you sure you want to delete <span className="text-white font-semibold">"{deleteModalSite.name}"</span>? This action cannot be undone.
             </p>
             <div className="flex gap-3 w-full">
-              <button 
+              <button
                 onClick={() => setDeleteModalSite(null)}
                 className="flex-1 py-2.5 border border-white/10 text-white/60 hover:text-white hover:bg-white/5 text-[11px] uppercase tracking-widest font-bold transition-colors"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={() => handleDeleteWebsite(deleteModalSite)}
                 className="flex-1 py-2.5 bg-red-500 text-white hover:bg-red-600 text-[11px] uppercase tracking-widest font-bold transition-colors"
               >
@@ -408,13 +416,13 @@ export default function ToolChoice() {
             <h3 className="text-xl font-bold text-white/90 mb-2">Sign Out</h3>
             <p className="text-white/40 text-sm mb-8">Are you sure you want to sign out of your account?</p>
             <div className="flex gap-4 w-full">
-              <button 
+              <button
                 onClick={() => setShowSignOut(false)}
                 className="flex-1 py-3 border border-white/10 text-white/40 hover:text-white/90 hover:bg-white/5 text-[11px] uppercase tracking-widest font-bold transition-colors"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={confirmSignOut}
                 className="flex-1 py-3 bg-red-500 text-white hover:bg-red-600 text-[11px] uppercase tracking-widest font-bold transition-colors"
               >

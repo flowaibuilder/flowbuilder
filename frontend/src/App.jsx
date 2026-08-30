@@ -49,6 +49,7 @@ function AIBuilderContainer() {
   const [initialDataRows, setInitialDataRows] = useState(null);
   const [loadingSite, setLoadingSite]             = useState(false);
   const [initialQuestionnaireData, setInitialQuestionnaireData] = useState(null);
+  const [savedShowBusinessName, setSavedShowBusinessName] = useState(true);
 
   // Reset all state when there is no site to load (fresh "Build New Website")
   const resetAll = () => {
@@ -63,6 +64,7 @@ function AIBuilderContainer() {
     setInitialSiteImages([]);
     setInitialDataHeaders(null);
     setInitialDataRows(null);
+    setSavedShowBusinessName(true);
     setInitialQuestionnaireData(null);
     setLoadingSite(false);
   };
@@ -95,6 +97,7 @@ function AIBuilderContainer() {
           setInitialSiteImages(saved.config?.siteImages || []);
           setInitialDataHeaders(saved.config?.dataHeaders || null);
           setInitialDataRows(saved.config?.dataRows || null);
+          setSavedShowBusinessName(saved.config?.showBusinessName !== false);
 
           if (saved.spec && Array.isArray(saved.spec) && saved.spec.length > 0) {
             setWebsiteSpec(saved.spec);
@@ -134,6 +137,7 @@ function AIBuilderContainer() {
           setInitialSiteImages(pub.config.siteImages || []);
           setInitialDataHeaders(pub.config.dataHeaders || null);
           setInitialDataRows(pub.config.dataRows || null);
+          setSavedShowBusinessName(pub.config.showBusinessName !== false);
         }
       } catch (err) {
         console.error('Error loading existing website:', err);
@@ -159,6 +163,7 @@ function AIBuilderContainer() {
     setFontStyle(selectedFont || '');
     if (id) setWebsiteId(id);
     setInitialSiteImages(siteImages || []);
+    setSavedShowBusinessName(true);
   };
 
   if (loadingSite) {
@@ -200,6 +205,7 @@ function AIBuilderContainer() {
           initialSiteImages={initialSiteImages}
           initialDataHeaders={initialDataHeaders}
           initialDataRows={initialDataRows}
+          initialShowBusinessName={savedShowBusinessName}
         />
       )}
     </div>

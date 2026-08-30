@@ -47,6 +47,26 @@ export default function PublishedSiteViewer({ subdomain }) {
     fetchSite();
   }, [subdomain]);
 
+  useEffect(() => {
+    if (siteData) {
+      // Set the document title
+      if (siteData.businessName) {
+        document.title = siteData.businessName;
+      }
+      
+      // Set the favicon dynamically
+      if (siteData.logo) {
+        let link = document.querySelector("link[rel~='icon']");
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = 'icon';
+          document.getElementsByTagName('head')[0].appendChild(link);
+        }
+        link.href = siteData.logo;
+      }
+    }
+  }, [siteData]);
+
   const [isMobileScreen, setIsMobileScreen] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
 
   useEffect(() => {
