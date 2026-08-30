@@ -170,7 +170,7 @@ export function SiteNavbar({ businessName, sections, theme, logo, feel, showBusi
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 15);
-      
+
       // Determine active section
       const sectionElements = sections.map(s => document.getElementById(`section-${s.id}`)).filter(Boolean);
       let currentActive = '';
@@ -191,7 +191,7 @@ export function SiteNavbar({ businessName, sections, theme, logo, feel, showBusi
 
   // Styling properties depending on scroll state
   const navHeightClass = isScrolled ? 'py-3 sm:py-4 shadow-md bg-opacity-95' : 'py-5 bg-opacity-80';
-  const navBg = isDark 
+  const navBg = isDark
     ? (isScrolled ? 'rgba(10, 10, 12, 0.95)' : 'rgba(10, 10, 12, 0.7)')
     : (isScrolled ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.7)');
 
@@ -255,9 +255,8 @@ export function SiteNavbar({ businessName, sections, theme, logo, feel, showBusi
               <div key={link.id} className="relative group/nav py-2">
                 <a
                   href={link.href}
-                  className={`px-4 py-2 text-sm font-semibold tracking-wide rounded-lg flex items-center gap-1 transition-all duration-200 relative ${
-                    isActive ? 'text-primary bg-primary/5' : 'opacity-85 hover:opacity-100 hover:bg-current/5'
-                  }`}
+                  className={`px-4 py-2 text-sm font-semibold tracking-wide rounded-lg flex items-center gap-1 transition-all duration-200 relative ${isActive ? 'text-primary bg-primary/5' : 'opacity-85 hover:opacity-100 hover:bg-current/5'
+                    }`}
                   style={{ color: isActive ? primary : textColor }}
                 >
                   <span>{link.label}</span>
@@ -267,9 +266,9 @@ export function SiteNavbar({ businessName, sections, theme, logo, feel, showBusi
 
                   {/* Active bar visual indicator */}
                   {isActive && (
-                    <span 
-                      className="absolute bottom-0 left-4 right-4 h-0.5 rounded-full animate-pulse" 
-                      style={{ backgroundColor: primary }} 
+                    <span
+                      className="absolute bottom-0 left-4 right-4 h-0.5 rounded-full animate-pulse"
+                      style={{ backgroundColor: primary }}
                     />
                   )}
                 </a>
@@ -277,7 +276,7 @@ export function SiteNavbar({ businessName, sections, theme, logo, feel, showBusi
                 {/* Dropdowns / Mega Menus */}
                 {hasDropdown && (
                   <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 hidden group-hover/nav:block w-72 sm:w-80 transition-all duration-300 z-50">
-                    <div 
+                    <div
                       className="rounded-2xl border p-4 shadow-2xl backdrop-blur-2xl"
                       style={{
                         backgroundColor: isDark ? '#121214' : '#ffffff',
@@ -345,7 +344,7 @@ export function SiteNavbar({ businessName, sections, theme, logo, feel, showBusi
               </button>
 
               <div className="absolute top-full right-0 pt-3 hidden group-hover/more:block w-48 transition-all duration-300 z-50">
-                <div 
+                <div
                   className="rounded-2xl border p-2 shadow-2xl backdrop-blur-2xl"
                   style={{
                     backgroundColor: isDark ? '#121214' : '#ffffff',
@@ -359,9 +358,8 @@ export function SiteNavbar({ businessName, sections, theme, logo, feel, showBusi
                       <a
                         key={link.id}
                         href={link.href}
-                        className={`block px-4 py-2 text-sm font-semibold rounded-xl hover:bg-current/5 transition-colors ${
-                          isActive ? 'text-primary' : 'opacity-85'
-                        }`}
+                        className={`block px-4 py-2 text-sm font-semibold rounded-xl hover:bg-current/5 transition-colors ${isActive ? 'text-primary' : 'opacity-85'
+                          }`}
                         style={{ color: isActive ? primary : undefined }}
                       >
                         {link.label}
@@ -402,7 +400,7 @@ export function SiteNavbar({ businessName, sections, theme, logo, feel, showBusi
       {menuOpen && (
         <div
           className="md:hidden border-t px-6 py-5 flex flex-col gap-3 shadow-2xl backdrop-blur-2xl transition-all duration-300"
-          style={{ 
+          style={{
             borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
             backgroundColor: isDark ? '#0d0d0f' : '#ffffff',
           }}
@@ -442,21 +440,21 @@ export function SiteNavbar({ businessName, sections, theme, logo, feel, showBusi
 
 // ─── SORTABLE SECTION ─────────────────────────────────────────────────────────
 
-function SortableSection({ 
-  id, 
-  section, 
-  feel, 
-  isEditingText, 
-  isExpanded, 
-  onClick, 
-  onUpdateText, 
-  activeTab, 
-  selectedText, 
+function SortableSection({
+  id,
+  section,
+  feel,
+  isEditingText,
+  isExpanded,
+  onClick,
+  onUpdateText,
+  activeTab,
+  selectedText,
   onSelectText,
   onMoveSection,
   onDeleteSection,
   isFirst,
-  isLast 
+  isLast
 }) {
   const {
     attributes,
@@ -530,10 +528,10 @@ function SortableSection({
   }
 
   return (
-    <div 
-      ref={setNodeRef} 
-      style={style} 
-      id={`section-${id}`} 
+    <div
+      ref={setNodeRef}
+      style={style}
+      id={`section-${id}`}
       className={`relative group ${isEditingText ? 'cursor-pointer' : ''}`}
       onClick={isEditingText ? onClick : undefined}
     >
@@ -613,19 +611,18 @@ function SortableSection({
         `}</style>
       )}
 
-      <div 
-        className={`transition-all duration-300 relative z-0 ${
-          isExpanded 
-            ? 'ring-4 ring-[#d4f000] ring-offset-4 ring-offset-black' 
+      <div
+        className={`transition-all duration-300 relative z-0 ${isExpanded
+            ? 'ring-4 ring-[#d4f000] ring-offset-4 ring-offset-black'
             : 'hover:ring-2 hover:ring-primary hover:ring-inset'
-        }`}
+          }`}
         style={{
           ...(section.content?.bgColor ? { backgroundColor: section.content.bgColor } : {}),
           ...(section.content?.textColor ? { color: section.content.textColor } : {}),
         }}
       >
-        <EditableContext.Provider value={{ 
-          isEditingText, 
+        <EditableContext.Provider value={{
+          isEditingText,
           isMediaMode: activeTab === 'media',
           selectedText,
           onSelectText: (path) => onSelectText(id, path),
@@ -801,7 +798,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
   const [saveError, setSaveError] = useState(false);
   const isInitialMount = useRef(true);
   const [previousHistoryState, setPreviousHistoryState] = useState(null);
-  
+
   // Publish State
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [subdomainInput, setSubdomainInput] = useState('');
@@ -968,10 +965,10 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
     if (!window.confirm("Are you sure you want to unpublish this website? It will no longer be accessible online.")) {
       return;
     }
-    
+
     setIsUnpublishing(true);
     setPublishError(null);
-    
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('You must be logged in to unpublish.');
@@ -1356,7 +1353,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
       prevSections.map(s => {
         if (s.id !== sectionId) return s;
         const newContent = { ...s.content };
-        
+
         const parts = fieldPath.split('.');
         let curr = newContent;
         for (let i = 0; i < parts.length - 1; i++) {
@@ -1372,7 +1369,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           curr = curr[part];
         }
         curr[parts[parts.length - 1]] = val;
-        
+
         return { ...s, content: newContent };
       })
     );
@@ -1380,15 +1377,15 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
 
   const renderEditableFields = (sectionId, obj, prefix = '') => {
     if (!obj || typeof obj !== 'object') return null;
-    
+
     return Object.entries(obj).map(([key, val]) => {
       const currentPath = prefix ? `${prefix}.${key}` : key;
-      
+
       const isStyledText = val && typeof val === 'object' && ('text' in val);
       if (typeof val === 'string' || typeof val === 'number' || isStyledText) {
         const textValue = isStyledText ? (val.text || '') : String(val);
         const label = currentPath.split('.').map(p => isNaN(p) ? p : `Item ${Number(p) + 1}`).join(' → ');
-        
+
         // Skip rendering styling fields as nested standalone fields
         if (key === 'image' || key === 'aspectRatio' || key === 'borderRadius' || key === 'width') return null;
 
@@ -1405,11 +1402,10 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         const isTextArea = textValue.length > 50;
 
         return (
-          <div 
-            key={currentPath} 
-            className={`flex flex-col gap-1.5 mb-4 p-2.5 rounded transition-all ${
-              isSelectedText ? 'bg-[#d4f000]/5 ring-1 ring-[#d4f000]/30' : 'bg-white/[0.01]'
-            }`}
+          <div
+            key={currentPath}
+            className={`flex flex-col gap-1.5 mb-4 p-2.5 rounded transition-all ${isSelectedText ? 'bg-[#d4f000]/5 ring-1 ring-[#d4f000]/30' : 'bg-white/[0.01]'
+              }`}
             onClick={(e) => {
               e.stopPropagation();
               setSelectedText({ sectionId, path: currentPath });
@@ -1516,11 +1512,10 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                         key={align}
                         type="button"
                         onClick={() => updateStyle('textAlign', align)}
-                        className={`py-1 text-[9px] font-bold uppercase rounded border transition-all ${
-                          isStyledText && val.textAlign === align
+                        className={`py-1 text-[9px] font-bold uppercase rounded border transition-all ${isStyledText && val.textAlign === align
                             ? 'bg-[#d4f000] text-[#080808] border-[#d4f000]'
                             : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10'
-                        }`}
+                          }`}
                       >
                         {align}
                       </button>
@@ -1532,7 +1527,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           </div>
         );
       }
-      
+
       if (Array.isArray(val)) {
         return (
           <div key={currentPath} className="border-l border-white/15 pl-3 mb-4 mt-2">
@@ -1546,7 +1541,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           </div>
         );
       }
-      
+
       if (typeof val === 'object') {
         // Prevent infinite loops on style parameters of objects
         if (key === 'image') return null;
@@ -1557,7 +1552,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
           </div>
         );
       }
-      
+
       return null;
     });
   };
@@ -1629,7 +1624,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
       if (data.spec && Array.isArray(data.spec)) {
         const newSections = data.spec.map((s, idx) => {
           const existing = sections.find(old => old.id === s.id);
-          
+
           const content = { ...s.content };
           if (existing && existing.content) {
             // Restore main image URL if present
@@ -1641,8 +1636,8 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
               content.items = content.items.map((item, itemIdx) => {
                 const existingItem = existing.content.items[itemIdx];
                 if (existingItem && (existingItem.url || existingItem.image)) {
-                  return { 
-                    ...item, 
+                  return {
+                    ...item,
                     url: existingItem.url || item.url,
                     image: existingItem.image || item.image
                   };
@@ -1652,8 +1647,8 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             }
           }
 
-          return { 
-            ...s, 
+          return {
+            ...s,
             id: existing ? existing.id : `section-new-${Date.now()}-${idx}`,
             content
           };
@@ -1691,10 +1686,10 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
       setChatMessages(prev => [...prev, assistantMsg]);
     } catch (err) {
       console.error('Refinement failed:', err);
-      
+
       let userFriendlyMessage = "I couldn't complete that update. Let's try another modification, or try rephrasing your request.";
       const errMsg = String(err.message || '').toLowerCase();
-      
+
       if (errMsg.includes('failed to fetch') || errMsg.includes('networkerror') || errMsg.includes('network')) {
         userFriendlyMessage = "Connection lost. Please check your internet connection and try again.";
       } else if (errMsg.includes('json') || errMsg.includes('unexpected token') || errMsg.includes('parsing')) {
@@ -1704,7 +1699,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
       } else if (errMsg.includes('logged in') || errMsg.includes('auth') || errMsg.includes('login')) {
         userFriendlyMessage = "Please make sure you are logged in to save and refine your site.";
       }
-      
+
       const errorMsg = {
         id: `error-${Date.now()}`,
         sender: 'assistant',
@@ -1791,7 +1786,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
         {/* Sidebar Segmented Control Tabs */}
         <div className="relative border-b border-white/10 bg-white/[0.02] flex items-center group/tabs h-10 overflow-hidden">
           {showLeftArrow && (
-            <button 
+            <button
               type="button"
               onClick={() => {
                 const el = document.getElementById('sidebar-tabs-scroll');
@@ -1804,7 +1799,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             </button>
           )}
 
-          <div 
+          <div
             id="sidebar-tabs-scroll"
             onScroll={(e) => {
               const el = e.currentTarget;
@@ -1819,9 +1814,8 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                 setActiveTab('refine');
                 setIsEditingText(false);
               }}
-              className={`shrink-0 px-6 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 rounded h-[28px] ${
-                activeTab === 'refine' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
-              }`}
+              className={`shrink-0 px-6 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 rounded h-[28px] ${activeTab === 'refine' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
             >
               <Sparkles size={10} /> AI Refine
             </button>
@@ -1831,9 +1825,8 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                 setActiveTab('theme');
                 setIsEditingText(false);
               }}
-              className={`shrink-0 px-6 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 rounded h-[28px] ${
-                activeTab === 'theme' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
-              }`}
+              className={`shrink-0 px-6 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 rounded h-[28px] ${activeTab === 'theme' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
             >
               <Palette size={10} /> Theme
             </button>
@@ -1845,16 +1838,15 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                 setActiveTab('sections');
                 setIsEditingText(false);
               }}
-              className={`shrink-0 px-6 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 rounded h-[28px] ${
-                activeTab === 'sections' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
-              }`}
+              className={`shrink-0 px-6 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 rounded h-[28px] ${activeTab === 'sections' ? 'bg-[#d4f000] text-[#080808]' : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
             >
               <Grid size={10} /> Sections
             </button>
           </div>
 
           {showRightArrow && (
-            <button 
+            <button
               type="button"
               onClick={() => {
                 const el = document.getElementById('sidebar-tabs-scroll');
@@ -1883,16 +1875,14 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                     className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
                   >
                     <div
-                      className={`max-w-[85%] p-3 pb-4 rounded-lg text-xs leading-relaxed relative shadow-md ${
-                        msg.sender === 'user'
+                      className={`max-w-[85%] p-3 pb-4 rounded-lg text-xs leading-relaxed relative shadow-md ${msg.sender === 'user'
                           ? 'bg-[#d4f000] text-[#080808] font-semibold rounded-tr-none'
                           : 'bg-[#1a1a1a] border border-white/5 text-white/90 rounded-tl-none'
-                      }`}
+                        }`}
                     >
                       <p className="whitespace-pre-wrap">{msg.text}</p>
-                      <span className={`absolute bottom-1 right-2 text-[8px] font-mono select-none ${
-                        msg.sender === 'user' ? 'text-[#080808]/50' : 'text-white/30'
-                      }`}>
+                      <span className={`absolute bottom-1 right-2 text-[8px] font-mono select-none ${msg.sender === 'user' ? 'text-[#080808]/50' : 'text-white/30'
+                        }`}>
                         {msg.timestamp}
                       </span>
                     </div>
@@ -2021,11 +2011,10 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                         key={comp.type}
                         type="button"
                         onClick={() => handleAddSection(comp.type)}
-                        className={`w-full flex items-center justify-between gap-3 p-2.5 rounded border text-left transition-all ${
-                          alreadyAdded
+                        className={`w-full flex items-center justify-between gap-3 p-2.5 rounded border text-left transition-all ${alreadyAdded
                             ? 'border-[#d4f000]/30 bg-[#d4f000]/5 cursor-pointer hover:bg-[#d4f000]/10'
                             : 'border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20'
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-2.5">
                           <span className="text-xs w-5 h-5 flex items-center justify-center text-white/60 group-hover:text-[#d4f000] transition-colors">
@@ -2132,7 +2121,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
 
                   <div className="flex items-center justify-between">
                     <label className="text-[9px] font-bold uppercase text-white/60 tracking-wider">
-                      Show Name in Header
+                      Show Name in Navbar
                     </label>
                     <input
                       type="checkbox"
@@ -2163,11 +2152,10 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                             setCurrentTheme(presets[0].colors);
                           }
                         }}
-                        className={`p-2 rounded border text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all text-left ${
-                          active
+                        className={`p-2 rounded border text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all text-left ${active
                             ? 'bg-[#d4f000] text-[#080808] border-[#d4f000]'
                             : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10'
-                        }`}
+                          }`}
                       >
                         <span className="text-[10px] w-3.5 h-3.5 flex items-center justify-center shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
                           <i className={f.icon}></i>
@@ -2198,11 +2186,10 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                         key={preset.id}
                         type="button"
                         onClick={() => setCurrentTheme(preset.colors)}
-                        className={`p-2.5 rounded border text-left flex items-center justify-between transition-all ${
-                          isSelected
+                        className={`p-2.5 rounded border text-left flex items-center justify-between transition-all ${isSelected
                             ? 'border-[#d4f000] bg-[#d4f000]/10'
                             : 'border-white/10 bg-white/5 hover:bg-white/10'
-                        }`}
+                          }`}
                       >
                         <span className={`text-[10px] font-bold uppercase tracking-wider ${isSelected ? 'text-[#d4f000]' : 'text-white/80'}`}>
                           {preset.name}
@@ -2472,11 +2459,10 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                                 key={align}
                                 type="button"
                                 onClick={() => updateElement('textAlign', align)}
-                                className={`flex-1 py-1.5 text-[9px] font-bold uppercase transition-colors ${
-                                  (selectedElement.textAlign || 'left') === align
+                                className={`flex-1 py-1.5 text-[9px] font-bold uppercase transition-colors ${(selectedElement.textAlign || 'left') === align
                                     ? 'bg-[#d4f000] text-[#080808]'
                                     : 'text-white/60 hover:bg-white/5 hover:text-white'
-                                }`}
+                                  }`}
                               >
                                 {align}
                               </button>
@@ -2504,7 +2490,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                       )}
 
                       {/* Layering Z-Index */}
-                                            <div>
+                      <div>
                         <label className="text-[8px] font-bold uppercase text-white/40 block mb-1">Z-Index Layering</label>
                         <div className="grid grid-cols-2 gap-2">
                           <button
@@ -2599,8 +2585,8 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
               </span>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={openPublishModal}
             className="w-full bg-[#d4f000] hover:bg-[#b8d000] text-[#080808] py-2.5 rounded font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-1.5 shadow-md">
             {currentPublishedSubdomain ? 'Republish Web App' : 'Publish to Web'}
@@ -2618,9 +2604,8 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
               <button
                 type="button"
                 onClick={() => setViewMode('desktop')}
-                className={`px-3 py-1 text-xs font-bold rounded flex items-center gap-1.5 transition-all cursor-pointer ${
-                  viewMode === 'desktop' ? 'bg-[#d4f000] text-[#080808] shadow-sm' : 'text-white/60 hover:text-white'
-                }`}
+                className={`px-3 py-1 text-xs font-bold rounded flex items-center gap-1.5 transition-all cursor-pointer ${viewMode === 'desktop' ? 'bg-[#d4f000] text-[#080808] shadow-sm' : 'text-white/60 hover:text-white'
+                  }`}
               >
                 <Laptop size={13} />
                 <span>Desktop</span>
@@ -2628,9 +2613,8 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
               <button
                 type="button"
                 onClick={() => setViewMode('mobile')}
-                className={`px-3 py-1 text-xs font-bold rounded flex items-center gap-1.5 transition-all cursor-pointer ${
-                  viewMode === 'mobile' ? 'bg-[#d4f000] text-[#080808] shadow-sm' : 'text-white/60 hover:text-white'
-                }`}
+                className={`px-3 py-1 text-xs font-bold rounded flex items-center gap-1.5 transition-all cursor-pointer ${viewMode === 'mobile' ? 'bg-[#d4f000] text-[#080808] shadow-sm' : 'text-white/60 hover:text-white'
+                  }`}
               >
                 <Smartphone size={13} />
                 <span>Mobile</span>
@@ -2644,22 +2628,21 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
 
         {/* Scroll Container Outer Area */}
         <div className={`flex-1 overflow-y-auto w-full transition-all duration-300 ${viewMode === 'mobile' ? 'py-8 px-4 flex justify-center bg-[#070708]' : ''}`}>
-          <div 
+          <div
             id="preview-scroll-container"
             onDragOver={handlePreviewDragOver}
             onDrop={handlePreviewDrop}
             onMouseDown={handlePreviewClick}
-            className={`relative transition-all duration-300 ${
-              viewMode === 'mobile' 
-                ? 'is-mobile-view w-full max-w-[340px] min-h-[700px] border-[8px] border-[#222226] rounded-[36px] shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-x-hidden' 
+            className={`relative transition-all duration-300 ${viewMode === 'mobile'
+                ? 'is-mobile-view w-full max-w-[340px] min-h-[700px] border-[8px] border-[#222226] rounded-[36px] shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-x-hidden'
                 : 'w-full min-h-full border-none rounded-none shadow-none'
-            }`}
-            style={{ 
+              }`}
+            style={{
               backgroundColor: 'var(--color-bg-base, #ffffff)',
               color: `var(--color-text-base, ${isLight(activeTheme?.background) ? '#000000' : '#ffffff'})`
             }}
           >
-             {/* Generated Site Navbar */}
+            {/* Generated Site Navbar */}
             <SiteNavbar businessName={currentBusinessName} sections={sections} theme={currentTheme || theme} logo={currentLogo} feel={currentFeel || feel} showBusinessName={showBusinessName} />
 
             {/* Sections */}
@@ -2674,11 +2657,11 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
               >
                 <div className="min-h-full w-full">
                   {mainSections.map((section, idx) => (
-                    <SortableSection 
-                      key={section.id} 
-                      id={section.id} 
-                      section={section} 
-                      feel={currentFeel || feel} 
+                    <SortableSection
+                      key={section.id}
+                      id={section.id}
+                      section={section}
+                      feel={currentFeel || feel}
                       isEditingText={true}
                       isExpanded={expandedSectionId === section.id}
                       onClick={() => setExpandedSectionId(section.id)}
@@ -2700,17 +2683,16 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
 
             {/* Footer always at bottom */}
             {footerSection && (
-              <div 
+              <div
                 id={`section-${footerSection.id}`}
                 onClick={() => setExpandedSectionId(footerSection.id)}
-                className={`transition-all duration-300 relative z-0 cursor-pointer ${
-                  expandedSectionId === footerSection.id 
-                    ? 'ring-4 ring-[#d4f000] ring-offset-4 ring-offset-black' 
+                className={`transition-all duration-300 relative z-0 cursor-pointer ${expandedSectionId === footerSection.id
+                    ? 'ring-4 ring-[#d4f000] ring-offset-4 ring-offset-black'
                     : 'hover:ring-2 hover:ring-primary hover:ring-inset'
-                }`}
+                  }`}
               >
-                <EditableContext.Provider value={{ 
-                  isEditingText: true, 
+                <EditableContext.Provider value={{
+                  isEditingText: true,
                   isMediaMode: activeTab === 'media',
                   selectedText,
                   onSelectText: (path) => setSelectedText({ sectionId: footerSection.id, path }),
@@ -2721,15 +2703,15 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                 </EditableContext.Provider>
               </div>
             )}
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
 
       {/* Publish Modal */}
       {showPublishModal && (
         <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4">
           <div className="bg-[#0e0e0e] border border-white/10 rounded-xl p-8 max-w-md w-full relative shadow-2xl">
-            <button 
+            <button
               onClick={() => setShowPublishModal(false)}
               className="absolute top-4 right-4 text-white/50 hover:text-white"
             >
@@ -2737,7 +2719,7 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             </button>
             <h2 className="text-2xl font-black text-white uppercase tracking-wider mb-2">Publish Website</h2>
             <p className="text-sm text-white/60 mb-6">Claim your subdomain and go live instantly.</p>
-            
+
             {publishSuccessUrl ? (
               <div className="space-y-6">
                 <div className="bg-emerald-500/10 border border-emerald-500/30 rounded p-4 text-center">
@@ -2772,12 +2754,11 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                       value={subdomainInput}
                       onChange={handleSubdomainChange}
                       placeholder="my-startup"
-                      className={`flex-1 bg-white/5 border border-r-0 rounded-l p-3 text-white focus:outline-none transition-colors ${
-                        subdomainStatus === 'taken' ? 'border-red-500/60 focus:border-red-500' :
-                        subdomainStatus === 'available' ? 'border-emerald-500/60 focus:border-emerald-500' :
-                        subdomainStatus === 'yours' ? 'border-[#d4f000]/50 focus:border-[#d4f000]' :
-                        'border-white/10 focus:border-[#d4f000]'
-                      }`}
+                      className={`flex-1 bg-white/5 border border-r-0 rounded-l p-3 text-white focus:outline-none transition-colors ${subdomainStatus === 'taken' ? 'border-red-500/60 focus:border-red-500' :
+                          subdomainStatus === 'available' ? 'border-emerald-500/60 focus:border-emerald-500' :
+                            subdomainStatus === 'yours' ? 'border-[#d4f000]/50 focus:border-[#d4f000]' :
+                              'border-white/10 focus:border-[#d4f000]'
+                        }`}
                       required
                     />
                     <span className="bg-white/5 border border-l-0 border-white/10 rounded-r p-3 text-white/40 select-none text-xs flex items-center">
@@ -2796,9 +2777,9 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
                   className="w-full bg-[#d4f000] text-[#080808] font-bold uppercase tracking-wider py-3 rounded hover:bg-[#b8d000] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isPublishing ? <Loader2 size={16} className="animate-spin" /> :
-                   currentPublishedSubdomain && subdomainInput.trim() === currentPublishedSubdomain ? 'Republish (Update Live Site)' :
-                   currentPublishedSubdomain ? 'Publish on New Domain' :
-                   'Publish Now'}
+                    currentPublishedSubdomain && subdomainInput.trim() === currentPublishedSubdomain ? 'Republish (Update Live Site)' :
+                      currentPublishedSubdomain ? 'Publish on New Domain' :
+                        'Publish Now'}
                 </button>
 
                 {currentPublishedSubdomain && (
