@@ -248,7 +248,7 @@ export function SiteNavbar({ businessName, sections, theme, logo, feel, showBusi
         {/* Desktop Navigation Link Items */}
         <div className="hidden md:flex items-center gap-1 flex-1 justify-center relative">
           {visibleLinks.map(link => {
-            const hasDropdown = ['features', 'services', 'pricing', 'products'].includes(link.type);
+            const hasDropdown = false;
             const isActive = activeSection === `section-${link.id}`;
 
             return (
@@ -1196,6 +1196,29 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
     if (!e.target.closest('[contenteditable]') && !e.target.closest('input') && !e.target.closest('select') && !e.target.closest('textarea') && !e.target.closest('button')) {
       setSelectedText(null);
     }
+  };
+
+  const handlePreviewContentClick = (e) => {
+    // Intercept clicks on links and buttons in the preview to prevent navigation/actions
+    const interactive = e.target.closest('a, button, input[type="submit"]');
+    if (interactive) {
+      // If it is NOT an editor control (editor controls are placed in absolute overlays, label tags, or file inputs)
+      const isEditorControl = 
+        !interactive.closest('nav') && (
+          interactive.closest('.absolute') || 
+          interactive.closest('label') || 
+          interactive.type === 'file'
+        );
+        
+      if (!isEditorControl) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+  };
+
+  const handlePreviewFormSubmit = (e) => {
+    e.preventDefault();
   };
 
   const handlePreviewDragOver = (e) => {
@@ -2633,6 +2656,8 @@ export default function WebsiteBuilder({ initialSpec, theme, businessName, pages
             onDragOver={handlePreviewDragOver}
             onDrop={handlePreviewDrop}
             onMouseDown={handlePreviewClick}
+            onClick={handlePreviewContentClick}
+            onSubmit={handlePreviewFormSubmit}
             className={`relative transition-all duration-300 ${viewMode === 'mobile'
                 ? 'is-mobile-view w-full max-w-[340px] min-h-[700px] border-[8px] border-[#222226] rounded-[36px] shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-x-hidden'
                 : 'w-full min-h-full border-none rounded-none shadow-none'

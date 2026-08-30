@@ -245,36 +245,7 @@ function StepGoal({ data, onChange, onSuggest, suggesting, suggestSuccess }) {
         />
       </div>
 
-      <div className="flex items-center gap-4 py-1">
-        <button
-          type="button"
-          onClick={onSuggest}
-          disabled={suggesting || !data.name.trim() || !data.industry.trim()}
-          className="flex items-center gap-2 px-4 py-2 border text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-40"
-          style={{
-            borderColor: ACCENT,
-            color: '#080808',
-            background: ACCENT,
-          }}
-        >
-          {suggesting ? (
-            <>
-              <Loader2 size={12} className="animate-spin text-[#080808]" />
-              AI Analyzing...
-            </>
-          ) : (
-            <>
-              <Sparkles size={12} className="text-[#080808]" />
-              AI Auto-fill rest of setup
-            </>
-          )}
-        </button>
-        {suggestSuccess && (
-          <span className="text-xs text-[#d4f000] font-bold animate-pulse">
-            ✓ Auto-filled branding & settings!
-          </span>
-        )}
-      </div>
+
 
       <div>
         <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-3">Main Goal</label>
@@ -308,8 +279,8 @@ function StepGoal({ data, onChange, onSuggest, suggesting, suggestSuccess }) {
       )}
 
       <div className="pt-6 mt-6 border-t border-white/10">
-        <h3 className="text-sm font-bold text-[#d4f000] uppercase tracking-wider mb-4">Detailed Business Info (For AI Context)</h3>
-        
+        <h3 className="text-sm font-bold text-[#d4f000] uppercase tracking-wider mb-4">Detailed Business Info</h3>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           <div>
             <label className="block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2">Tagline / Unique Selling Point</label>
@@ -485,19 +456,19 @@ function StepPages({ data, onChange }) {
 // Maps feel to actual CSS font families used in themeHelper.js
 const FEEL_FONT_MAP = {
   professional: "'Inter', 'Segoe UI', sans-serif",
-  minimal:      "'Inter', 'Segoe UI', sans-serif",
-  luxury:       "'Georgia', 'Times New Roman', serif",
-  friendly:     "'Inter', 'Segoe UI', sans-serif",
-  futuristic:   "'Inter', 'Segoe UI', sans-serif",
-  playful:      "'Inter', 'Segoe UI', sans-serif",
-  bold:         "'Courier New', 'Courier', monospace",
+  minimal: "'Inter', 'Segoe UI', sans-serif",
+  luxury: "'Georgia', 'Times New Roman', serif",
+  friendly: "'Inter', 'Segoe UI', sans-serif",
+  futuristic: "'Inter', 'Segoe UI', sans-serif",
+  playful: "'Inter', 'Segoe UI', sans-serif",
+  bold: "'Courier New', 'Courier', monospace",
 };
 
 // Maps fontStyle chip selection to explicit font family override
 const FONTSTYLE_MAP = {
-  modern:  "'Inter', 'Segoe UI', sans-serif",
+  modern: "'Inter', 'Segoe UI', sans-serif",
   elegant: "'Georgia', 'Playfair Display', serif",
-  bold:    "'Courier New', monospace",
+  bold: "'Courier New', monospace",
   minimal: "'Inter', Arial, sans-serif",
 };
 
@@ -756,8 +727,8 @@ function StepBrand({ data, onChange }) {
     data.themeId === 'custom'
       ? { id: 'custom', name: 'Custom', colors: customColors }
       : ALL_THEMES.find(t => t.id === (data.themeId || 'bold-neon'))
-        || ALL_THEMES.find(t => t.id === (LEGACY_THEME_MAP[data.themeId] || 'bold-neon'))
-        || ALL_THEMES[0];
+      || ALL_THEMES.find(t => t.id === (LEGACY_THEME_MAP[data.themeId] || 'bold-neon'))
+      || ALL_THEMES[0];
 
   const previewColors = data.themeId === 'custom' ? customColors : selectedTheme.colors;
 
